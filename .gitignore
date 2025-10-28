@@ -44,10 +44,11 @@ storybook-static/
 # Prisma
 /generated/prisma
 
-# Documentation (exclude most MD files except task.md and prd.md)
+# Documentation (exclude most MD files except task.md, prd.md, and README.md)
 *.md
 !agent-helpers/tasks/task.md
 !docs/prd.md
+!README.md
 
 # Cursor specific files
 .cursor-updates
