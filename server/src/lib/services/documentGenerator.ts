@@ -43,7 +43,7 @@ export async function generateBRD(
   // Call AI
   const response = await generateCompletion(messages, {
     temperature: 0.7,
-    maxTokens: 3000,
+    maxTokens: 8000, // Increased for comprehensive BRD documents
   });
 
   const rawContent = response.content;
@@ -90,7 +90,7 @@ export async function generatePRD(
   // Call AI
   const response = await generateCompletion(messages, {
     temperature: 0.7,
-    maxTokens: 4000,
+    maxTokens: 10000, // Increased for comprehensive PRD documents
   });
 
   const rawContent = response.content;
@@ -137,7 +137,7 @@ export async function generateTasks(
   // Call AI
   const response = await generateCompletion(messages, {
     temperature: 0.6,
-    maxTokens: 5000,
+    maxTokens: 8000, // Increased for comprehensive task lists
   });
 
   const rawContent = response.content;

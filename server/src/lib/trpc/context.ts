@@ -41,10 +41,19 @@ export async function createContext({
       const payload = verifyToken(token);
       
       if (payload) {
-        // Fetch full user from database
-        user = await prisma.user.findUnique({
-          where: { id: payload.userId },
-        });
+        const where =
+          payload.userId ? { id: payload.userId } :
+          payload.email ? { email: payload.email } :
+          null;
+
+        if (where) {
+          // Fetch full user from database
+          user = await prisma.user.findUnique({
+            where,
+          });
+        } else {
+          console.warn('JWT payload missing userId and email');
+        }
       }
     } catch (error) {
       // Token verification failed, user remains null
@@ -61,4 +70,3 @@ export async function createContext({
 }
 
 export type AppContext = Awaited<ReturnType<typeof createContext>>;
-

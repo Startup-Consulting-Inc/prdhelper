@@ -43,15 +43,21 @@ export function DropdownMenu({ trigger, items, align = 'right', className }: Dro
   }, [isOpen]);
 
   return (
-    <div className={cn('relative', className)} ref={menuRef}>
-      <div onClick={() => setIsOpen(!isOpen)}>
+    <div className={cn('relative inline-block', className)} ref={menuRef}>
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+      >
         {trigger}
       </div>
 
       {isOpen && (
         <div
           className={cn(
-            'absolute top-full mt-1 w-48 rounded-md shadow-lg bg-white dark:bg-gray-950 ring-1 ring-black ring-opacity-5 z-50',
+            'absolute top-full mt-1 w-48 rounded-md shadow-lg bg-white dark:bg-gray-950 ring-1 ring-black ring-opacity-5',
+            'z-[9999]',
             align === 'right' ? 'right-0' : 'left-0'
           )}
         >

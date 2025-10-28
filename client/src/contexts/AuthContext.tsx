@@ -30,6 +30,7 @@ interface AuthContextType {
   }) => Promise<void>;
   logout: () => void;
   updateUser: (user: User) => void;
+  setToken: (token: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -114,6 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(updatedUser);
   }, []);
 
+  // Set token function (for OAuth callback)
+  const handleSetToken = useCallback((newToken: string) => {
+    localStorage.setItem('auth_token', newToken);
+    setToken(newToken);
+  }, []);
+
   const value: AuthContextType = {
     user,
     token,
@@ -123,6 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     logout,
     updateUser,
+    setToken: handleSetToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

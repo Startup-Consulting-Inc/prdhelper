@@ -110,7 +110,8 @@ export const aiRouter = router({
       }
 
       // Build context for AI
-      let contextDoc: string | undefined;
+      let contextInfo = `\n\n### Project Context\n\n**Project Title:** ${project.title}\n**Project Description:** ${project.description}`;
+
       if (input.documentType === 'PRD') {
         // Include approved BRD for PRD context
         const brdDoc = await ctx.prisma.document.findFirst({
@@ -120,7 +121,9 @@ export const aiRouter = router({
             status: 'APPROVED',
           },
         });
-        contextDoc = brdDoc?.content;
+        if (brdDoc?.content) {
+          contextInfo += `\n\n### Approved BRD\n\n${brdDoc.content}`;
+        }
       }
 
       // Build AI messages
@@ -128,7 +131,7 @@ export const aiRouter = router({
       const aiMessages = [
         {
           role: 'system' as const,
-          content: systemPrompt.prompt + (contextDoc ? `\n\n### Approved BRD\n\n${contextDoc}` : ''),
+          content: systemPrompt.prompt + contextInfo,
         },
         ...messages.map((msg) => ({
           role: msg.role as 'user' | 'assistant',
@@ -138,7 +141,7 @@ export const aiRouter = router({
           role: 'user' as const,
           content:
             messages.length === 0
-              ? `Start the wizard. Ask the first question to gather requirements for the ${input.documentType}.`
+              ? `Start the wizard. Ask the first question to gather requirements for the ${input.documentType}. Reference the project title and description in your question.`
               : 'Based on the previous answer, ask the next relevant question.',
         },
       ];

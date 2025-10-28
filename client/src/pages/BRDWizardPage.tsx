@@ -26,7 +26,7 @@ export function BRDWizardPage() {
   const utils = trpc.useUtils();
 
   const { project, isLoading: isLoadingProject } = useProject(projectId!);
-  const { messages, isLoading: isLoadingMessages, addMessageAsync } = useConversation(
+  const { messages, isLoading: isLoadingMessages } = useConversation(
     projectId!,
     'BRD'
   );
@@ -59,32 +59,21 @@ export function BRDWizardPage() {
     setIsSubmitting(true);
 
     try {
-      // Add user answer to conversation
-      await addMessageAsync({
-        projectId: projectId!,
-        documentType: 'BRD',
-        role: 'user',
-        content: currentAnswer.trim(),
-      });
-
+      const answerText = currentAnswer.trim();
       setCurrentAnswer('');
 
-      // Get next AI question
-      const response = await askQuestionMutation.mutateAsync({
+      // Backend handles adding both user answer and AI question to conversation
+      await askQuestionMutation.mutateAsync({
         projectId: projectId!,
         documentType: 'BRD',
-        userAnswer: currentAnswer.trim(),
+        userAnswer: answerText,
       });
 
-      // Add AI question to conversation
-      if (response.question) {
-        await addMessageAsync({
-          projectId: projectId!,
-          documentType: 'BRD',
-          role: 'assistant',
-          content: response.question,
-        });
-      }
+      // Invalidate to refresh messages from backend
+      await utils.conversations.getByProject.invalidate({
+        projectId: projectId!,
+        documentType: 'BRD',
+      });
 
       // Note: User can manually generate when ready (after 3+ questions)
     } catch (err) {
@@ -129,21 +118,18 @@ export function BRDWizardPage() {
     setError(null);
 
     try {
-      // Get first question from AI
-      const response = await askQuestionMutation.mutateAsync({
+      // Backend handles adding AI question to conversation
+      await askQuestionMutation.mutateAsync({
         projectId: projectId!,
         documentType: 'BRD',
         userAnswer: undefined, // No answer yet, just starting
       });
 
-      if (response.question) {
-        await addMessageAsync({
-          projectId: projectId!,
-          documentType: 'BRD',
-          role: 'assistant',
-          content: response.question,
-        });
-      }
+      // Invalidate to refresh messages from backend
+      await utils.conversations.getByProject.invalidate({
+        projectId: projectId!,
+        documentType: 'BRD',
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start wizard');
     } finally {

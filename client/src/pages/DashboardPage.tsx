@@ -12,6 +12,7 @@ import { CreateProjectDialog } from '../components/project/CreateProjectDialog';
 import { ProjectList } from '../components/project/ProjectList';
 import { useProjects, useProjectStats } from '../hooks/useProjects';
 import { useAuth } from '../contexts/AuthContext';
+import { getPhaseProgress, type ProjectPhase } from '../lib/utils/stateMachine';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -123,6 +124,13 @@ export function DashboardPage() {
                     Admin
                   </Button>
                 )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/profile')}
+                >
+                  Profile
+                </Button>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   {user?.name}
                 </span>
@@ -220,7 +228,7 @@ export function DashboardPage() {
                 description: p.description,
                 mode: p.mode.toLowerCase() as 'plain' | 'technical',
                 status: p.status.toLowerCase() as 'active' | 'completed' | 'archived',
-                progress: 0, // Calculate based on documents if needed
+                progress: getPhaseProgress(p.currentPhase as ProjectPhase),
                 createdAt: new Date(p.createdAt),
                 updatedAt: new Date(p.updatedAt),
               }))}

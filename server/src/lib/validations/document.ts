@@ -55,6 +55,14 @@ export const regenerateDocumentSchema = z.object({
 });
 
 /**
+ * Update document schema
+ */
+export const updateDocumentSchema = z.object({
+  id: z.string().cuid('Invalid document ID'),
+  content: z.string().min(1, 'Content is required'),
+});
+
+/**
  * Export document schema
  */
 export const exportDocumentSchema = z.object({
@@ -69,6 +77,7 @@ export type GetDocumentsByProjectInput = z.infer<
 >;
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
 export type ApproveDocumentInput = z.infer<typeof approveDocumentSchema>;
+export type UpdateDocumentInput = z.infer<typeof updateDocumentSchema>;
 export type RegenerateDocumentInput = z.infer<typeof regenerateDocumentSchema>;
 export type ExportDocumentInput = z.infer<typeof exportDocumentSchema>;
 

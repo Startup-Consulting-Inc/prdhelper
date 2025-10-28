@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, RotateCcw, Download, Copy, Check, X, History } from 'lucide-react';
+import { ArrowLeft, CheckCircle, RotateCcw, Download, Copy, Check, X, History, FileDown, Edit, Save } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
@@ -15,12 +15,15 @@ import { Alert } from '../components/ui/Alert';
 import { DocumentPreview } from '../components/common/DocumentPreview';
 import { VersionHistory } from '../components/document/VersionHistory';
 import { useDocument } from '../hooks/useDocuments';
+import { useProject } from '../hooks/useProjects';
 import { trpc } from '../lib/trpc';
+import { exportToPDF, generatePDFFilename } from '../lib/utils/pdfExport';
 
 export function DocumentViewPage() {
   const { documentId } = useParams<{ documentId: string }>();
   const navigate = useNavigate();
   const { document: doc, isLoading } = useDocument(documentId!);
+  const { project } = useProject(doc?.projectId || '');
   const utils = trpc.useUtils();
 
   const [isApproving, setIsApproving] = useState(false);
@@ -30,9 +33,12 @@ export function DocumentViewPage() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
 
   const approveDocumentMutation = trpc.documents.approve.useMutation();
   const regenerateDocumentMutation = trpc.ai.regenerateDocument.useMutation();
+  const updateDocumentMutation = trpc.documents.update.useMutation();
 
   const handleApprove = async () => {
     if (!doc) return;
@@ -114,6 +120,78 @@ export function DocumentViewPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadPDF = async () => {
+    if (!doc || !project) return;
+
+    try {
+      setError(null);
+
+      // Generate filename
+      const filename = generatePDFFilename(doc.type, project.title);
+
+      // Get document title based on type
+      const documentTitle = doc.type === 'PROMPT_BUILD'
+        ? `Vibe Coding Prompt: ${project.title}`
+        : `${doc.type} Document: ${project.title}`;
+
+      // Export to PDF
+      await exportToPDF({
+        filename,
+        title: documentTitle,
+        content: doc.content,
+        metadata: {
+          author: 'PRD Helper',
+          subject: `${doc.type} - Version ${doc.version}`,
+          keywords: `${doc.type}, ${project.title}, version ${doc.version}`,
+        },
+      });
+
+      setSuccessMessage('PDF downloaded successfully!');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to download PDF');
+    }
+  };
+
+  const handleEdit = () => {
+    if (!doc) return;
+    setEditContent(doc.content);
+    setIsEditing(true);
+    setError(null);
+    setSuccessMessage(null);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent('');
+    setError(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!doc) return;
+
+    try {
+      setError(null);
+      setSuccessMessage(null);
+
+      await updateDocumentMutation.mutateAsync({
+        id: doc.id,
+        content: editContent,
+      });
+
+      // Invalidate queries to refresh data
+      await utils.documents.getById.invalidate({ id: doc.id });
+      await utils.documents.getByProjectId.invalidate({ projectId: doc.projectId });
+      await utils.projects.getById.invalidate({ id: doc.projectId });
+
+      setSuccessMessage('Document updated successfully! Version has been incremented.');
+      setIsEditing(false);
+      setEditContent('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update document');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -193,13 +271,22 @@ export function DocumentViewPage() {
                 onClick={handleDownload}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Download
+                Markdown
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDownloadPDF}
+                disabled={!project}
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                PDF
               </Button>
             </div>
           </div>
 
           {/* Action buttons */}
-          {doc.status === 'DRAFT' && (
+          {!isEditing && doc.status === 'DRAFT' && (
             <div className="flex items-center gap-3">
               <Button
                 variant="primary"
@@ -209,6 +296,14 @@ export function DocumentViewPage() {
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Approve Document
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleEdit}
+                disabled={isApproving || regenerateDocumentMutation.isPending}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
               </Button>
               <Button
                 variant="outline"
@@ -222,14 +317,44 @@ export function DocumentViewPage() {
             </div>
           )}
 
-          {doc.status === 'APPROVED' && (
+          {isEditing && (
+            <div className="flex items-center gap-3">
+              <Button
+                variant="primary"
+                onClick={handleSaveEdit}
+                isLoading={updateDocumentMutation.isPending}
+                disabled={updateDocumentMutation.isPending || !editContent.trim()}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={updateDocumentMutation.isPending}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          )}
+
+          {!isEditing && doc.status === 'APPROVED' && (
             <>
               <Alert variant="success" className="mt-4">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 This document was approved on{' '}
                 {doc.approvedAt ? new Date(doc.approvedAt).toLocaleDateString() : 'N/A'}
               </Alert>
-              <div className="mt-4">
+              <div className="mt-4 flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleEdit}
+                  disabled={regenerateDocumentMutation.isPending}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Document
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => setShowFeedbackModal(true)}
@@ -260,7 +385,21 @@ export function DocumentViewPage() {
       {/* Document Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
-          <DocumentPreview content={doc.content} />
+          {isEditing ? (
+            <div className="p-4">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full min-h-[600px] p-4 font-mono text-sm border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 resize-vertical"
+                placeholder="Edit document content..."
+              />
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                Editing in markdown format. Changes will create a new version and reset status to Draft.
+              </p>
+            </div>
+          ) : (
+            <DocumentPreview content={doc.content} />
+          )}
         </Card>
       </main>
 

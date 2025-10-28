@@ -10,6 +10,7 @@
  */
 
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 import { router, publicProcedure, protectedProcedure } from '../lib/trpc/trpc.js';
 import {
   signUpSchema,
@@ -279,5 +280,24 @@ export const authRouter = router({
 
     return { success: true, message: 'Account deleted successfully' };
   }),
+
+  /**
+   * Google OAuth Callback
+   *
+   * Handles Google OAuth callback and returns JWT token
+   */
+  googleCallback: publicProcedure
+    .input(z.object({
+      code: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // This will be called from the frontend after Google redirects back
+      // For now, we'll use Express routes to handle the actual OAuth flow
+      // This endpoint is for future direct tRPC integration if needed
+      throw new TRPCError({
+        code: 'NOT_IMPLEMENTED',
+        message: 'Use Express OAuth routes at /api/auth/google',
+      });
+    }),
 });
 

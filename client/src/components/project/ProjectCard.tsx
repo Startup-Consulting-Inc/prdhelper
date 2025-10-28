@@ -105,9 +105,9 @@ const ProjectCard = ({
           <DropdownMenu
             trigger={
               <button
-                onClick={(e) => e.stopPropagation()}
                 className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="Project actions"
+                type="button"
               >
                 <MoreVertical className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               </button>
@@ -165,4 +165,3 @@ const ProjectCard = ({
 ProjectCard.displayName = 'ProjectCard';
 
 export { ProjectCard };
-

@@ -4,6 +4,8 @@ import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
 import { AuthLayout } from './components/auth/AuthLayout';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { BRDWizardPage } from './pages/BRDWizardPage';
@@ -22,7 +24,7 @@ const extractErrorMessage = (error: unknown): string => {
   return 'Something went wrong. Please try again.';
 };
 
-function App() {
+function AppContent() {
   const { user, isAuthenticated, isLoading, login, signup } = useAuth();
   const [showSignup, setShowSignup] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -110,15 +112,25 @@ function App() {
 
   // Authenticated - show app with routing
   return (
+    <Routes>
+      <Route path="/" element={<DashboardPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+      <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
+      <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
+      <Route path="/documents/:documentId" element={<DocumentViewPage />} />
+      <Route path="/admin" element={<AdminPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-        <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
-        <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
-        <Route path="/documents/:documentId" element={<DocumentViewPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="*" element={<AppContent />} />
       </Routes>
     </BrowserRouter>
   );

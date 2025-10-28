@@ -446,6 +446,29 @@ This project is licensed under the MIT License.
 
 ## 📋 Recent Updates (October 27, 2025)
 
+### Version 2.1.0 - Authentication & UI Enhancements
+
+#### ✨ New Features
+1. **OAuth Integration** - Google OAuth authentication support
+2. **Profile Management** - User profile page with settings
+3. **PDF Export** - Export documents as PDF files
+4. **Enhanced State Management** - Improved state machine for better UX
+5. **Auth Callback Handling** - Proper OAuth callback processing
+
+#### 🔧 Technical Changes
+- Added OAuth authentication flow
+- New AuthCallbackPage and ProfilePage components
+- PDF export utility with document formatting
+- Enhanced state machine for project workflows
+- Improved authentication context and error handling
+- Updated package dependencies
+
+#### 🐛 Fixes
+- Fixed authentication flow issues
+- Improved error handling in auth components
+- Enhanced document preview functionality
+- Better state management across components
+
 ### Version 2.0.0 - Major Feature Release
 
 #### ✨ New Features
@@ -468,7 +491,7 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 2.0.0
+**Version**: 2.1.0
 **Last Updated**: October 27, 2025
 **Status**: ✅ Production Ready
 

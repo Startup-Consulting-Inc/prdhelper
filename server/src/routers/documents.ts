@@ -17,6 +17,7 @@ import {
   getDocumentByIdSchema,
   createDocumentSchema,
   approveDocumentSchema,
+  updateDocumentSchema,
   exportDocumentSchema,
 } from '../lib/validations/document.js';
 
@@ -207,6 +208,76 @@ export const documentsRouter = router({
       });
 
       return approvedDocument;
+    }),
+
+  /**
+   * Update document content (manual edit)
+   */
+  update: protectedProcedure
+    .input(updateDocumentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const document = await ctx.prisma.document.findUnique({
+        where: { id: input.id },
+        include: { project: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      // Verify ownership
+      if (document.project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to update this document',
+        });
+      }
+
+      // Save current version to history before updating
+      await ctx.prisma.documentVersion.create({
+        data: {
+          documentId: document.id,
+          version: document.version,
+          content: document.content,
+          rawContent: document.rawContent,
+          status: document.status,
+          approvedAt: document.approvedAt,
+          createdBy: ctx.user.id,
+        },
+      });
+
+      // Update document with incremented version and reset to DRAFT
+      const updatedDocument = await ctx.prisma.document.update({
+        where: { id: input.id },
+        data: {
+          content: input.content,
+          rawContent: input.content, // For manual edits, content and rawContent are the same
+          version: document.version + 1,
+          status: 'DRAFT',
+          approvedAt: null,
+        },
+      });
+
+      // Create audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: ctx.user.id,
+          action: 'DOCUMENT_UPDATED',
+          details: {
+            documentId: input.id,
+            projectId: document.projectId,
+            type: document.type,
+            previousVersion: document.version,
+            newVersion: updatedDocument.version,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+        },
+      });
+
+      return updatedDocument;
     }),
 
   /**
