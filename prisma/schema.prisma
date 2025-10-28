@@ -1,0 +1,294 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Authentication Models
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  password      String?   // Nullable for OAuth users
+  role          UserRole  @default(USER)
+  modePreference UserMode @default(PLAIN) @map("mode_preference")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  projects         Project[]
+  accounts         Account[]
+  sessions         Session[]
+  auditLogs        AuditLog[]
+  tokenUsage       TokenUsage[]
+  promptVersions   PromptVersion[]
+  documentVersions DocumentVersion[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// Project Models
+// ============================================
+
+model Project {
+  id           String        @id @default(cuid())
+  userId       String        @map("user_id")
+  title        String
+  description  String        @db.Text // Initial idea
+  mode         UserMode
+  status       ProjectStatus @default(ACTIVE)
+  currentPhase ProjectPhase  @default(BRD_QUESTIONS) @map("current_phase")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents     Document[]
+  conversations Conversation[]
+  tokenUsage    TokenUsage[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+model Document {
+  id          String         @id @default(cuid())
+  projectId   String         @map("project_id")
+  type        DocumentType
+  content     String         @db.Text // Cleaned content for display
+  rawContent  String         @db.Text @map("raw_content") // Content with markers
+  status      DocumentStatus @default(DRAFT)
+  version     Int            @default(1)
+  approvedAt  DateTime?      @map("approved_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  project  Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versions DocumentVersion[]
+
+  @@index([projectId])
+  @@index([type])
+  @@index([status])
+  @@map("documents")
+}
+
+model DocumentVersion {
+  id         String         @id @default(cuid())
+  documentId String         @map("document_id")
+  version    Int
+  content    String         @db.Text
+  rawContent String         @db.Text @map("raw_content")
+  status     DocumentStatus
+  approvedAt DateTime?      @map("approved_at")
+  createdBy  String         @map("created_by")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [createdBy], references: [id])
+
+  @@index([documentId])
+  @@index([version])
+  @@map("document_versions")
+}
+
+model Conversation {
+  id           String       @id @default(cuid())
+  projectId    String       @map("project_id")
+  documentType DocumentType @map("document_type")
+  messages     Json[] // Array of { role: string, content: string, timestamp: string }
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, documentType])
+  @@index([projectId])
+  @@map("conversations")
+}
+
+// ============================================
+// Admin Models
+// ============================================
+
+model SystemPrompt {
+  id        String       @id @default(cuid())
+  type      PromptType   @unique
+  prompt    String       @db.Text
+  isActive  Boolean      @default(true) @map("is_active")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  versions PromptVersion[]
+
+  @@map("system_prompts")
+}
+
+model PromptVersion {
+  id             String       @id @default(cuid())
+  promptId       String       @map("prompt_id")
+  prompt         String       @db.Text
+  version        Int
+  createdBy      String       @map("created_by")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  systemPrompt SystemPrompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  creator      User         @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@index([createdBy])
+  @@map("prompt_versions")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id") // Nullable for system actions
+  action    String
+  details   Json? // Additional context as JSON
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model TokenUsage {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  projectId   String?  @map("project_id")
+  operation   String   // e.g., "BRD_GENERATION", "PRD_GENERATION", "TASKS_GENERATION", "ASK_QUESTION"
+  model       String   // AI model used
+  tokensUsed  Int      @map("tokens_used")
+  cost        Float    // Estimated cost in USD
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([operation])
+  @@index([createdAt])
+  @@map("token_usage")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserMode {
+  PLAIN
+  TECHNICAL
+}
+
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum ProjectPhase {
+  BRD_QUESTIONS
+  BRD_GENERATING
+  BRD_READY
+  BRD_APPROVED
+  PRD_QUESTIONS
+  PRD_GENERATING
+  PRD_READY
+  PRD_APPROVED
+  PROMPT_BUILD_GENERATING
+  PROMPT_BUILD_READY
+  TASKS_GENERATING
+  TASKS_READY
+  COMPLETED
+}
+
+enum DocumentType {
+  BRD
+  PRD
+  PROMPT_BUILD
+  TASKS
+}
+
+enum DocumentStatus {
+  DRAFT
+  APPROVED
+}
+
+enum PromptType {
+  BRD_PLAIN
+  BRD_TECHNICAL
+  PRD_PLAIN
+  PRD_TECHNICAL
+  TASKS
+  PROMPT_BUILD
+}

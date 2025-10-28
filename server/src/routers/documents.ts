@@ -1,0 +1,419 @@
+/**
+ * Documents Router
+ * 
+ * tRPC router for document operations:
+ * - Get documents by project
+ * - Get document by ID
+ * - Create document
+ * - Approve document
+ * - Export document
+ */
+
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
+import { router, protectedProcedure } from '../lib/trpc/trpc.js';
+import {
+  getDocumentsByProjectSchema,
+  getDocumentByIdSchema,
+  createDocumentSchema,
+  approveDocumentSchema,
+  exportDocumentSchema,
+} from '../lib/validations/document.js';
+
+export const documentsRouter = router({
+  /**
+   * Get documents by project ID
+   */
+  getByProjectId: protectedProcedure
+    .input(getDocumentsByProjectSchema)
+    .query(async ({ ctx, input }) => {
+      // Verify project ownership
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.projectId },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Project not found',
+        });
+      }
+
+      if (project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to access these documents',
+        });
+      }
+
+      // Get documents
+      const documents = await ctx.prisma.document.findMany({
+        where: {
+          projectId: input.projectId,
+          ...(input.type && { type: input.type }),
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return documents;
+    }),
+
+  /**
+   * Get document by ID
+   */
+  getById: protectedProcedure
+    .input(getDocumentByIdSchema)
+    .query(async ({ ctx, input }) => {
+      const document = await ctx.prisma.document.findUnique({
+        where: { id: input.id },
+        include: { project: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      // Verify ownership
+      if (document.project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to access this document',
+        });
+      }
+
+      return document;
+    }),
+
+  /**
+   * Create document
+   */
+  create: protectedProcedure
+    .input(createDocumentSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Verify project ownership
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.projectId },
+      });
+
+      if (!project) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Project not found',
+        });
+      }
+
+      if (project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to create documents for this project',
+        });
+      }
+
+      // Create document
+      const document = await ctx.prisma.document.create({
+        data: {
+          projectId: input.projectId,
+          type: input.type,
+          content: input.content,
+          rawContent: input.rawContent,
+          status: 'DRAFT',
+          version: 1,
+        },
+      });
+
+      // Create audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: ctx.user.id,
+          action: 'DOCUMENT_CREATED',
+          details: {
+            documentId: document.id,
+            projectId: input.projectId,
+            type: input.type,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+        },
+      });
+
+      return document;
+    }),
+
+  /**
+   * Approve document and update project phase
+   */
+  approve: protectedProcedure
+    .input(approveDocumentSchema)
+    .mutation(async ({ ctx, input }) => {
+      const document = await ctx.prisma.document.findUnique({
+        where: { id: input.id },
+        include: { project: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      // Verify ownership
+      if (document.project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to approve this document',
+        });
+      }
+
+      // Approve document
+      const approvedDocument = await ctx.prisma.document.update({
+        where: { id: input.id },
+        data: {
+          status: 'APPROVED',
+          approvedAt: new Date(),
+        },
+      });
+
+      // Update project phase to next stage
+      const phaseMap: Record<string, string> = {
+        BRD: 'PRD_QUESTIONS',
+        PRD: document.project.mode === 'TECHNICAL' ? 'TASKS_GENERATING' : 'COMPLETED',
+        TASKS: 'COMPLETED',
+      };
+
+      const nextPhase = phaseMap[document.type];
+      if (nextPhase) {
+        await ctx.prisma.project.update({
+          where: { id: document.projectId },
+          data: { currentPhase: nextPhase as any },
+        });
+      }
+
+      // Create audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: ctx.user.id,
+          action: 'DOCUMENT_APPROVED',
+          details: {
+            documentId: input.id,
+            projectId: document.projectId,
+            type: document.type,
+            nextPhase,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+        },
+      });
+
+      return approvedDocument;
+    }),
+
+  /**
+   * Export document (returns formatted content)
+   */
+  exportDocument: protectedProcedure
+    .input(exportDocumentSchema)
+    .query(async ({ ctx, input }) => {
+      const document = await ctx.prisma.document.findUnique({
+        where: { id: input.id },
+        include: { project: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      // Verify ownership
+      if (document.project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to export this document',
+        });
+      }
+
+      // Format document with metadata
+      const metadata = {
+        title: `${document.type} - ${document.project.title}`,
+        date: document.createdAt.toISOString().split('T')[0],
+        version: document.version,
+        status: document.status,
+      };
+
+      const formattedContent = `---
+title: ${metadata.title}
+date: ${metadata.date}
+version: ${metadata.version}
+status: ${metadata.status}
+---
+
+${document.content}`;
+
+      return {
+        content: formattedContent,
+        filename: `${document.type}_${document.project.title.replace(/\s+/g, '_')}_v${document.version}.${input.format}`,
+        metadata,
+      };
+    }),
+
+  /**
+   * Get version history for a document
+   */
+  getVersionHistory: protectedProcedure
+    .input(z.object({ documentId: z.string().cuid() }))
+    .query(async ({ ctx, input }) => {
+      const document = await ctx.prisma.document.findUnique({
+        where: { id: input.documentId },
+        include: { project: true },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      // Verify ownership
+      if (document.project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to access this document',
+        });
+      }
+
+      // Get all versions
+      const versions = await ctx.prisma.documentVersion.findMany({
+        where: { documentId: input.documentId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { version: 'desc' },
+      });
+
+      return versions;
+    }),
+
+  /**
+   * Get specific version content
+   */
+  getVersion: protectedProcedure
+    .input(z.object({ versionId: z.string().cuid() }))
+    .query(async ({ ctx, input }) => {
+      const version = await ctx.prisma.documentVersion.findUnique({
+        where: { id: input.versionId },
+        include: {
+          document: {
+            include: { project: true },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!version) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Version not found',
+        });
+      }
+
+      // Verify ownership
+      if (version.document.project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to access this version',
+        });
+      }
+
+      return version;
+    }),
+
+  /**
+   * Restore a previous version
+   */
+  restoreVersion: protectedProcedure
+    .input(z.object({ versionId: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const version = await ctx.prisma.documentVersion.findUnique({
+        where: { id: input.versionId },
+        include: {
+          document: {
+            include: { project: true },
+          },
+        },
+      });
+
+      if (!version) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Version not found',
+        });
+      }
+
+      // Verify ownership
+      if (version.document.project.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to restore this version',
+        });
+      }
+
+      // Save current version to history before restoring
+      await ctx.prisma.documentVersion.create({
+        data: {
+          documentId: version.documentId,
+          version: version.document.version,
+          content: version.document.content,
+          rawContent: version.document.rawContent,
+          status: version.document.status,
+          approvedAt: version.document.approvedAt,
+          createdBy: ctx.user.id,
+        },
+      });
+
+      // Restore the old version as current with incremented version number
+      const restoredDocument = await ctx.prisma.document.update({
+        where: { id: version.documentId },
+        data: {
+          content: version.content,
+          rawContent: version.rawContent,
+          version: version.document.version + 1,
+          status: 'DRAFT',
+          approvedAt: null,
+        },
+      });
+
+      // Create audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: ctx.user.id,
+          action: 'DOCUMENT_VERSION_RESTORED',
+          details: {
+            documentId: version.documentId,
+            projectId: version.document.projectId,
+            restoredVersion: version.version,
+            newVersion: restoredDocument.version,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+        },
+      });
+
+      return restoredDocument;
+    }),
+});
+
