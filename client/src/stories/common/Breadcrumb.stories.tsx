@@ -59,10 +59,10 @@ export const ProjectDetailPage = {
           items={[
             { label: 'Home', href: '/' },
             { label: 'Projects', href: '/projects' },
-            { label: 'PRD Helper Project' },
+            { label: 'Clearly Project' },
           ]}
         />
-        <h1 className="mt-4 text-2xl font-bold">PRD Helper Project</h1>
+        <h1 className="mt-4 text-2xl font-bold">Clearly Project</h1>
       </div>
     </div>
   ),
@@ -76,7 +76,7 @@ export const DocumentViewPage = {
           items={[
             { label: 'Home', href: '/' },
             { label: 'Projects', href: '/projects' },
-            { label: 'PRD Helper', href: '/projects/123' },
+            { label: 'Clearly', href: '/projects/123' },
             { label: 'Business Requirements Document' },
           ]}
         />

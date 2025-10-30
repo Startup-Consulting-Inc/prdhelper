@@ -127,7 +127,7 @@ export const WizardProgress = {
 export const OnboardingFlow = {
   render: () => (
     <div className="max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-center">Welcome to PRD Helper</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">Welcome to Clearly</h2>
       
       <Stepper
         steps={[

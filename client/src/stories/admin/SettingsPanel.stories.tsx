@@ -21,7 +21,7 @@ const mockSections = [
     description: 'Manage your application preferences',
     content: (
       <div className="space-y-4">
-        <Input label="Application Name" defaultValue="PRD Helper" />
+        <Input label="Application Name" defaultValue="Clearly" />
         <Input label="Support Email" type="email" defaultValue="support@example.com" />
       </div>
     ),

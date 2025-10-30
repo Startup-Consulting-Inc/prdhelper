@@ -140,7 +140,7 @@ export function DocumentViewPage() {
         title: documentTitle,
         content: doc.content,
         metadata: {
-          author: 'PRD Helper',
+          author: 'Clearly',
           subject: `${doc.type} - Version ${doc.version}`,
           keywords: `${doc.type}, ${project.title}, version ${doc.version}`,
         },

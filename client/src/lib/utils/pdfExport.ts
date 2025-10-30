@@ -34,10 +34,10 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
   // Set document properties
   pdf.setProperties({
     title: title,
-    author: metadata?.author || 'PRD Helper',
+    author: metadata?.author || 'Clearly',
     subject: metadata?.subject || title,
     keywords: metadata?.keywords || '',
-    creator: 'PRD Helper Application',
+    creator: 'Clearly - The Intelligent Requirements Platform',
   });
 
   // Page dimensions

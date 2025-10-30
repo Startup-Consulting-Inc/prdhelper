@@ -4,11 +4,9 @@
  * Main dashboard showing user stats, projects, and quick actions.
  */
 
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { QuickActions } from '../components/dashboard/QuickActions';
-import { CreateProjectDialog } from '../components/project/CreateProjectDialog';
 import { ProjectList } from '../components/project/ProjectList';
 import { useProjects, useProjectStats } from '../hooks/useProjects';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,50 +18,13 @@ export function DashboardPage() {
   const {
     projects,
     isLoading: isLoadingProjects,
-    createProjectAsync,
-    isCreating: isCreatingProject,
     deleteProjectAsync,
     archiveProjectAsync,
   } = useProjects();
   const { stats, isLoading: isLoadingStats } = useProjectStats();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [createProjectError, setCreateProjectError] = useState<string | null>(null);
 
   const handleCreateProject = () => {
-    setCreateProjectError(null);
-    setIsCreateDialogOpen(true);
-  };
-
-  const handleCreateProjectSubmit = async (data: {
-    title: string;
-    description: string;
-    mode: 'plain' | 'technical';
-  }) => {
-    setCreateProjectError(null);
-    try {
-      const newProject = await createProjectAsync({
-        title: data.title,
-        description: data.description,
-        mode: data.mode === 'technical' ? 'TECHNICAL' : 'PLAIN',
-      });
-
-      setIsCreateDialogOpen(false);
-
-      if (newProject?.id) {
-        navigate(`/projects/${newProject.id}`);
-      }
-    } catch (error) {
-      setCreateProjectError(error instanceof Error ? error.message : 'Failed to create project');
-    }
-  };
-
-  const handleDialogChange = (open: boolean) => {
-    if (!open) {
-      setIsCreateDialogOpen(false);
-      setCreateProjectError(null);
-    } else {
-      setIsCreateDialogOpen(true);
-    }
+    navigate('/projects/new');
   };
 
   const handleViewProject = (id: string) => {
@@ -103,7 +64,7 @@ export function DashboardPage() {
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
                 <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  PRD Helper
+                  Clearly
                 </h1>
               </div>
               <div className="flex items-center gap-4">
@@ -111,7 +72,6 @@ export function DashboardPage() {
                   variant="primary"
                   size="sm"
                   onClick={handleCreateProject}
-                  disabled={isCreatingProject}
                 >
                   New Project
                 </Button>
@@ -216,7 +176,6 @@ export function DashboardPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleCreateProject}
-                disabled={isCreatingProject}
               >
                 New Project
               </Button>
@@ -241,14 +200,6 @@ export function DashboardPage() {
           </div>
         </main>
       </div>
-
-      <CreateProjectDialog
-        open={isCreateDialogOpen}
-        onOpenChange={handleDialogChange}
-        onSubmit={handleCreateProjectSubmit}
-        isLoading={isCreatingProject}
-        error={createProjectError ?? undefined}
-      />
     </>
   );
 }

@@ -288,7 +288,7 @@ export function ProfilePage() {
                     Default Mode
                   </label>
                   <div className="space-y-3">
-                    <label className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <label className="flex items-start p-4 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                       <input
                         type="radio"
                         value="PLAIN"
@@ -296,19 +296,25 @@ export function ProfilePage() {
                         onChange={(e) =>
                           setModePreference(e.target.value as 'PLAIN' | 'TECHNICAL')
                         }
-                        className="mr-3"
+                        className="mr-3 mt-1"
                       />
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                           Plain Mode
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Generates vibe coding prompts for AI development tools
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          For business stakeholders and non-technical users using AI-powered visual builders.
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                          <strong>Best for:</strong> V0, Lovable, Bubble, Replit, Bolt
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                          <strong>Generates:</strong> BRD and PRD with vibe coding prompts
                         </div>
                       </div>
                     </label>
 
-                    <label className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <label className="flex items-start p-4 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                       <input
                         type="radio"
                         value="TECHNICAL"
@@ -316,14 +322,20 @@ export function ProfilePage() {
                         onChange={(e) =>
                           setModePreference(e.target.value as 'PLAIN' | 'TECHNICAL')
                         }
-                        className="mr-3"
+                        className="mr-3 mt-1"
                       />
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                           Technical Mode
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Generates detailed task lists for manual development
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          For developers and technical teams using code-first development tools.
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                          <strong>Best for:</strong> CLI, Cursor, Claude Code, VS Code, IDEs
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                          <strong>Generates:</strong> BRD, PRD, and detailed technical task lists
                         </div>
                       </div>
                     </label>

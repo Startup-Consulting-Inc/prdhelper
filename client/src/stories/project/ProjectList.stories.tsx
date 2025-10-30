@@ -192,7 +192,7 @@ export const NewUserExperience = {
     <div>
       <div className="mb-4 p-4 bg-green-50 dark:bg-green-950 rounded-lg">
         <p className="text-sm text-green-700 dark:text-green-300">
-          <strong>Welcome to PRD Helper! 🎉</strong>
+          <strong>Welcome to Clearly! 🎉</strong>
           <br />
           This is what new users see. The empty state encourages creating the first project.
         </p>

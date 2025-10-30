@@ -201,7 +201,7 @@ export const OnboardingEmpty = {
     <div className="min-h-[400px] flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg">
       <EmptyState
         icon={Layers}
-        title="Welcome to PRD Helper"
+        title="Welcome to Clearly"
         description="Let's create your first project. Our AI will help you generate comprehensive requirements documents in minutes."
         action={{
           label: 'Get Started',

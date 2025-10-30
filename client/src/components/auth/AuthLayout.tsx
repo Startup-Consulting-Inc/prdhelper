@@ -60,18 +60,17 @@ const AuthLayout = ({
                 <FileText className="h-8 w-8" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">PRD Helper</h1>
-                <p className="text-sm text-white/80">AI-Powered Requirements</p>
+                <h1 className="text-2xl font-bold">Clearly</h1>
+                <p className="text-sm text-white/80">The Intelligent Requirements Platform</p>
               </div>
             </div>
 
             <h2 className="text-3xl font-bold mb-4">
-              Transform Ideas into Professional Requirements Documents
+              Requirements Made Clear
             </h2>
 
             <p className="text-lg text-white/90 mb-8">
-              Generate comprehensive BRDs, PRDs, and Task Lists in minutes with our
-              intelligent wizard. Save days of work while maintaining professional quality.
+              Transform ideas into professional BRDs and PRDs in minutes with AI-guided conversations. No templates. No guesswork. Just clear requirements.
             </p>
 
             <div className="space-y-4">
@@ -114,7 +113,7 @@ const AuthLayout = ({
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                PRD Helper
+                Clearly
               </h1>
             </div>
           </div>

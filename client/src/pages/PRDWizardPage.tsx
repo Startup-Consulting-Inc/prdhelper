@@ -2,10 +2,11 @@
  * PRD Wizard Page
  *
  * AI-powered Q&A wizard for generating Product Requirements Documents.
+ * Supports autoStart query param for seamless flow.
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, Loader2, FileText, CheckCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Textarea } from '../components/ui/Textarea';
@@ -22,6 +23,7 @@ import { trpc } from '../lib/trpc';
 export function PRDWizardPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
 
@@ -51,6 +53,18 @@ export function PRDWizardPage() {
     const assistantMessages = messages.filter((m: any) => m.role === 'assistant');
     setQuestionCount(assistantMessages.length);
   }, [messages]);
+
+  // Browser beforeunload event for tab close/refresh (warn on leaving page)
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (messages.length > 0 && !isGenerating) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [messages.length, isGenerating]);
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim() || isSubmitting) return;
@@ -134,6 +148,17 @@ export function PRDWizardPage() {
       setIsSubmitting(false);
     }
   };
+
+  // Auto-start wizard if autoStart query param is present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const shouldAutoStart = params.get('autoStart') === 'true';
+
+    if (shouldAutoStart && messages.length === 0 && !isLoadingMessages && !isSubmitting) {
+      handleStartWizard();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, messages.length, isLoadingMessages, isSubmitting]);
 
   if (isLoadingProject) {
     return (

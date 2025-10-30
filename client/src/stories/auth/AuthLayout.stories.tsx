@@ -152,7 +152,7 @@ export const LoadingState: Story = {
 // Complete signup flow
 export const CompleteSignupFlow: Story = {
   args: {
-    title: 'Get started with PRD Helper',
+    title: 'Get started with Clearly',
     subtitle: 'Create your free account in less than a minute',
     showBranding: true,
     children: (

@@ -1,0 +1,39 @@
+# .dockerignore for PRD Helper
+#
+# This file specifies files and directories to exclude from the Docker build context.
+# This optimizes build times and reduces the final image size.
+#
+# Recent Changes:
+# - [2025-10-30] Initial creation with standard ignores for Node.js projects.
+
+# Ignore node_modules, as they are installed within the Dockerfile
+node_modules
+client/node_modules
+
+# Ignore build output
+dist
+client/dist
+
+# Ignore Git files
+.git
+.gitignore
+
+# Ignore Docker files
+.dockerignore
+Dockerfile
+
+# Ignore documentation and environment files
+README.md
+docs
+.env
+.env.*
+!/.env.example
+
+# Ignore test reports and other temporary files
+playwright-report/
+test-results/
+storybook-static/
+
+# Ignore large media files
+*.mp4
+*.mov

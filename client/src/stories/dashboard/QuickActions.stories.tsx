@@ -121,7 +121,7 @@ export const NewUserOnboarding = {
       </div>
       <QuickActions
         onCreateProject={() => alert('Start your first project!')}
-        onHelp={() => alert('Learn how to use PRD Helper')}
+        onHelp={() => alert('Learn how to use Clearly')}
       />
     </div>
   ),

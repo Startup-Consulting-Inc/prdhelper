@@ -18,7 +18,7 @@ export interface HeaderProps {
 }
 
 const Header = ({
-  appName = 'PRD Helper',
+  appName = 'Clearly',
   userName = 'John Doe',
   userEmail = 'john@example.com',
   onMenuClick,
@@ -50,7 +50,7 @@ const Header = ({
             
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary-600 dark:bg-primary-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">PR</span>
+                <span className="text-white font-bold text-sm">CL</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{appName}</span>
             </div>

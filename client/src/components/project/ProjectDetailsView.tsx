@@ -108,7 +108,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'BRD WIZARD',
         action: 'Start BRD Wizard',
         icon: FileText,
-        handler: () => navigate(`/projects/${projectId}/wizard/brd`)
+        handler: () => navigate(`/projects/${projectId}/wizard/brd?autoStart=true`)
       };
     }
     if (brdDoc.status === 'DRAFT') {
@@ -126,7 +126,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'PRD WIZARD',
         action: 'Start PRD Wizard',
         icon: FileText,
-        handler: () => navigate(`/projects/${projectId}/wizard/prd`)
+        handler: () => navigate(`/projects/${projectId}/wizard/prd?autoStart=true`)
       };
     }
     if (prdDoc.status === 'DRAFT') {

@@ -4,9 +4,11 @@ import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
 import { AuthLayout } from './components/auth/AuthLayout';
+import { LandingPage } from './pages/LandingPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { DashboardPage } from './pages/DashboardPage';
+import { NewProjectPage } from './pages/NewProjectPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { BRDWizardPage } from './pages/BRDWizardPage';
 import { PRDWizardPage } from './pages/PRDWizardPage';
@@ -52,7 +54,7 @@ function AppContent() {
         subtitle={
           showSignup
             ? 'Start generating professional requirements documents with AI'
-            : 'Sign in to continue to PRD Helper'
+            : 'Sign in to continue to Clearly'
         }
         footer={
           <p className="text-center text-sm text-gray-600 dark:text-gray-400">
@@ -115,6 +117,7 @@ function AppContent() {
     <Routes>
       <Route path="/" element={<DashboardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/projects/new" element={<NewProjectPage />} />
       <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
       <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
       <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
@@ -129,6 +132,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="*" element={<AppContent />} />
       </Routes>

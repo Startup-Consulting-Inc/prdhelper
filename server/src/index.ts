@@ -1,3 +1,21 @@
+/**
+ * Main Express Server for PRD Helper
+ *
+ * This file sets up and runs the Express server, which serves three main purposes:
+ * 1. Serves the static frontend application build artifacts.
+ * 2. Handles all tRPC API requests under the /api/trpc endpoint.
+ * 3. Manages OAuth authentication routes.
+ *
+ * Key Behaviors:
+ * - Middleware order is critical: static files are served first, then CORS, then API routes.
+ * - A catch-all route `app.get('*', ...)` serves index.html for client-side routing.
+ * - The server port is configured via the PORT environment variable, defaulting to 3000.
+ *
+ * Recent Changes:
+ * - [2025-10-30] Reordered middleware to serve static files before CORS and API routes.
+ * - [2025-10-30] Updated static file path to align with Docker build structure.
+ * - [2025-10-30] Adjusted CORS policy to correctly handle same-origin requests in production.
+ */
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -17,7 +35,20 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+
+// Serve static files from the React app *before* other middleware
+const clientDistPath = path.join(__dirname, '../client');
+app.use(express.static(clientDistPath, {
+  setHeaders: (res, filePath) => {
+    // Set proper MIME types for video files
+    if (filePath.endsWith('.mp4')) {
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('Accept-Ranges', 'bytes');
+    }
+  }
+}));
+
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173,http://localhost:3000')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -26,17 +57,13 @@ const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, Postman, or server-side redirects)
-      if (!origin) {
+      // Allow requests with no origin (like same-origin requests from the browser,
+      // mobile apps, Postman, or server-side redirects)
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
       }
-      // Check if origin is in allowed list
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-      // In development, be more permissive
+      // In development, be more permissive for convenience
       if (process.env.NODE_ENV === 'development') {
         callback(null, true);
         return;
@@ -121,10 +148,6 @@ app.get('/health', (_req: Request, res: Response) => {
     environment: process.env.NODE_ENV || 'development',
   });
 });
-
-// Serve static files from the React app
-const clientDistPath = path.join(__dirname, '../../client/dist');
-app.use(express.static(clientDistPath));
 
 // All remaining requests return the React app, so it can handle routing
 app.get('*', (_req: Request, res: Response) => {

@@ -8,7 +8,7 @@ export interface FooterProps {
 }
 
 const Footer = ({
-  appName = 'PRD Helper',
+  appName = 'Clearly',
   year = new Date().getFullYear(),
   links = [
     { label: 'Privacy', href: '/privacy' },

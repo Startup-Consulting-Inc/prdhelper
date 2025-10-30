@@ -66,7 +66,7 @@ export const OAuthPermissionDenied: Story = {
       console.log('OAuth provider clicked:', provider);
     },
     error:
-      'Permission denied. PRD Helper needs access to your email address to create your account.',
+      'Permission denied. Clearly needs access to your email address to create your account.',
   },
 };
 
@@ -95,7 +95,7 @@ export const InAuthPage = {
     <div className="w-full max-w-md space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Sign in to PRD Helper
+          Sign in to Clearly
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Choose your preferred sign-in method
