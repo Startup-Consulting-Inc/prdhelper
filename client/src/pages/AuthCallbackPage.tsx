@@ -44,3 +44,5 @@ export function AuthCallbackPage() {
     </div>
   );
 }
+
+export default AuthCallbackPage;

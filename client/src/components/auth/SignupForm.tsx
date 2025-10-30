@@ -235,7 +235,8 @@ const SignupForm = ({ onSubmit, error, isLoading = false }: SignupFormProps) => 
         variant="outline"
         className="w-full flex items-center justify-center gap-2"
         onClick={() => {
-          window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/google`;
+          // Use relative URL to work in all environments (development and production)
+          window.location.href = '/api/auth/google';
         }}
         disabled={isLoading}
       >

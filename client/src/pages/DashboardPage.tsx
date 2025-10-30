@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { ProjectList } from '../components/project/ProjectList';
-import { useProjects, useProjectStats } from '../hooks/useProjects';
+import { useProjects, useProjectStats, type Project } from '../hooks/useProjects';
 import { useAuth } from '../contexts/AuthContext';
 import { getPhaseProgress, type ProjectPhase } from '../lib/utils/stateMachine';
 
@@ -181,7 +181,7 @@ export function DashboardPage() {
               </Button>
             </div>
             <ProjectList
-              projects={projects.map((p: any) => ({
+              projects={projects.map((p: Project) => ({
                 id: p.id,
                 title: p.title,
                 description: p.description,
@@ -204,3 +204,4 @@ export function DashboardPage() {
   );
 }
 
+export default DashboardPage;

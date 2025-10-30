@@ -17,7 +17,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { Alert } from '../components/ui/Alert';
 import { ConversationMessage } from '../components/wizard/ConversationMessage';
 import { useProject } from '../hooks/useProjects';
-import { useConversation } from '../hooks/useAI';
+import { useConversation, type Message } from '../hooks/useAI';
 import { trpc } from '../lib/trpc';
 
 export function BRDWizardPage() {
@@ -50,7 +50,7 @@ export function BRDWizardPage() {
 
   // Count questions asked
   useEffect(() => {
-    const assistantMessages = messages.filter((m: any) => m.role === 'assistant');
+    const assistantMessages = messages.filter((m: Message) => m.role === 'assistant');
     setQuestionCount(assistantMessages.length);
   }, [messages]);
 
@@ -280,9 +280,9 @@ export function BRDWizardPage() {
           ) : (
             // Conversation
             <div className="space-y-6">
-              {messages.map((message: any, index: number) => (
+              {messages.map((message: Message, index: number) => (
                 <ConversationMessage
-                  key={index}
+                  key={message.id || index}
                   role={message.role}
                   content={message.content}
                   timestamp={message.timestamp}
@@ -369,3 +369,4 @@ export function BRDWizardPage() {
   );
 }
 
+export default BRDWizardPage;

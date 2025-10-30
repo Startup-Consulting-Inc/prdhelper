@@ -488,3 +488,5 @@ export function DocumentViewPage() {
     </div>
   );
 }
+
+export default DocumentViewPage;

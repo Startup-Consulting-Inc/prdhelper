@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Google Cloud Run Deployment Script for PRD Helper
+#
+# This script automates the entire process of deploying the application to Google Cloud Run.
+# It handles project configuration, service enablement, container image building via
+# Cloud Build, and final deployment to the specified Cloud Run service.
+#
+# Key Behaviors:
+# - Sets the GCP project and enables necessary APIs.
+# - Creates an Artifact Registry repository if it doesn't exist.
+# - Submits the project to Cloud Build to build and push the Docker image.
+# - Deploys the new image to Cloud Run, making the service public.
+#
+# Recent Changes:
+# - [2025-10-30] Initial creation of the deployment script.
+
 # Deployment script for Google Cloud Run
 # This script builds a Docker image using Google Cloud Build, pushes it to
 # Artifact Registry, and deploys it to a Cloud Run service.

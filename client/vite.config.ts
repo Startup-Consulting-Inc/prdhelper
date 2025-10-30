@@ -25,6 +25,36 @@ export default defineConfig({
       '@': path.resolve(dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core and routing
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Form handling
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          // UI components
+          'ui-vendor': [
+            'lucide-react',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-radio-group',
+            'clsx',
+            'tailwind-merge'
+          ],
+          // PDF export
+          'pdf-vendor': ['jspdf', 'html2canvas', 'jspdf-autotable'],
+          // Markdown rendering
+          'markdown-vendor': ['react-markdown', 'remark-gfm', 'rehype-highlight'],
+          // tRPC and API
+          'trpc': ['@trpc/client', '@trpc/react-query', '@tanstack/react-query']
+        }
+      }
+    },
+    // Adjust chunk size warning limit
+    chunkSizeWarningLimit: 600
+  },
   server: {
     port: 5173,
     proxy: {

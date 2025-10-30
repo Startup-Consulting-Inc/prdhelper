@@ -1,10 +1,27 @@
 /**
  * AI Hook
- * 
+ *
  * Custom hook for AI-powered operations with tRPC.
  */
 
 import { trpc } from '../lib/trpc';
+
+// Type definitions
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date | string;
+}
+
+export interface Conversation {
+  id: string;
+  projectId: string;
+  documentType: 'BRD' | 'PRD' | 'TASKS';
+  messages: Message[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
 
 export function useWizard(projectId: string, documentType: 'BRD' | 'PRD') {
   const utils = trpc.useUtils();
@@ -59,15 +76,15 @@ export function useConversation(projectId: string, documentType: 'BRD' | 'PRD' |
     },
   });
 
-  // Extract data safely to avoid deep type instantiation
-  const conversation = conversationQuery.data as any;
-  const messages = (conversation?.messages || []) as any[];
+  // Extract data with proper types
+  const conversation = conversationQuery.data as Conversation | undefined;
+  const messages = (conversation?.messages || []) as Message[];
 
   return {
     conversation,
     messages,
     isLoading: conversationQuery.isLoading,
-    error: conversationQuery.error as any,
+    error: conversationQuery.error,
     addMessage: addMessage.mutate,
     addMessageAsync: addMessage.mutateAsync,
     isAddingMessage: addMessage.isPending,

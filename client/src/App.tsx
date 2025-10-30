@@ -1,20 +1,23 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
 import { AuthLayout } from './components/auth/AuthLayout';
-import { LandingPage } from './pages/LandingPage';
-import { AuthCallbackPage } from './pages/AuthCallbackPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { DashboardPage } from './pages/DashboardPage';
-import { NewProjectPage } from './pages/NewProjectPage';
-import { ProjectDetailPage } from './pages/ProjectDetailPage';
-import { BRDWizardPage } from './pages/BRDWizardPage';
-import { PRDWizardPage } from './pages/PRDWizardPage';
-import { DocumentViewPage } from './pages/DocumentViewPage';
-import { AdminPage } from './pages/AdminPage';
+import { Spinner } from './components/ui/Spinner';
 import './App.css';
+
+// Lazy load pages for code splitting
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const NewProjectPage = lazy(() => import('./pages/NewProjectPage'));
+const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
+const BRDWizardPage = lazy(() => import('./pages/BRDWizardPage'));
+const PRDWizardPage = lazy(() => import('./pages/PRDWizardPage'));
+const DocumentViewPage = lazy(() => import('./pages/DocumentViewPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
 
 const extractErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -114,28 +117,44 @@ function AppContent() {
 
   // Authenticated - show app with routing
   return (
-    <Routes>
-      <Route path="/" element={<DashboardPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/projects/new" element={<NewProjectPage />} />
-      <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-      <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
-      <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
-      <Route path="/documents/:documentId" element={<DocumentViewPage />} />
-      <Route path="/admin" element={<AdminPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/projects/new" element={<NewProjectPage />} />
+        <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+        <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
+        <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
+        <Route path="/documents/:documentId" element={<DocumentViewPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 }
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/landing" element={<LandingPage />} />
-        <Route path="/auth/callback" element={<AuthCallbackPage />} />
-        <Route path="*" element={<AppContent />} />
-      </Routes>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <Spinner size="lg" />
+          </div>
+        }
+      >
+        <Routes>
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="*" element={<AppContent />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

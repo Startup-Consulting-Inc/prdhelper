@@ -311,3 +311,5 @@ export function NewProjectPage() {
     </div>
   );
 }
+
+export default NewProjectPage;

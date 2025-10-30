@@ -67,13 +67,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (email: string, password: string) => {
       try {
         const result = await loginMutation.mutateAsync({ email, password });
-        
+
         // Save token
         localStorage.setItem('auth_token', result.token);
         setToken(result.token);
         setUser(result.user as User);
       } catch (error) {
-        console.error('Login error:', error);
+        // Error is handled by the caller
         throw error;
       }
     },
@@ -90,13 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }) => {
       try {
         const result = await signupMutation.mutateAsync(data);
-        
+
         // Save token
         localStorage.setItem('auth_token', result.token);
         setToken(result.token);
         setUser(result.user as User);
       } catch (error) {
-        console.error('Signup error:', error);
+        // Error is handled by the caller
         throw error;
       }
     },

@@ -1,10 +1,23 @@
 /**
  * Projects Hook
- * 
+ *
  * Custom hook for project operations with tRPC.
  */
 
 import { trpc } from '../lib/trpc';
+
+// Type definitions
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  mode: 'PLAIN' | 'TECHNICAL';
+  status: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  currentPhase: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  userId: string;
+}
 
 export function useProjects(filters?: {
   status?: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
