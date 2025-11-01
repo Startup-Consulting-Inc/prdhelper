@@ -4,8 +4,9 @@
  * Marketing/homepage for Clearly - the intelligent requirements platform.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Sparkles,
   FileText,
@@ -26,8 +27,16 @@ import { PublicFooter } from '../components/layout/PublicFooter';
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
