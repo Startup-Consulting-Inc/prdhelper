@@ -23,27 +23,14 @@ function getAuthToken(): string | null {
 
 /**
  * Get API URL based on environment
- * - In production: Use relative URL (same origin as frontend)
- * - In development: Use VITE_API_URL env var for cross-origin requests
+ * - In development: Use relative URL to leverage Vite proxy (/api -> localhost:3000)
+ * - In production: Use relative URL (backend serves frontend on same origin)
  */
 function getApiUrl(): string {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined') {
-    return 'http://localhost:3000';
-  }
-
-  // In production, backend serves frontend on same origin - use relative URL
-  // In development with Vite, VITE_API_URL is set, or we're on different ports
-  const viteApiUrl = (import.meta as any).env?.VITE_API_URL;
-
-  if (viteApiUrl) {
-    // Development with explicit API URL
-    return viteApiUrl;
-  }
-
-  // Production: use current origin (backend serves frontend)
-  // This works because in production, Express serves both frontend and API
-  return window.location.origin;
+  // Always use relative URL
+  // In development: Vite proxy forwards /api to localhost:3000
+  // In production: Backend serves frontend, so /api works directly
+  return '';
 }
 
 /**
@@ -52,7 +39,8 @@ function getApiUrl(): string {
 export const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: `${getApiUrl()}/api/trpc`,
+      // Use relative URL to leverage Vite proxy in development
+      url: '/api/trpc',
 
       // Include authentication token in headers
       headers() {
