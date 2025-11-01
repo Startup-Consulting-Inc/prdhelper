@@ -11,6 +11,8 @@ import { documentsRouter } from './documents.js';
 import { conversationsRouter } from './conversations.js';
 import { aiRouter } from './ai.js';
 import { adminRouter } from './admin.js';
+import { demoRouter } from './demo.js';
+import { contactRouter } from './contact.js';
 
 /**
  * App Router - combines all routers
@@ -22,6 +24,8 @@ export const appRouter = router({
   conversations: conversationsRouter,
   ai: aiRouter,
   admin: adminRouter,
+  demo: demoRouter, // Legacy - kept for backward compatibility
+  contact: contactRouter, // New contact router with inquiry types
 });
 
 /**

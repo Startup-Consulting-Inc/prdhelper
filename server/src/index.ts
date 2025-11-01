@@ -67,7 +67,7 @@ app.use(
         fontSrc: ["'self'", 'data:'],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
-        frameSrc: ["'none'"],
+        frameSrc: ["'self'", 'https://www.youtube.com', 'https://www.youtube-nocookie.com'], // Allow YouTube embeds
       },
     },
     crossOriginEmbedderPolicy: false, // Allow embedding for video playback

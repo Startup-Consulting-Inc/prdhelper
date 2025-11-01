@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================================
@@ -237,6 +238,33 @@ model TokenUsage {
 }
 
 // ============================================
+// Contact/Demo Request Models
+// ============================================
+
+model DemoRequest {
+  id            String            @id @default(cuid())
+  inquiryType   InquiryType       @default(DEMO) @map("inquiry_type")
+  name          String
+  email         String
+  company       String?
+  role          String?
+  teamSize      String?           @map("team_size")
+  subject       String?
+  message       String?           @db.Text
+  status        DemoRequestStatus @default(PENDING)
+  scheduledDate DateTime?         @map("scheduled_date")
+  adminNotes    String?           @db.Text @map("admin_notes")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@index([status])
+  @@index([inquiryType])
+  @@index([createdAt])
+  @@map("demo_requests")
+}
+
+// ============================================
 // Enums
 // ============================================
 
@@ -291,4 +319,21 @@ enum PromptType {
   PRD_TECHNICAL
   TASKS
   PROMPT_BUILD
+}
+
+enum InquiryType {
+  GENERAL
+  QUESTION
+  BUG_REPORT
+  DEMO
+  FEATURE_REQUEST
+  OTHER
+}
+
+enum DemoRequestStatus {
+  PENDING
+  CONTACTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
 }

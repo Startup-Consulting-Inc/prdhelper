@@ -20,32 +20,18 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { ScheduleDemoModal } from '../components/landing/ScheduleDemoModal';
+import { PublicHeader } from '../components/layout/PublicHeader';
+import { PublicFooter } from '../components/layout/PublicFooter';
 
 export function LandingPage() {
   const navigate = useNavigate();
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
-      {/* Navigation */}
-      <nav className="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Clearly</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-                Sign In
-              </Button>
-              <Button variant="primary" size="sm" onClick={() => navigate('/')}>
-                Get Started
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PublicHeader />
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -57,7 +43,7 @@ export function LandingPage() {
             Transform ideas into professional BRDs and PRDs in minutes with AI-guided conversations. No templates. No guesswork. Just clear requirements.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="primary" size="lg" onClick={() => navigate('/')}>
+            <Button variant="primary" size="lg" onClick={() => navigate('/login')}>
               Start Free Trial
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
@@ -285,7 +271,7 @@ export function LandingPage() {
             <Button
               variant="secondary"
               size="lg"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/login')}
               className="bg-white text-primary-600 hover:bg-gray-100"
             >
               Start Free Trial
@@ -294,7 +280,8 @@ export function LandingPage() {
             <Button
               variant="outline"
               size="lg"
-              className="border-white text-white hover:bg-white/10"
+              className="!bg-transparent border-white text-white hover:bg-white/10"
+              onClick={() => setShowDemoModal(true)}
             >
               Schedule Demo Call
             </Button>
@@ -302,23 +289,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-gray-950 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-center">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-5 w-5 text-primary-400" />
-              <span className="text-lg font-bold text-white">Clearly</span>
-            </div>
-            <p className="text-sm text-center">
-              Making Requirements Clear Since 2025
-            </p>
-            <p className="text-sm text-center mt-2">
-              Questions? Visit our Help Center or Contact Sales
-            </p>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
+
+      {/* Schedule Demo Modal */}
+      <ScheduleDemoModal isOpen={showDemoModal} onClose={() => setShowDemoModal(false)} />
 
       {/* Video Modal */}
       {showVideoModal && (
@@ -338,22 +312,17 @@ export function LandingPage() {
               <X className="h-8 w-8" />
             </button>
             <div className="bg-black rounded-lg overflow-hidden shadow-2xl">
-              <video
-                controls
-                autoPlay
-                muted
-                playsInline
-                className="w-full"
-                src="/videos/Clearly__Idea_to_Code.mp4"
-                onError={(e) => {
-                  console.error('Video error:', e);
-                  console.error('Video source:', e.currentTarget.src);
-                }}
-                onLoadStart={() => console.log('Video loading started')}
-                onCanPlay={() => console.log('Video can play')}
-              >
-                Your browser does not support the video tag.
-              </video>
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src="https://www.youtube-nocookie.com/embed/0k9RoSqR7UE?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1"
+                  title="Clearly Demo - Idea to Code"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                  style={{ border: 'none' }}
+                />
+              </div>
             </div>
           </div>
         </div>

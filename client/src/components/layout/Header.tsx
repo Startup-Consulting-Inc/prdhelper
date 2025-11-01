@@ -19,8 +19,8 @@ export interface HeaderProps {
 
 const Header = ({
   appName = 'Clearly',
-  userName = 'John Doe',
-  userEmail = 'john@example.com',
+  userName = 'Jaehee Song',
+  userEmail = 'jsong@clearly.ai',
   onMenuClick,
   onNotificationsClick,
   onProfileClick,

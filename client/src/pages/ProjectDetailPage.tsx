@@ -25,3 +25,4 @@ export function ProjectDetailPage() {
 }
 
 export default ProjectDetailPage;
+

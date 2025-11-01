@@ -39,8 +39,9 @@ RUN npm rebuild
 COPY . .
 
 # Generate Prisma client
-# A dummy DATABASE_URL is needed for the prisma generate command
+# Dummy database URLs are needed for the prisma generate command
 ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
+ENV DIRECT_URL="postgresql://dummy:dummy@dummy:5432/dummy"
 RUN npx prisma generate
 
 # Build the client and server

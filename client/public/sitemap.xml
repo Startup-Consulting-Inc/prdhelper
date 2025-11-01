@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap for PRD Helper
+
+  This file provides a map of the site's pages to help search engines like Google
+  discover and index the content more effectively. It includes the main static pages.
+
+  Recent Changes:
+  - [2025-10-30] Initial creation with main static pages and examples for dynamic routes.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Pages -->
+  <url>
+    <loc>https://clearly-711582759542.us-west1.run.app/</loc>
+    <lastmod>2025-10-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://clearly-711582759542.us-west1.run.app/login</loc>
+    <lastmod>2025-10-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clearly-711582759542.us-west1.run.app/signup</loc>
+    <lastmod>2025-10-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- The following are examples for dynamic content. -->
+  <!-- In a real application, this sitemap should be generated dynamically. -->
+  <!--
+  <url>
+    <loc>https://clearly-711582759542.us-west1.run.app/projects/example-project-id</loc>
+    <lastmod>2025-10-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://clearly-711582759542.us-west1.run.app/documents/example-document-id</loc>
+    <lastmod>2025-10-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  -->
+</urlset>

@@ -10,6 +10,8 @@ import './App.css';
 // Lazy load pages for code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
+const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage'));
+const TermsPage = lazy(() => import('./pages/public/TermsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const NewProjectPage = lazy(() => import('./pages/NewProjectPage'));
@@ -18,6 +20,27 @@ const BRDWizardPage = lazy(() => import('./pages/BRDWizardPage'));
 const PRDWizardPage = lazy(() => import('./pages/PRDWizardPage'));
 const DocumentViewPage = lazy(() => import('./pages/DocumentViewPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+
+// Public pages
+const AboutPage = lazy(() => import('./pages/public/AboutPage'));
+const CaseStudiesPage = lazy(() => import('./pages/public/CaseStudiesPage'));
+const BlogPage = lazy(() => import('./pages/public/BlogPage'));
+const ScheduleDemoPage = lazy(() => import('./pages/public/ScheduleDemoPage'));
+const ContactPage = lazy(() => import('./pages/public/ContactPage'));
+const VibeCodingPage = lazy(() => import('./pages/public/docs/VibeCodingPage'));
+const BRDDocPage = lazy(() => import('./pages/public/docs/BRDDocPage'));
+const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDGuidePage'));
+const PRDDocPage = lazy(() => import('./pages/public/docs/PRDDocPage'));
+const PRDGuidePage = lazy(() => import('./pages/public/docs/PRDGuidePage'));
+const SoftwareProcessPage = lazy(() => import('./pages/public/docs/SoftwareProcessPage'));
+const SoftwareProcessGuidePage = lazy(() => import('./pages/public/docs/SoftwareProcessGuidePage'));
+const HowToUsePage = lazy(() => import('./pages/public/docs/HowToUsePage'));
+
+// Blog Posts
+const AIAssistedDocumentationPost = lazy(() => import('./pages/public/blog/AIAssistedDocumentationPost'));
+const WhyEveryAIProjectNeedsPRDPost = lazy(() => import('./pages/public/blog/WhyEveryAIProjectNeedsPRDPost'));
+const CompleteGuideToWritingBRDsPost = lazy(() => import('./pages/public/blog/CompleteGuideToWritingBRDsPost'));
+const TranslateUserNeedsPost = lazy(() => import('./pages/public/blog/TranslateUserNeedsPost'));
 
 const extractErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -49,8 +72,18 @@ function AppContent() {
     );
   }
 
-  // Show auth screen if not authenticated
+  // If authenticated and on /login, redirect to dashboard
+  if (isAuthenticated && window.location.pathname === '/login') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Show auth screen if not authenticated (redirect to /login if needed)
   if (!isAuthenticated) {
+    // If trying to access a protected route, redirect to /login
+    if (window.location.pathname !== '/login') {
+      return <Navigate to="/login" replace />;
+    }
+
     return (
       <AuthLayout
         title={showSignup ? 'Create your account' : 'Welcome back'}
@@ -125,7 +158,7 @@ function AppContent() {
       }
     >
       <Routes>
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/projects/new" element={<NewProjectPage />} />
         <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
@@ -133,7 +166,7 @@ function AppContent() {
         <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
         <Route path="/documents/:documentId" element={<DocumentViewPage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Suspense>
   );
@@ -150,9 +183,28 @@ function App() {
         }
       >
         <Routes>
-          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
-          <Route path="*" element={<AppContent />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/case-studies" element={<CaseStudiesPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/ai-assisted-documentation" element={<AIAssistedDocumentationPost />} />
+          <Route path="/blog/why-every-ai-project-needs-prd" element={<WhyEveryAIProjectNeedsPRDPost />} />
+          <Route path="/blog/complete-guide-to-writing-brds" element={<CompleteGuideToWritingBRDsPost />} />
+          <Route path="/blog/translate-user-needs-to-requirements" element={<TranslateUserNeedsPost />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/schedule-demo" element={<Navigate to="/contact?type=demo" replace />} />
+          <Route path="/docs/vibe-coding" element={<VibeCodingPage />} />
+          <Route path="/docs/brd" element={<BRDDocPage />} />
+          <Route path="/docs/brd-guide" element={<BRDGuidePage />} />
+          <Route path="/docs/prd" element={<PRDDocPage />} />
+          <Route path="/docs/prd-guide" element={<PRDGuidePage />} />
+          <Route path="/docs/software-development-process" element={<SoftwareProcessPage />} />
+          <Route path="/docs/software-development-process-guide" element={<SoftwareProcessGuidePage />} />
+          <Route path="/docs/how-to-use" element={<HowToUsePage />} />
+          <Route path="/*" element={<AppContent />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
