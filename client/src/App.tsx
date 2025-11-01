@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
@@ -46,18 +46,25 @@ const extractErrorMessage = (error: unknown): string => {
 function AppContent() {
   const { user, isAuthenticated, isLoading, login, signup } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showSignup, setShowSignup] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
 
+  // Define public routes that don't require authentication
+  const publicRoutes = ['/', '/login', '/auth/callback', '/privacy', '/terms', '/about', '/case-studies', '/blog', '/schedule-demo'];
+  const isPublicRoute = publicRoutes.includes(location.pathname) ||
+                        location.pathname.startsWith('/docs/') ||
+                        location.pathname.startsWith('/blog/');
+
   // Redirect to dashboard when authenticated
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated && !isLoading && location.pathname === '/login') {
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, location.pathname, navigate]);
 
   // Show loading state
   if (isLoading) {
@@ -71,80 +78,81 @@ function AppContent() {
     );
   }
 
-  // If authenticated and on /login, redirect to dashboard
-  if (isAuthenticated && window.location.pathname === '/login') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // Show auth screen if not authenticated (redirect to /login if needed)
+  // Show auth screen if not authenticated
   if (!isAuthenticated) {
-    // If trying to access a protected route, redirect to /login
-    if (window.location.pathname !== '/login') {
+    // If on /login page, show login form
+    if (location.pathname === '/login') {
+      return (
+        <AuthLayout
+          title={showSignup ? 'Create your account' : 'Welcome back'}
+          subtitle={
+            showSignup
+              ? 'Start generating professional requirements documents with AI'
+              : 'Sign in to continue to Clearly'
+          }
+          footer={
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+              {showSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                onClick={() => {
+                  setShowSignup(!showSignup);
+                  setLoginError(null);
+                  setSignupError(null);
+                }}
+                className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
+              >
+                {showSignup ? 'Sign in' : 'Sign up'}
+              </button>
+            </p>
+          }
+        >
+          {showSignup ? (
+            <SignupForm
+              onSubmit={async ({ confirmPassword: _confirmPassword, ...data }) => {
+                setSignupError(null);
+                setIsSignupSubmitting(true);
+                try {
+                  await signup({
+                    ...data,
+                    modePreference: data.modePreference === 'technical' ? 'TECHNICAL' : 'PLAIN',
+                  });
+                } catch (error) {
+                  setSignupError(extractErrorMessage(error));
+                } finally {
+                  setIsSignupSubmitting(false);
+                }
+              }}
+              isLoading={isSignupSubmitting}
+              error={signupError ?? undefined}
+            />
+          ) : (
+            <LoginForm
+              onSubmit={async ({ rememberMe: _rememberMe, ...data }) => {
+                setLoginError(null);
+                setIsLoginSubmitting(true);
+                try {
+                  await login(data.email, data.password);
+                } catch (error) {
+                  setLoginError(extractErrorMessage(error));
+                } finally {
+                  setIsLoginSubmitting(false);
+                }
+              }}
+              isLoading={isLoginSubmitting}
+              error={loginError ?? undefined}
+            />
+          )}
+        </AuthLayout>
+      );
+    }
+
+    // If accessing a protected route (not a public route), redirect to login
+    if (!isPublicRoute) {
       return <Navigate to="/login" replace />;
     }
 
-    return (
-      <AuthLayout
-        title={showSignup ? 'Create your account' : 'Welcome back'}
-        subtitle={
-          showSignup
-            ? 'Start generating professional requirements documents with AI'
-            : 'Sign in to continue to Clearly'
-        }
-        footer={
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            {showSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button
-              onClick={() => {
-                setShowSignup(!showSignup);
-                setLoginError(null);
-                setSignupError(null);
-              }}
-              className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
-            >
-              {showSignup ? 'Sign in' : 'Sign up'}
-            </button>
-          </p>
-        }
-      >
-        {showSignup ? (
-          <SignupForm
-            onSubmit={async ({ confirmPassword: _confirmPassword, ...data }) => {
-              setSignupError(null);
-              setIsSignupSubmitting(true);
-              try {
-                await signup({
-                  ...data,
-                  modePreference: data.modePreference === 'technical' ? 'TECHNICAL' : 'PLAIN',
-                });
-              } catch (error) {
-                setSignupError(extractErrorMessage(error));
-              } finally {
-                setIsSignupSubmitting(false);
-              }
-            }}
-            isLoading={isSignupSubmitting}
-            error={signupError ?? undefined}
-          />
-        ) : (
-          <LoginForm
-            onSubmit={async ({ rememberMe: _rememberMe, ...data }) => {
-              setLoginError(null);
-              setIsLoginSubmitting(true);
-              try {
-                await login(data.email, data.password);
-              } catch (error) {
-                setLoginError(extractErrorMessage(error));
-              } finally {
-                setIsLoginSubmitting(false);
-              }
-            }}
-            isLoading={isLoginSubmitting}
-            error={loginError ?? undefined}
-          />
-        )}
-      </AuthLayout>
-    );
+    // For public routes when not authenticated, let them through to the main App router
+    return null;
   }
 
   // Authenticated - show app with routing
