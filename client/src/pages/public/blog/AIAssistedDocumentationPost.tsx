@@ -3,6 +3,7 @@
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
+import { Sparkles, TrendingUp, Zap, CheckCircle2 } from 'lucide-react';
 
 export default function AIAssistedDocumentationPost() {
   return (
@@ -13,6 +14,8 @@ export default function AIAssistedDocumentationPost() {
       readTime="10 min read"
       category="Featured"
       excerpt="Discover how AI is transforming the way we create and maintain requirements documents, and what it means for the future of software development."
+      coverImage="✨"
+      coverGradient="from-indigo-600 via-purple-600 to-pink-600"
     >
       <h2>The Evolution of Requirements Documentation</h2>
       <p>

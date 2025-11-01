@@ -3,6 +3,7 @@
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
+import { FileText, CheckCircle2, Users, Target, Shield, TrendingUp } from 'lucide-react';
 
 export default function CompleteGuideToWritingBRDsPost() {
   return (
@@ -13,6 +14,8 @@ export default function CompleteGuideToWritingBRDsPost() {
       readTime="8 min read"
       category="Guides"
       excerpt="Everything you need to know about creating effective Business Requirements Documents."
+      coverImage="BRD"
+      coverGradient="from-emerald-600 via-teal-600 to-cyan-600"
     >
       <h2>What is a Business Requirements Document (BRD)?</h2>
       <p>
@@ -23,16 +26,38 @@ export default function CompleteGuideToWritingBRDsPost() {
       </p>
 
       <h2>Why BRDs Matter</h2>
-      <p>
-        BRDs serve multiple critical purposes:
-      </p>
-      <ul>
-        <li><strong>Alignment</strong>: Ensures all stakeholders share the same understanding of project goals</li>
-        <li><strong>Scope Management</strong>: Clearly defines what's in and out of scope</li>
-        <li><strong>Decision Making</strong>: Provides a reference point for project decisions</li>
-        <li><strong>Resource Planning</strong>: Helps estimate time, budget, and resource needs</li>
-        <li><strong>Risk Mitigation</strong>: Identifies potential issues before they become problems</li>
-      </ul>
+
+      <div className="grid md:grid-cols-3 gap-4 my-8 not-prose">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Alignment</h3>
+          </div>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            Ensures all stakeholders share the same understanding
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Scope Control</h3>
+          </div>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            Clearly defines what's in and out of scope
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Risk Mitigation</h3>
+          </div>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            Identifies potential issues before they become problems
+          </p>
+        </div>
+      </div>
 
       <h2>Essential Components of a BRD</h2>
 

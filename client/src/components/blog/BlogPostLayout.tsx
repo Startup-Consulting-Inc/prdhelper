@@ -16,6 +16,8 @@ export interface BlogPostLayoutProps {
   readTime: string;
   category: string;
   excerpt: string;
+  coverImage?: string;
+  coverGradient?: string;
   children: ReactNode;
 }
 
@@ -26,6 +28,8 @@ export function BlogPostLayout({
   readTime,
   category,
   excerpt,
+  coverImage,
+  coverGradient = 'from-primary-600 to-accent-600',
   children,
 }: BlogPostLayoutProps) {
   return (
@@ -39,6 +43,13 @@ export function BlogPostLayout({
           <ArrowLeft className="h-4 w-4" />
           Back to Blog
         </Link>
+
+        {/* Cover Image */}
+        {coverImage && (
+          <div className={`w-full h-64 md:h-96 rounded-2xl overflow-hidden mb-8 bg-gradient-to-br ${coverGradient} flex items-center justify-center`}>
+            <div className="text-white/10 text-9xl font-bold">{coverImage}</div>
+          </div>
+        )}
 
         {/* Article Header */}
         <header className="mb-12">

@@ -3,6 +3,7 @@
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
+import { ArrowRight, Users, Code, CheckCircle2 } from 'lucide-react';
 
 export default function TranslateUserNeedsPost() {
   return (
@@ -13,6 +14,8 @@ export default function TranslateUserNeedsPost() {
       readTime="6 min read"
       category="Best Practices"
       excerpt="Bridge the gap between business stakeholders and development teams with these proven techniques."
+      coverImage="→"
+      coverGradient="from-orange-600 via-red-600 to-pink-600"
     >
       <h2>The Translation Challenge</h2>
       <p>
