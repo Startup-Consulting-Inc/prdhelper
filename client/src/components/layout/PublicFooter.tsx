@@ -39,6 +39,14 @@ export function PublicFooter({ className }: PublicFooterProps) {
             <ul className="space-y-3">
               <li>
                 <Link
+                  to="/docs/how-to-use"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  How to use Clearly
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/docs/vibe-coding"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
@@ -69,14 +77,7 @@ export function PublicFooter({ className }: PublicFooterProps) {
                   Software Development Process with AI
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/docs/how-to-use"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  How to use Clearly
-                </Link>
-              </li>
+
             </ul>
           </div>
 
@@ -100,14 +101,7 @@ export function PublicFooter({ className }: PublicFooterProps) {
                   Case Studies
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/blog"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
+
             </ul>
           </div>
 

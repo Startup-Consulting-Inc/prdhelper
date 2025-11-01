@@ -11,7 +11,11 @@ import type { AppContext } from './context.js';
  * Initialize tRPC with context
  */
 const t = initTRPC.context<AppContext>().create({
-  errorFormatter({ shape }) {
+  errorFormatter({ shape, error }) {
+    // Log errors to console in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('tRPC Error:', error);
+    }
     return shape;
   },
 });
