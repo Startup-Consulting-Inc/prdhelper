@@ -28,9 +28,11 @@ const BlogPage = lazy(() => import('./pages/public/BlogPage'));
 const ScheduleDemoPage = lazy(() => import('./pages/public/ScheduleDemoPage'));
 const VibeCodingPage = lazy(() => import('./pages/public/docs/VibeCodingPage'));
 const BRDDocPage = lazy(() => import('./pages/public/docs/BRDDocPage'));
-const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDDocPage'));
+const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDGuidePage'));
 const PRDDocPage = lazy(() => import('./pages/public/docs/PRDDocPage'));
+const PRDGuidePage = lazy(() => import('./pages/public/docs/PRDGuidePage'));
 const SoftwareProcessPage = lazy(() => import('./pages/public/docs/SoftwareProcessPage'));
+const SoftwareProcessGuidePage = lazy(() => import('./pages/public/docs/SoftwareProcessGuidePage'));
 const HowToUsePage = lazy(() => import('./pages/public/docs/HowToUsePage'));
 
 const extractErrorMessage = (error: unknown): string => {
@@ -202,7 +204,9 @@ function App() {
           <Route path="/docs/brd" element={<BRDDocPage />} />
           <Route path="/docs/brd-guide" element={<BRDGuidePage />} />
           <Route path="/docs/prd" element={<PRDDocPage />} />
+          <Route path="/docs/prd-guide" element={<PRDGuidePage />} />
           <Route path="/docs/software-development-process" element={<SoftwareProcessPage />} />
+          <Route path="/docs/software-development-process-guide" element={<SoftwareProcessGuidePage />} />
           <Route path="/docs/how-to-use" element={<HowToUsePage />} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
