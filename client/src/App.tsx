@@ -1,5 +1,5 @@
-import { useState, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
@@ -26,21 +26,12 @@ const AboutPage = lazy(() => import('./pages/public/AboutPage'));
 const CaseStudiesPage = lazy(() => import('./pages/public/CaseStudiesPage'));
 const BlogPage = lazy(() => import('./pages/public/BlogPage'));
 const ScheduleDemoPage = lazy(() => import('./pages/public/ScheduleDemoPage'));
-const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const VibeCodingPage = lazy(() => import('./pages/public/docs/VibeCodingPage'));
 const BRDDocPage = lazy(() => import('./pages/public/docs/BRDDocPage'));
-const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDGuidePage'));
+const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDDocPage'));
 const PRDDocPage = lazy(() => import('./pages/public/docs/PRDDocPage'));
-const PRDGuidePage = lazy(() => import('./pages/public/docs/PRDGuidePage'));
 const SoftwareProcessPage = lazy(() => import('./pages/public/docs/SoftwareProcessPage'));
-const SoftwareProcessGuidePage = lazy(() => import('./pages/public/docs/SoftwareProcessGuidePage'));
 const HowToUsePage = lazy(() => import('./pages/public/docs/HowToUsePage'));
-
-// Blog Posts
-const AIAssistedDocumentationPost = lazy(() => import('./pages/public/blog/AIAssistedDocumentationPost'));
-const WhyEveryAIProjectNeedsPRDPost = lazy(() => import('./pages/public/blog/WhyEveryAIProjectNeedsPRDPost'));
-const CompleteGuideToWritingBRDsPost = lazy(() => import('./pages/public/blog/CompleteGuideToWritingBRDsPost'));
-const TranslateUserNeedsPost = lazy(() => import('./pages/public/blog/TranslateUserNeedsPost'));
 
 const extractErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -54,11 +45,19 @@ const extractErrorMessage = (error: unknown): string => {
 
 function AppContent() {
   const { user, isAuthenticated, isLoading, login, signup } = useAuth();
+  const navigate = useNavigate();
   const [showSignup, setShowSignup] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
+
+  // Redirect to dashboard when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   // Show loading state
   if (isLoading) {
@@ -190,19 +189,12 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/case-studies" element={<CaseStudiesPage />} />
           <Route path="/blog" element={<BlogPage />} />
-          <Route path="/blog/ai-assisted-documentation" element={<AIAssistedDocumentationPost />} />
-          <Route path="/blog/why-every-ai-project-needs-prd" element={<WhyEveryAIProjectNeedsPRDPost />} />
-          <Route path="/blog/complete-guide-to-writing-brds" element={<CompleteGuideToWritingBRDsPost />} />
-          <Route path="/blog/translate-user-needs-to-requirements" element={<TranslateUserNeedsPost />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/schedule-demo" element={<Navigate to="/contact?type=demo" replace />} />
+          <Route path="/schedule-demo" element={<ScheduleDemoPage />} />
           <Route path="/docs/vibe-coding" element={<VibeCodingPage />} />
           <Route path="/docs/brd" element={<BRDDocPage />} />
           <Route path="/docs/brd-guide" element={<BRDGuidePage />} />
           <Route path="/docs/prd" element={<PRDDocPage />} />
-          <Route path="/docs/prd-guide" element={<PRDGuidePage />} />
           <Route path="/docs/software-development-process" element={<SoftwareProcessPage />} />
-          <Route path="/docs/software-development-process-guide" element={<SoftwareProcessGuidePage />} />
           <Route path="/docs/how-to-use" element={<HowToUsePage />} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
