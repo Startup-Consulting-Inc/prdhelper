@@ -3,7 +3,6 @@
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
-import { ArrowRight, Users, Code, CheckCircle2 } from 'lucide-react';
 
 export default function TranslateUserNeedsPost() {
   return (

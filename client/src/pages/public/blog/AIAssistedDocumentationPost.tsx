@@ -3,7 +3,6 @@
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
-import { Sparkles, TrendingUp, Zap, CheckCircle2 } from 'lucide-react';
 
 export default function AIAssistedDocumentationPost() {
   return (
