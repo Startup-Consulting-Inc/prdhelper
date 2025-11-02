@@ -11,10 +11,12 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import rehypeHighlight from 'rehype-highlight';
 import { cn } from '@/lib/utils/cn';
 import { Button } from '../ui/Button';
 import { Copy, Download, Check } from 'lucide-react';
+import 'highlight.js/styles/github-dark.css';
 
 export interface DocumentPreviewProps {
   content: string;
@@ -121,10 +123,45 @@ const DocumentPreview = ({
           )}
         >
           <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={[remarkGfm, remarkBreaks]}
             rehypePlugins={[rehypeHighlight]}
             components={{
-              // Custom component rendering if needed
+              h1: ({ node, ...props }) => (
+                <h1
+                  {...props}
+                  className={cn(
+                    'text-3xl font-bold text-gray-900 dark:text-gray-100 mt-12 mb-6',
+                    props.className
+                  )}
+                />
+              ),
+              h2: ({ node, ...props }) => (
+                <h2
+                  {...props}
+                  className={cn(
+                    'text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-10 mb-5',
+                    props.className
+                  )}
+                />
+              ),
+              h3: ({ node, ...props }) => (
+                <h3
+                  {...props}
+                  className={cn(
+                    'text-xl font-semibold text-gray-900 dark:text-gray-100 mt-8 mb-4',
+                    props.className
+                  )}
+                />
+              ),
+              h4: ({ node, ...props }) => (
+                <h4
+                  {...props}
+                  className={cn(
+                    'text-lg font-semibold text-gray-900 dark:text-gray-100 mt-6 mb-3',
+                    props.className
+                  )}
+                />
+              ),
               a: ({ node, ...props }) => (
                 <a
                   {...props}
@@ -146,4 +183,3 @@ const DocumentPreview = ({
 DocumentPreview.displayName = 'DocumentPreview';
 
 export { DocumentPreview };
-

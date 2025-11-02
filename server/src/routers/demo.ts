@@ -21,6 +21,7 @@ export const demoRouter = router({
       // Create demo request in database
       const demoRequest = await prisma.demoRequest.create({
         data: {
+          inquiryType: 'DEMO',
           name: input.name,
           email: input.email,
           company: input.company || null,
