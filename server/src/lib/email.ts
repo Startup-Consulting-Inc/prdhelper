@@ -341,6 +341,320 @@ export async function sendDemoNotificationEmail(demoRequest: DemoRequestEmailDat
 }
 
 /**
+ * Send email verification email to user
+ * @param email - User's email address
+ * @param name - User's name
+ * @param verificationToken - Verification token
+ */
+export async function sendVerificationEmail(
+  email: string,
+  name: string,
+  verificationToken: string
+): Promise<void> {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const verificationUrl = `${clientUrl}/auth/verify-email?token=${verificationToken}`;
+
+  try {
+    const transporter = await createTransporter();
+
+    // Skip email if transporter is null (development mode without Gmail config)
+    if (!transporter) {
+      console.log(`[DEV] Verification email would be sent to ${email}`);
+      console.log(`[DEV] Verification URL: ${verificationUrl}`);
+      console.log(`[DEV] Email notification skipped - configure Gmail credentials to enable emails`);
+      return;
+    }
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background-color: #4F46E5;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+    .content {
+      background-color: #f9fafb;
+      padding: 30px;
+      border: 1px solid #e5e7eb;
+      border-radius: 0 0 8px 8px;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #4F46E5;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      margin: 20px 0;
+    }
+    .button:hover {
+      background-color: #4338CA;
+    }
+    .footer {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .warning {
+      background-color: #FEF3C7;
+      border-left: 4px solid #F59E0B;
+      padding: 12px;
+      margin: 20px 0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0;">Welcome to Clearly!</h1>
+      <p style="margin: 10px 0 0 0;">Please verify your email address</p>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      
+      <p>Thank you for signing up for Clearly! To complete your registration and start using our platform, please verify your email address by clicking the button below:</p>
+      
+      <div style="text-align: center;">
+        <a href="${verificationUrl}" class="button">Verify Email Address</a>
+      </div>
+      
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #4F46E5;">${verificationUrl}</p>
+      
+      <div class="warning">
+        <strong>⚠️ Link expires in 24 hours</strong><br>
+        If you didn't create an account with Clearly, you can safely ignore this email.
+      </div>
+      
+      <p>If you have any questions, feel free to reach out to our support team.</p>
+      
+      <p>Best regards,<br>The Clearly Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent from Clearly (no-reply).</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    const textContent = `
+Welcome to Clearly!
+
+Hi ${name},
+
+Thank you for signing up for Clearly! To complete your registration and start using our platform, please verify your email address by visiting this link:
+
+${verificationUrl}
+
+Link expires in 24 hours.
+
+If you didn't create an account with Clearly, you can safely ignore this email.
+
+Best regards,
+The Clearly Team
+    `;
+
+    // Get the Gmail user for the from field
+    const gmailUser =
+      process.env.NODE_ENV === 'development'
+        ? process.env.GMAIL_USER
+        : (await getSecrets(['GMAIL_USER'])).GMAIL_USER;
+
+    await transporter.sendMail({
+      from: `"Clearly" <${gmailUser}>`,
+      to: email,
+      subject: 'Verify your Clearly account',
+      text: textContent,
+      html: htmlContent,
+    });
+
+    console.log(`Verification email sent to ${email}`);
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+    throw error; // Re-throw so caller can handle rollback
+  }
+}
+
+/**
+ * Send verification reminder email to user
+ * @param email - User's email address
+ * @param name - User's name
+ * @param verificationToken - Verification token
+ */
+export async function sendVerificationReminderEmail(
+  email: string,
+  name: string,
+  verificationToken: string
+): Promise<void> {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const verificationUrl = `${clientUrl}/auth/verify-email?token=${verificationToken}`;
+
+  try {
+    const transporter = await createTransporter();
+
+    // Skip email if transporter is null (development mode without Gmail config)
+    if (!transporter) {
+      console.log(`[DEV] Verification reminder email would be sent to ${email}`);
+      console.log(`[DEV] Verification URL: ${verificationUrl}`);
+      console.log(`[DEV] Email notification skipped - configure Gmail credentials to enable emails`);
+      return;
+    }
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background-color: #F59E0B;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+    .content {
+      background-color: #f9fafb;
+      padding: 30px;
+      border: 1px solid #e5e7eb;
+      border-radius: 0 0 8px 8px;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #4F46E5;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      margin: 20px 0;
+    }
+    .button:hover {
+      background-color: #4338CA;
+    }
+    .footer {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .warning {
+      background-color: #FEF3C7;
+      border-left: 4px solid #F59E0B;
+      padding: 12px;
+      margin: 20px 0;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0;">📧 Reminder: Verify Your Email</h1>
+      <p style="margin: 10px 0 0 0;">Complete your Clearly account setup</p>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      
+      <p>We noticed you haven't verified your email address yet. To access your Clearly account, please verify your email by clicking the button below:</p>
+      
+      <div style="text-align: center;">
+        <a href="${verificationUrl}" class="button">Verify Email Address</a>
+      </div>
+      
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #4F46E5;">${verificationUrl}</p>
+      
+      <div class="warning">
+        <strong>⚠️ Link expires in 24 hours</strong><br>
+        If you didn't create an account with Clearly, you can safely ignore this email.
+      </div>
+      
+      <p>If you have any questions, feel free to reach out to our support team.</p>
+      
+      <p>Best regards,<br>The Clearly Team</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent from Clearly (no-reply).</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    const textContent = `
+Reminder: Verify Your Email
+
+Hi ${name},
+
+We noticed you haven't verified your email address yet. To access your Clearly account, please verify your email by visiting this link:
+
+${verificationUrl}
+
+Link expires in 24 hours.
+
+If you didn't create an account with Clearly, you can safely ignore this email.
+
+Best regards,
+The Clearly Team
+    `;
+
+    // Get the Gmail user for the from field
+    const gmailUser =
+      process.env.NODE_ENV === 'development'
+        ? process.env.GMAIL_USER
+        : (await getSecrets(['GMAIL_USER'])).GMAIL_USER;
+
+    await transporter.sendMail({
+      from: `"Clearly" <${gmailUser}>`,
+      to: email,
+      subject: 'Reminder: Verify your Clearly account',
+      text: textContent,
+      html: htmlContent,
+    });
+
+    console.log(`Verification reminder email sent to ${email}`);
+  } catch (error) {
+    console.error('Failed to send verification reminder email:', error);
+    throw error; // Re-throw so caller can handle
+  }
+}
+
+/**
  * Legacy function - kept for backward compatibility
  * @deprecated Use sendContactNotificationEmail instead
  */
