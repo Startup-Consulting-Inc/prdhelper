@@ -63,9 +63,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/client/dist ./dist/client
 
-# Copy prisma schema and package.json
-# No need to copy prisma again if it's already in the final image from the source copy
+# Copy package.json and Prisma schema
 COPY package.json .
+COPY --from=builder /app/prisma ./prisma
 
 # Set environment variables
 # DATABASE_URL will be provided at runtime, so we don't set it here

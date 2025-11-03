@@ -37,6 +37,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Respect proxy headers (required for correct protocol/host on Cloud Run & proxies)
+app.set('trust proxy', true);
+
 // Serve static files from the React app *before* other middleware
 const clientDistPath = path.join(__dirname, '../client');
 app.use(express.static(clientDistPath, {
@@ -139,9 +142,31 @@ app.get(
       }
     });
 
-    // Redirect to frontend with token
-    const clientUrl = allowedOrigins[0] || 'http://localhost:5173';
-    res.redirect(`${clientUrl}/auth/callback?token=${token}`);
+    // Determine redirect base from request host when allowed, fallback to first configured origin
+    const forwardedHostHeader = req.headers['x-forwarded-host'];
+    const requestHost = Array.isArray(forwardedHostHeader)
+      ? forwardedHostHeader[0]
+      : forwardedHostHeader?.split(',')[0]?.trim() || req.get('host');
+    const requestProtocol =
+      (req.headers['x-forwarded-proto'] as string | undefined)?.split(',')[0]?.trim() ||
+      req.protocol ||
+      'https';
+    const requestOrigin =
+      requestHost && requestProtocol ? `${requestProtocol}://${requestHost}` : null;
+
+    const matchedOrigin =
+      requestOrigin &&
+      allowedOrigins.find((origin) => {
+        try {
+          return new URL(origin).host === requestHost;
+        } catch {
+          return false;
+        }
+      });
+
+    const clientUrl = matchedOrigin ?? allowedOrigins[0] ?? 'http://localhost:5173';
+
+    res.redirect(`${clientUrl.replace(/\/$/, '')}/auth/callback?token=${token}`);
   }
 );
 
@@ -176,5 +201,9 @@ app.get('*', (_req: Request, res: Response) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`📁 Serving static files from: ${clientDistPath}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 tRPC endpoint: /api/trpc`);
+  console.log(`💚 Health check: /health`);
 });
