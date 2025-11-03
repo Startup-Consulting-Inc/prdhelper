@@ -1,33 +1,45 @@
 /**
- * Schedule Demo Page
+ * Contact Us Page
  *
- * Public page for scheduling product demos
+ * Public page for general contact inquiries
  */
 
 import { PublicLayout } from '../../components/layout/PublicLayout';
-import { Calendar, Clock, Users, CheckCircle } from 'lucide-react';
+import { Mail, MessageSquare, Clock, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { trpc } from '../../lib/trpc';
 
-export default function ScheduleDemoPage() {
+type InquiryType = 'GENERAL' | 'QUESTION' | 'BUG_REPORT' | 'DEMO' | 'FEATURE_REQUEST' | 'OTHER';
+
+// Map form contact reasons to backend InquiryType enum
+const reasonToInquiryType: Record<string, InquiryType> = {
+  general: 'GENERAL',
+  support: 'QUESTION',
+  sales: 'GENERAL',
+  feature: 'FEATURE_REQUEST',
+  bug: 'BUG_REPORT',
+  partnership: 'GENERAL',
+  other: 'OTHER',
+};
+
+export default function ContactUsPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
-    role: '',
-    teamSize: '',
+    reason: '',
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const scheduleDemoMutation = trpc.contact.scheduleDemo.useMutation({
+  const submitContactMutation = trpc.contact.submitContact.useMutation({
     onSuccess: () => {
       setSubmitted(true);
       setError(null);
     },
     onError: (err) => {
-      setError(err.message || 'Failed to schedule demo. Please try again.');
+      setError(err.message || 'Failed to submit contact request. Please try again.');
     },
   });
 
@@ -36,12 +48,13 @@ export default function ScheduleDemoPage() {
     setError(null);
 
     try {
-      await scheduleDemoMutation.mutateAsync({
+      const inquiryType = reasonToInquiryType[formData.reason] || 'GENERAL';
+      await submitContactMutation.mutateAsync({
+        inquiryType,
         name: formData.name,
         email: formData.email,
         company: formData.company || undefined,
-        role: formData.role || undefined,
-        teamSize: formData.teamSize || undefined,
+        subject: `Contact Request: ${formData.reason}`,
         message: formData.message || undefined,
       });
     } catch (err) {
@@ -65,11 +78,10 @@ export default function ScheduleDemoPage() {
               <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              Thank you for your interest!
+              Thank you for contacting us!
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-              We've received your demo request and will be in touch within 24 hours to schedule a time
-              that works for you.
+              We've received your message and will get back to you within 24-48 hours.
             </p>
             <div className="space-y-4">
               <p className="text-gray-600 dark:text-gray-300">
@@ -103,11 +115,11 @@ export default function ScheduleDemoPage() {
           {/* Left Column - Info */}
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              Schedule a Demo
+              Contact Us
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-              See how Clearly can transform your requirements documentation process. Our team will
-              walk you through the platform and answer all your questions.
+              Have questions or need assistance? We're here to help! Send us a message and our team
+              will get back to you as soon as possible.
             </p>
 
             <div className="space-y-6 mb-8">
@@ -117,38 +129,38 @@ export default function ScheduleDemoPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    30-Minute Session
+                    Quick Response Time
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    Quick, focused walkthrough tailored to your needs and use cases.
+                    We aim to respond to all inquiries within 24-48 hours during business days.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-accent-100 dark:bg-accent-900/30 rounded-lg">
-                  <Users className="h-6 w-6 text-accent-600 dark:text-accent-400" />
+                  <MessageSquare className="h-6 w-6 text-accent-600 dark:text-accent-400" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Personalized Experience
+                    Multiple Channels
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    We'll customize the demo based on your team size and requirements workflow.
+                    Reach us through this form, or email us directly at support@clearly.com
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                  <Calendar className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                  <Mail className="h-6 w-6 text-primary-600 dark:text-primary-400" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Flexible Scheduling
+                    Expert Support
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    We work around your schedule. Available for demos across all time zones.
+                    Our team of experts is ready to help with any questions about Clearly.
                   </p>
                 </div>
               </div>
@@ -156,24 +168,24 @@ export default function ScheduleDemoPage() {
 
             <div className="bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/20 dark:to-accent-900/20 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                What you'll see in the demo:
+                How we can help:
               </h3>
               <ul className="space-y-2 text-gray-600 dark:text-gray-300">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                  <span>AI-guided BRD and PRD wizards</span>
+                  <span>Answer questions about our platform</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                  <span>Document generation and export features</span>
+                  <span>Provide technical support and troubleshooting</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                  <span>Collaboration and sharing capabilities</span>
+                  <span>Discuss partnership opportunities</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                  <span>Best practices and tips for your workflow</span>
+                  <span>Help with feature requests and feedback</span>
                 </li>
               </ul>
             </div>
@@ -183,7 +195,7 @@ export default function ScheduleDemoPage() {
           <div>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Request a Demo
+                Send Us a Message
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -203,7 +215,7 @@ export default function ScheduleDemoPage() {
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Work Email *
+                    Email Address *
                   </label>
                   <input
                     type="email"
@@ -231,56 +243,41 @@ export default function ScheduleDemoPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Role
+                  <label htmlFor="reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Contact Reason *
                   </label>
                   <select
-                    id="role"
-                    name="role"
-                    value={formData.role}
+                    id="reason"
+                    name="reason"
+                    required
+                    value={formData.reason}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                    <option value="">Select your role</option>
-                    <option value="product-manager">Product Manager</option>
-                    <option value="developer">Developer</option>
-                    <option value="designer">Designer</option>
-                    <option value="founder">Founder/CEO</option>
+                    <option value="">Select a reason</option>
+                    <option value="general">General Inquiry</option>
+                    <option value="support">Technical Support</option>
+                    <option value="sales">Sales Question</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="bug">Bug Report</option>
+                    <option value="partnership">Partnership Opportunity</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="teamSize" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Team Size
-                  </label>
-                  <select
-                    id="teamSize"
-                    name="teamSize"
-                    value={formData.teamSize}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">Select team size</option>
-                    <option value="1-5">1-5 people</option>
-                    <option value="6-20">6-20 people</option>
-                    <option value="21-50">21-50 people</option>
-                    <option value="51+">51+ people</option>
-                  </select>
-                </div>
-
-                <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Tell us about your needs (optional)
+                    Message *
                   </label>
                   <textarea
                     id="message"
                     name="message"
-                    rows={4}
+                    rows={6}
+                    required
                     value={formData.message}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="What challenges are you facing with requirements documentation?"
+                    placeholder="Please provide details about your inquiry..."
                   />
                 </div>
 
@@ -293,14 +290,14 @@ export default function ScheduleDemoPage() {
 
                 <button
                   type="submit"
-                  disabled={scheduleDemoMutation.isPending}
+                  disabled={submitContactMutation.isPending}
                   className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {scheduleDemoMutation.isPending ? 'Submitting...' : 'Schedule Demo'}
+                  {submitContactMutation.isPending ? 'Sending...' : 'Send Message'}
                 </button>
 
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                  We'll respond within 24 hours to schedule your personalized demo.
+                  We'll respond to your inquiry within 24-48 hours.
                 </p>
               </form>
             </div>

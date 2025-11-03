@@ -111,7 +111,7 @@ export function PublicFooter({ className }: PublicFooterProps) {
             <ul className="space-y-3">
               <li>
                 <Link
-                  to="/schedule-demo"
+                  to="/contact"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   Contact Us

@@ -12,6 +12,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../lib/trpc/trpc.js';
+import { verifyResourceAccess } from '../lib/utils/authorization.js';
 import {
   getDocumentsByProjectSchema,
   getDocumentByIdSchema,
@@ -40,12 +41,7 @@ export const documentsRouter = router({
         });
       }
 
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to access these documents',
-        });
-      }
+      verifyResourceAccess(project.userId, ctx.user, 'project');
 
       // Get documents
       const documents = await ctx.prisma.document.findMany({
@@ -78,12 +74,7 @@ export const documentsRouter = router({
       }
 
       // Verify ownership
-      if (document.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to access this document',
-        });
-      }
+      verifyResourceAccess(document.project.userId, ctx.user, 'document');
 
       return document;
     }),
@@ -106,12 +97,7 @@ export const documentsRouter = router({
         });
       }
 
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to create documents for this project',
-        });
-      }
+      verifyResourceAccess(project.userId, ctx.user, 'project');
 
       // Create document
       const document = await ctx.prisma.document.create({
@@ -161,12 +147,7 @@ export const documentsRouter = router({
       }
 
       // Verify ownership
-      if (document.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to approve this document',
-        });
-      }
+      verifyResourceAccess(document.project.userId, ctx.user, 'document');
 
       // Approve document
       const approvedDocument = await ctx.prisma.document.update({
@@ -229,12 +210,7 @@ export const documentsRouter = router({
       }
 
       // Verify ownership
-      if (document.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to update this document',
-        });
-      }
+      verifyResourceAccess(document.project.userId, ctx.user, 'document');
 
       // Save current version to history before updating
       await ctx.prisma.documentVersion.create({
@@ -299,12 +275,7 @@ export const documentsRouter = router({
       }
 
       // Verify ownership
-      if (document.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to export this document',
-        });
-      }
+      verifyResourceAccess(document.project.userId, ctx.user, 'document');
 
       // Format document with metadata
       const metadata = {
@@ -349,12 +320,7 @@ ${document.content}`;
       }
 
       // Verify ownership
-      if (document.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to access this document',
-        });
-      }
+      verifyResourceAccess(document.project.userId, ctx.user, 'document');
 
       // Get all versions
       const versions = await ctx.prisma.documentVersion.findMany({
@@ -404,12 +370,7 @@ ${document.content}`;
       }
 
       // Verify ownership
-      if (version.document.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to access this version',
-        });
-      }
+      verifyResourceAccess(version.document.project.userId, ctx.user, 'version');
 
       return version;
     }),
@@ -437,12 +398,7 @@ ${document.content}`;
       }
 
       // Verify ownership
-      if (version.document.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to restore this version',
-        });
-      }
+      verifyResourceAccess(version.document.project.userId, ctx.user, 'version');
 
       // Save current version to history before restoring
       await ctx.prisma.documentVersion.create({

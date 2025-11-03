@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../lib/trpc';
 import { Button } from '../components/ui/Button';
+import { Footer } from '../components/layout/Footer';
 
 type Tab = 'profile' | 'preferences' | 'security' | 'account';
 
@@ -482,6 +483,7 @@ export function ProfilePage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

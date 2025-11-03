@@ -21,11 +21,16 @@ const PRDWizardPage = lazy(() => import('./pages/PRDWizardPage'));
 const DocumentViewPage = lazy(() => import('./pages/DocumentViewPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 
+// Auth pages
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
+const EmailVerificationPendingPage = lazy(() => import('./pages/EmailVerificationPendingPage'));
+
 // Public pages
 const AboutPage = lazy(() => import('./pages/public/AboutPage'));
 const CaseStudiesPage = lazy(() => import('./pages/public/CaseStudiesPage'));
 const BlogPage = lazy(() => import('./pages/public/BlogPage'));
 const ScheduleDemoPage = lazy(() => import('./pages/public/ScheduleDemoPage'));
+const ContactUsPage = lazy(() => import('./pages/public/ContactUsPage'));
 const VibeCodingPage = lazy(() => import('./pages/public/docs/VibeCodingPage'));
 const BRDDocPage = lazy(() => import('./pages/public/docs/BRDDocPage'));
 const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDGuidePage'));
@@ -56,7 +61,7 @@ function AppContent() {
   const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
 
   // Define public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/auth/callback', '/privacy', '/terms', '/about', '/case-studies', '/blog', '/schedule-demo'];
+  const publicRoutes = ['/', '/login', '/auth/callback', '/auth/verify-email', '/auth/verify-pending', '/privacy', '/terms', '/about', '/case-studies', '/blog', '/schedule-demo', '/contact'];
   const isPublicRoute = publicRoutes.includes(location.pathname) ||
                         location.pathname.startsWith('/docs/') ||
                         location.pathname.startsWith('/blog/');
@@ -114,9 +119,14 @@ function AppContent() {
                 setSignupError(null);
                 setIsSignupSubmitting(true);
                 try {
-                  await signup({
+                  const result = await signup({
                     ...data,
                     modePreference: data.modePreference === 'technical' ? 'TECHNICAL' : 'PLAIN',
+                  });
+
+                  // Redirect to email verification pending page
+                  navigate('/auth/verify-pending', {
+                    state: { email: result.email },
                   });
                 } catch (error) {
                   setSignupError(extractErrorMessage(error));
@@ -194,12 +204,15 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/auth/verify-pending" element={<EmailVerificationPendingPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/case-studies" element={<CaseStudiesPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/schedule-demo" element={<ScheduleDemoPage />} />
+          <Route path="/contact" element={<ContactUsPage />} />
           <Route path="/docs/vibe-coding" element={<VibeCodingPage />} />
           <Route path="/docs/brd" element={<BRDDocPage />} />
           <Route path="/docs/brd-guide" element={<BRDGuidePage />} />

@@ -20,3 +20,27 @@ export interface HealthResponse {
   status: 'ok' | 'error';
   timestamp: string;
 }
+
+// Email Verification Types
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+  token?: string; // JWT token returned after successful verification
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    emailVerified: boolean;
+  };
+}
+
+export interface ResendVerificationResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface SignUpResponse {
+  success: boolean;
+  message: string;
+  email: string; // Return email for displaying in verification pending page
+}

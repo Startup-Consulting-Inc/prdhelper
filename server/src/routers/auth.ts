@@ -23,10 +23,20 @@ import {
   hashPassword,
   comparePassword,
 } from '../lib/auth.js';
+import {
+  sendVerificationEmail,
+  sendVerificationReminderEmail,
+} from '../lib/email.js';
+import {
+  generateVerificationToken,
+  getTokenExpiration,
+  isTokenExpired,
+} from '../lib/tokens.js';
 
 export const authRouter = router({
   /**
    * Sign up a new user
+   * Email verification is required before login
    */
   signUp: publicProcedure
     .input(signUpSchema)
@@ -46,19 +56,45 @@ export const authRouter = router({
       // Hash password
       const hashedPassword = await hashPassword(input.password);
 
-      // Create user
+      // Generate verification token
+      const verificationToken = generateVerificationToken();
+      const tokenExpiration = getTokenExpiration();
+
+      // Create user without email verification
       const user = await ctx.prisma.user.create({
         data: {
           name: input.name,
           email: input.email,
           password: hashedPassword,
           modePreference: input.modePreference,
-          emailVerified: new Date(), // Auto-verify for now
+          emailVerified: null, // User must verify email before login
         },
       });
 
-      // Generate JWT token
-      const token = generateToken(user);
+      // Store verification token
+      await ctx.prisma.verificationToken.create({
+        data: {
+          identifier: user.email,
+          token: verificationToken,
+          expires: tokenExpiration,
+        },
+      });
+
+      // Send verification email
+      try {
+        await sendVerificationEmail(user.email, user.name, verificationToken);
+      } catch (error) {
+        console.error('Failed to send verification email:', error);
+        // Rollback user creation if email fails
+        await ctx.prisma.user.delete({ where: { id: user.id } });
+        await ctx.prisma.verificationToken.deleteMany({
+          where: { identifier: user.email },
+        });
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to send verification email. Please try again later.',
+        });
+      }
 
       // Create audit log
       await ctx.prisma.auditLog.create({
@@ -69,26 +105,23 @@ export const authRouter = router({
             email: user.email,
             name: user.name,
             modePreference: user.modePreference,
+            emailVerificationSent: true,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
         },
       });
 
+      // Do NOT return token - user must verify email first
       return {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          modePreference: user.modePreference,
-          createdAt: user.createdAt,
-        },
-        token,
+        success: true,
+        message: 'Account created! Please check your email to verify your account.',
+        email: user.email,
       };
     }),
 
   /**
    * Login user
+   * Requires email verification before allowing login
    */
   login: publicProcedure
     .input(loginSchema)
@@ -112,6 +145,14 @@ export const authRouter = router({
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'Invalid email or password',
+        });
+      }
+
+      // Check if email is verified
+      if (!user.emailVerified) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Please verify your email address before logging in. Check your inbox for the verification link.',
         });
       }
 
@@ -140,6 +181,175 @@ export const authRouter = router({
           createdAt: user.createdAt,
         },
         token,
+      };
+    }),
+
+  /**
+   * Verify email address using token from email
+   */
+  verifyEmail: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Find verification token
+      const verificationToken = await ctx.prisma.verificationToken.findUnique({
+        where: { token: input.token },
+      });
+
+      if (!verificationToken) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid or expired verification token',
+        });
+      }
+
+      // Check if token is expired
+      if (isTokenExpired(verificationToken.expires)) {
+        // Delete expired token
+        await ctx.prisma.verificationToken.delete({
+          where: { token: input.token },
+        });
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Verification token has expired. Please request a new one.',
+        });
+      }
+
+      // Find user by email
+      const user = await ctx.prisma.user.findUnique({
+        where: { email: verificationToken.identifier },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      // Check if already verified
+      if (user.emailVerified) {
+        // Delete token and return success anyway
+        await ctx.prisma.verificationToken.delete({
+          where: { token: input.token },
+        });
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Email is already verified. You can log in now.',
+        });
+      }
+
+      // Update user email verification status
+      const updatedUser = await ctx.prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: new Date() },
+      });
+
+      // Delete used verification token
+      await ctx.prisma.verificationToken.delete({
+        where: { token: input.token },
+      });
+
+      // Generate JWT token for automatic login
+      const authToken = generateToken(updatedUser);
+
+      // Create audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: updatedUser.id,
+          action: 'USER_VERIFIED_EMAIL',
+          details: {
+            email: updatedUser.email,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Email verified successfully! You can now log in.',
+        token: authToken,
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          modePreference: updatedUser.modePreference,
+          createdAt: updatedUser.createdAt,
+        },
+      };
+    }),
+
+  /**
+   * Resend verification email
+   */
+  resendVerification: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      // Find user
+      const user = await ctx.prisma.user.findUnique({
+        where: { email: input.email },
+      });
+
+      if (!user) {
+        // Don't reveal that user doesn't exist for security
+        return {
+          success: true,
+          message: 'If an account exists with this email, a verification link has been sent.',
+        };
+      }
+
+      // Check if already verified
+      if (user.emailVerified) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Email is already verified. You can log in now.',
+        });
+      }
+
+      // Delete any existing tokens for this email
+      await ctx.prisma.verificationToken.deleteMany({
+        where: { identifier: user.email },
+      });
+
+      // Generate new verification token
+      const verificationToken = generateVerificationToken();
+      const tokenExpiration = getTokenExpiration();
+
+      // Store new verification token
+      await ctx.prisma.verificationToken.create({
+        data: {
+          identifier: user.email,
+          token: verificationToken,
+          expires: tokenExpiration,
+        },
+      });
+
+      // Send verification reminder email
+      try {
+        await sendVerificationReminderEmail(user.email, user.name, verificationToken);
+      } catch (error) {
+        console.error('Failed to send verification reminder email:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to send verification email. Please try again later.',
+        });
+      }
+
+      // Create audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'USER_RESENT_VERIFICATION',
+          details: {
+            email: user.email,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Verification email has been resent. Please check your inbox.',
       };
     }),
 

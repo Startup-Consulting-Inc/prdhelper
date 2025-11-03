@@ -141,6 +141,46 @@ export function useDeleteProject() {
 }
 
 /**
+ * Get all documents (admin view)
+ */
+export function useAdminDocuments(filters?: {
+  projectId?: string;
+  userId?: string;
+  type?: 'BRD' | 'PRD' | 'PROMPT_BUILD' | 'TASKS';
+  status?: 'DRAFT' | 'APPROVED';
+  limit?: number;
+  offset?: number;
+}) {
+  const { data, isLoading, error } = trpc.admin.getAllDocuments.useQuery(filters ?? {});
+
+  return {
+    documents: data?.documents ?? [],
+    total: data?.total ?? 0,
+    hasMore: data?.hasMore ?? false,
+    isLoading,
+    error,
+  };
+}
+
+/**
+ * Delete document (admin)
+ */
+export function useDeleteDocument() {
+  const utils = trpc.useUtils();
+  const mutation = trpc.admin.deleteDocument.useMutation({
+    onSuccess: () => {
+      utils.admin.getAllDocuments.invalidate();
+    },
+  });
+
+  return {
+    deleteDocument: mutation.mutateAsync,
+    isDeleting: mutation.isPending,
+    error: mutation.error,
+  };
+}
+
+/**
  * Get audit logs
  */
 export function useAuditLogs(filters?: {

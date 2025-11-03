@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '../components/ui/Button';
+import { Footer } from '../components/layout/Footer';
 import { Input } from '../components/ui/Input';
 import { Textarea } from '../components/ui/Textarea';
 import { Alert } from '../components/ui/Alert';
@@ -308,6 +309,7 @@ export function NewProjectPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

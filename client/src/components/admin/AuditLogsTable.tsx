@@ -21,7 +21,7 @@ interface AuditLog {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 export function AuditLogsTable() {
@@ -82,10 +82,10 @@ export function AuditLogsTable() {
       render: (log) => (
         <div>
           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {log.user.name}
+            {log.user ? log.user.name : 'System'}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {log.user.email}
+            {log.user ? log.user.email : 'N/A'}
           </div>
         </div>
       ),

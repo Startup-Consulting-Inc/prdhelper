@@ -6,12 +6,14 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BarChart3, Users, FileText, Activity, Coins, Settings } from 'lucide-react';
+import { ArrowLeft, BarChart3, Users, FileText, Activity, Coins, Settings, File } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/Tabs';
 import { Button } from '../components/ui/Button';
+import { Footer } from '../components/layout/Footer';
 import { SystemOverview } from '../components/admin/SystemOverview';
 import { UserManagementTable } from '../components/admin/UserManagementTable';
 import { ProjectManagementTable } from '../components/admin/ProjectManagementTable';
+import { DocumentManagementTable } from '../components/admin/DocumentManagementTable';
 import { TokenUsageTable } from '../components/admin/TokenUsageTable';
 import { AuditLogsTable } from '../components/admin/AuditLogsTable';
 import { SystemPromptsManagement } from '../components/admin/SystemPromptsManagement';
@@ -68,6 +70,10 @@ export function AdminPage() {
               <FileText className="h-4 w-4 mr-2" />
               Projects
             </TabsTrigger>
+            <TabsTrigger value="documents">
+              <File className="h-4 w-4 mr-2" />
+              Documents
+            </TabsTrigger>
             <TabsTrigger value="tokens">
               <Coins className="h-4 w-4 mr-2" />
               Token Usage
@@ -94,6 +100,10 @@ export function AdminPage() {
             <ProjectManagementTable />
           </TabsContent>
 
+          <TabsContent value="documents">
+            <DocumentManagementTable />
+          </TabsContent>
+
           <TabsContent value="tokens">
             <TokenUsageTable />
           </TabsContent>
@@ -107,6 +117,7 @@ export function AdminPage() {
           </TabsContent>
         </Tabs>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { ScheduleDemoModal } from '../components/landing/ScheduleDemoModal';
 import { PublicHeader } from '../components/layout/PublicHeader';
 import { PublicFooter } from '../components/layout/PublicFooter';
 
@@ -29,7 +28,6 @@ export function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [showDemoModal, setShowDemoModal] = useState(false);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -43,7 +41,7 @@ export function LandingPage() {
       <PublicHeader />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             Requirements Made Clear
@@ -67,9 +65,9 @@ export function LandingPage() {
       </section>
 
       {/* What is Clearly */}
-      <section className="bg-gray-50 dark:bg-gray-900 py-20">
+      <section className="bg-gray-50 dark:bg-gray-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               What is Clearly?
             </h2>
@@ -102,14 +100,14 @@ export function LandingPage() {
       </section>
 
       {/* Who is Clearly For */}
-      <section className="py-20">
+      <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8">
             Who is Clearly For?
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-6">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Business Stakeholders & Product Owners
               </h3>
@@ -131,7 +129,7 @@ export function LandingPage() {
               </p>
             </Card>
 
-            <Card className="p-8">
+            <Card className="p-6">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                 Technical Teams & Developers
               </h3>
@@ -157,9 +155,9 @@ export function LandingPage() {
       </section>
 
       {/* Problems Solved */}
-      <section className="bg-gray-50 dark:bg-gray-900 py-20">
+      <section className="bg-gray-50 dark:bg-gray-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8">
             What Problems Does Clearly Solve?
           </h2>
 
@@ -214,9 +212,9 @@ export function LandingPage() {
       </section>
 
       {/* Key Benefits */}
-      <section className="py-20">
+      <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8">
             Key Benefits
           </h2>
 
@@ -268,7 +266,7 @@ export function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-primary-600 dark:bg-primary-700 py-20">
+      <section className="bg-primary-600 dark:bg-primary-700 py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready for Clear Requirements?
@@ -290,7 +288,7 @@ export function LandingPage() {
               variant="outline"
               size="lg"
               className="!bg-transparent border-white text-white hover:bg-white/10"
-              onClick={() => setShowDemoModal(true)}
+              onClick={() => navigate('/schedule-demo')}
             >
               Schedule Demo Call
             </Button>
@@ -299,9 +297,6 @@ export function LandingPage() {
       </section>
 
       <PublicFooter />
-
-      {/* Schedule Demo Modal */}
-      <ScheduleDemoModal isOpen={showDemoModal} onClose={() => setShowDemoModal(false)} />
 
       {/* Video Modal */}
       {showVideoModal && (

@@ -81,20 +81,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   // Signup function
+  // Note: This now returns the email for use in verification flow
   const signup = useCallback(
     async (data: {
       name: string;
       email: string;
       password: string;
       modePreference: 'PLAIN' | 'TECHNICAL';
-    }) => {
+    }): Promise<{ success: boolean; email: string; message: string }> => {
       try {
         const result = await signupMutation.mutateAsync(data);
 
-        // Save token
-        localStorage.setItem('auth_token', result.token);
-        setToken(result.token);
-        setUser(result.user as User);
+        // Do NOT save token or set user - email verification is required
+        // Return the result for the caller to handle (redirect to verification page)
+        return {
+          success: result.success,
+          email: result.email,
+          message: result.message,
+        };
       } catch (error) {
         // Error is handled by the caller
         throw error;

@@ -15,6 +15,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../lib/trpc/trpc.js';
+import { verifyResourceAccess } from '../lib/utils/authorization.js';
 import {
   createProjectSchema,
   updateProjectSchema,
@@ -33,7 +34,8 @@ export const projectsRouter = router({
       const { status, mode, limit = 50, offset = 0 } = input;
 
       const where = {
-        userId: ctx.user.id,
+        // Admins can see all projects, regular users only see their own
+        ...(ctx.user.role !== 'ADMIN' && { userId: ctx.user.id }),
         ...(status && { status }),
         ...(mode && { mode }),
       };
@@ -91,12 +93,7 @@ export const projectsRouter = router({
       }
 
       // Verify ownership
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to access this project',
-        });
-      }
+      verifyResourceAccess(project.userId, ctx.user, 'project');
 
       return project;
     }),
@@ -155,12 +152,7 @@ export const projectsRouter = router({
         });
       }
 
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to update this project',
-        });
-      }
+      verifyResourceAccess(project.userId, ctx.user, 'project');
 
       // Update project
       const updatedProject = await ctx.prisma.project.update({
@@ -202,12 +194,7 @@ export const projectsRouter = router({
         });
       }
 
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to update this project',
-        });
-      }
+      verifyResourceAccess(project.userId, ctx.user, 'project');
 
       // Update phase
       const updatedProject = await ctx.prisma.project.update({
@@ -250,12 +237,7 @@ export const projectsRouter = router({
         });
       }
 
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to archive this project',
-        });
-      }
+      verifyResourceAccess(project.userId, ctx.user, 'project');
 
       // Archive project
       const archivedProject = await ctx.prisma.project.update({
@@ -297,12 +279,7 @@ export const projectsRouter = router({
         });
       }
 
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to delete this project',
-        });
-      }
+      verifyResourceAccess(project.userId, ctx.user, 'project');
 
       // Delete project (cascade deletes related data)
       await ctx.prisma.project.delete({

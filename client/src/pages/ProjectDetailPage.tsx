@@ -6,6 +6,7 @@
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProjectDetailsView } from '../components/project/ProjectDetailsView';
+import { Footer } from '../components/layout/Footer';
 
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -17,12 +18,16 @@ export function ProjectDetailPage() {
   }
 
   return (
-    <ProjectDetailsView
-      projectId={projectId}
-      onBack={() => navigate('/')}
-    />
+    <>
+      <ProjectDetailsView
+        projectId={projectId}
+        onBack={() => navigate('/')}
+      />
+      <Footer />
+    </>
   );
 }
 
 export default ProjectDetailPage;
+
 

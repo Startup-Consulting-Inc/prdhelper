@@ -13,7 +13,7 @@ const Footer = ({
   links = [
     { label: 'Privacy', href: '/privacy' },
     { label: 'Terms', href: '/terms' },
-    { label: 'Support', href: '/support' },
+    { label: 'Support', href: '/contact' },
   ],
   className,
 }: FooterProps) => {

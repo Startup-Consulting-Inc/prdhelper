@@ -6,7 +6,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { QuickActions } from '../components/dashboard/QuickActions';
+import { Footer } from '../components/layout/Footer';
 import { ProjectList } from '../components/project/ProjectList';
 import { useProjects, useProjectStats, type Project } from '../hooks/useProjects';
 import { useAuth } from '../contexts/AuthContext';
@@ -113,13 +113,6 @@ export function DashboardPage() {
             </p>
           </div>
 
-          <QuickActions
-            onCreateProject={handleCreateProject}
-            onViewDocuments={
-              projects.length > 0 ? () => handleViewProject(projects[0].id) : undefined
-            }
-          />
-
           {/* Stats */}
           {isLoadingStats ? (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -199,10 +192,12 @@ export function DashboardPage() {
             />
           </div>
         </main>
+        <Footer />
       </div>
     </>
   );
 }
 
 export default DashboardPage;
+
 

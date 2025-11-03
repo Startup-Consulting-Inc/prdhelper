@@ -478,6 +478,113 @@ export const adminRouter = router({
     }),
 
   /**
+   * Get all documents with filters (admin view)
+   */
+  getAllDocuments: adminProcedure
+    .input(
+      z.object({
+        projectId: z.string().cuid().optional(),
+        userId: z.string().cuid().optional(),
+        type: z.enum(['BRD', 'PRD', 'PROMPT_BUILD', 'TASKS']).optional(),
+        status: z.enum(['DRAFT', 'APPROVED']).optional(),
+        limit: z.number().min(1).max(100).default(50).optional(),
+        offset: z.number().min(0).default(0).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { projectId, userId, type, status, limit = 50, offset = 0 } = input;
+
+      const where: any = {
+        ...(projectId && { projectId }),
+        ...(type && { type }),
+        ...(status && { status }),
+      };
+
+      // If userId filter is provided, filter by project owner
+      if (userId) {
+        where.project = { userId };
+      }
+
+      const [documents, total] = await Promise.all([
+        ctx.prisma.document.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            project: {
+              select: {
+                id: true,
+                title: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        ctx.prisma.document.count({ where }),
+      ]);
+
+      return {
+        documents,
+        total,
+        hasMore: offset + documents.length < total,
+      };
+    }),
+
+  /**
+   * Delete document (admin only)
+   */
+  deleteDocument: adminProcedure
+    .input(z.object({ documentId: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Get document info before deletion for audit log
+      const document = await ctx.prisma.document.findUnique({
+        where: { id: input.documentId },
+        select: {
+          id: true,
+          type: true,
+          projectId: true,
+          version: true,
+        },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      // Delete document
+      await ctx.prisma.document.delete({
+        where: { id: input.documentId },
+      });
+
+      // Create audit log
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: ctx.user.id,
+          action: 'DOCUMENT_DELETED_BY_ADMIN',
+          details: {
+            documentId: document.id,
+            documentType: document.type,
+            documentVersion: document.version,
+            projectId: document.projectId,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+        },
+      });
+
+      return { success: true, message: 'Document deleted successfully' };
+    }),
+
+  /**
    * Get token usage data with filters
    */
   getTokenUsage: adminProcedure
