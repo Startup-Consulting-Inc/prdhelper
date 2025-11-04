@@ -15,6 +15,7 @@ import { CurrentPhaseCard } from './CurrentPhaseCard';
 import { useProject } from '../../hooks/useProjects';
 import { useDocuments } from '../../hooks/useDocuments';
 import { trpc } from '../../lib/trpc';
+import { calculateProjectProgress } from '../../lib/utils/projectProgress';
 
 interface ProjectDetailsViewProps {
   projectId: string;
@@ -57,14 +58,18 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const promptBuildDoc = documents?.find((d) => d.type === 'PROMPT_BUILD');
   const tasksDoc = documents?.find((d) => d.type === 'TASKS');
 
-  // Calculate progress
-  const totalSteps = 3; // BRD, PRD, and either Prompt Build (Plain) or Tasks (Technical)
-  let completedSteps = 0;
-  if (brdDoc?.status === 'APPROVED') completedSteps++;
-  if (prdDoc?.status === 'APPROVED') completedSteps++;
-  if (project.mode === 'PLAIN' && promptBuildDoc?.status === 'APPROVED') completedSteps++;
-  if (project.mode === 'TECHNICAL' && tasksDoc?.status === 'APPROVED') completedSteps++;
-  const progressPercent = Math.round((completedSteps / totalSteps) * 100);
+  // Calculate progress using shared utility
+  const allDocs = [brdDoc, prdDoc, promptBuildDoc, tasksDoc]
+    .filter((doc) => doc !== undefined)
+    .map((doc) => ({
+      type: doc.type,
+      status: doc.status,
+    }));
+  const progressPercent = calculateProjectProgress({ mode: project.mode }, allDocs);
+
+  // Calculate completed steps from documents
+  const totalSteps = 3; // BRD, PRD, and final document
+  const completedSteps = allDocs.filter((doc) => doc.status === 'APPROVED').length;
 
   // Handler for generating tasks
   const handleGenerateTasks = async () => {

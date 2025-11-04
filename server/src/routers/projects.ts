@@ -309,17 +309,18 @@ export const projectsRouter = router({
     const now = new Date();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [
-      totalProjects,
-      completedProjects,
-      totalDocuments,
-      currentMonthDocuments,
-    ] = await Promise.all([
-      ctx.prisma.project.count({
+    // Get all projects with their documents to calculate completion based on approved docs
+    const [projects, totalDocuments, currentMonthDocuments] = await Promise.all([
+      ctx.prisma.project.findMany({
         where: { userId: ctx.user.id },
-      }),
-      ctx.prisma.project.count({
-        where: { userId: ctx.user.id, status: 'COMPLETED' },
+        include: {
+          documents: {
+            select: {
+              type: true,
+              status: true,
+            },
+          },
+        },
       }),
       ctx.prisma.document.count({
         where: { project: { userId: ctx.user.id } },
@@ -332,13 +333,29 @@ export const projectsRouter = router({
       }),
     ]);
 
+    // Calculate completion based on approved documents (same logic as progress calculation)
+    const completedProjects = projects.filter((project) => {
+      const brdDoc = project.documents.find((d) => d.type === 'BRD');
+      const prdDoc = project.documents.find((d) => d.type === 'PRD');
+      const finalDoc = project.documents.find((d) =>
+        d.type === (project.mode === 'PLAIN' ? 'PROMPT_BUILD' : 'TASKS')
+      );
+
+      // Project is complete if all three required documents are approved
+      return (
+        brdDoc?.status === 'APPROVED' &&
+        prdDoc?.status === 'APPROVED' &&
+        finalDoc?.status === 'APPROVED'
+      );
+    }).length;
+
     const completionRate =
-      totalProjects > 0
-        ? Math.round((completedProjects / totalProjects) * 100)
+      projects.length > 0
+        ? Math.round((completedProjects / projects.length) * 100)
         : 0;
 
     return {
-      totalProjects,
+      totalProjects: projects.length,
       completedProjects,
       totalDocuments,
       currentMonthDocuments,

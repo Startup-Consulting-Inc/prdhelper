@@ -82,7 +82,6 @@ export function LandingPage() {
               { icon: FileText, title: 'Automatic generation', description: 'Professional BRDs, PRDs, and plans' },
               { icon: Target, title: 'Dual modes', description: 'Plain language or technical depth' },
               { icon: RefreshCcw, title: 'Complete version control', description: 'One-click regeneration' },
-              { icon: Rocket, title: 'Direct integration', description: 'AI coding tools (Loveable, V0, Bolt)' },
               { icon: Users, title: 'Bridge teams', description: 'Business and technical alignment' },
             ].map((feature, index) => (
               <Card key={index} className="p-6 hover:shadow-lg transition-shadow">

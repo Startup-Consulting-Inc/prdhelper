@@ -26,7 +26,10 @@ import {
   AlertCircle,
   BookOpen,
   Calendar,
-  Zap
+  Zap,
+  Code,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 
 export default function HowToUsePage() {
@@ -51,12 +54,12 @@ export default function HowToUsePage() {
             {/* Quick Start Process Flow */}
             <section>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-                Getting Started in 4 Steps
+                Getting Started in 5 Steps
               </h2>
 
               <div className="relative">
                 {/* Vertical connecting line */}
-                <div className="absolute left-6 top-16 bottom-16 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-emerald-500 hidden sm:block"></div>
+                <div className="absolute left-6 top-16 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 via-indigo-500 via-emerald-500 to-pink-500 hidden sm:block" style={{ height: 'calc(100% - 8rem)' }}></div>
 
                 {/* Step 1: Sign Up */}
                 <div className="relative mb-8">
@@ -270,6 +273,192 @@ export default function HowToUsePage() {
                             <div className="text-xs text-gray-600 dark:text-gray-400">Update as needed</div>
                           </div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 5: Mode-Specific Branches */}
+                <div className="relative mt-8">
+                  <div className="mb-4">
+                    <div className="flex items-center justify-center mb-6">
+                      <div className="flex-1 h-0.5 bg-gradient-to-r from-emerald-500 to-pink-500"></div>
+                      <span className="px-4 py-2 bg-gradient-to-r from-pink-500 to-cyan-500 text-white rounded-full text-sm font-semibold">
+                        Mode-Specific Workflows
+                      </span>
+                      <div className="flex-1 h-0.5 bg-gradient-to-r from-cyan-500 to-emerald-500"></div>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Plain Mode Branch */}
+                    <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 p-6 rounded-xl shadow-lg border-2 border-pink-200 dark:border-pink-800">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                          <Sparkles className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Step 5a: Prompt Build
+                          </h3>
+                          <span className="text-xs text-pink-700 dark:text-pink-300 font-medium">
+                            Plain Mode
+                          </span>
+                        </div>
+                        <span className="px-3 py-1 bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 text-sm font-medium rounded-full">
+                          1-2 min
+                        </span>
+                      </div>
+
+                      <p className="text-gray-700 dark:text-gray-300 mb-4 text-sm">
+                        Generate a vibe coding prompt optimized for visual development tools:
+                      </p>
+
+                      <ol className="space-y-3 mb-4">
+                        <li className="flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 rounded-full flex items-center justify-center text-sm font-semibold">
+                            1
+                          </span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Click <strong>"Generate Prompt Build"</strong>
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 rounded-full flex items-center justify-center text-sm font-semibold">
+                            2
+                          </span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Review and copy the generated prompt
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 rounded-full flex items-center justify-center text-sm font-semibold">
+                            3
+                          </span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Paste into your chosen tool
+                          </span>
+                        </li>
+                      </ol>
+
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2">
+                          Compatible Tools:
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <ExternalLink className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">V0.dev</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <ExternalLink className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">Loveable</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <ExternalLink className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">Bolt.new</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <ExternalLink className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">Bubble</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <ExternalLink className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">Replit</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Technical Mode Branch */}
+                    <div className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 p-6 rounded-xl shadow-lg border-2 border-cyan-200 dark:border-cyan-800">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-full flex items-center justify-center shadow-lg">
+                          <Code className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Step 5b: Task List
+                          </h3>
+                          <span className="text-xs text-cyan-700 dark:text-cyan-300 font-medium">
+                            Technical Mode
+                          </span>
+                        </div>
+                        <span className="px-3 py-1 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 text-sm font-medium rounded-full">
+                          1-2 min
+                        </span>
+                      </div>
+
+                      <p className="text-gray-700 dark:text-gray-300 mb-4 text-sm">
+                        Generate detailed implementation tasks for developers:
+                      </p>
+
+                      <ol className="space-y-3 mb-4">
+                        <li className="flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 rounded-full flex items-center justify-center text-sm font-semibold">
+                            1
+                          </span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Click <strong>"Generate Task List"</strong>
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 rounded-full flex items-center justify-center text-sm font-semibold">
+                            2
+                          </span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Review tasks and download as Markdown
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 rounded-full flex items-center justify-center text-sm font-semibold">
+                            3
+                          </span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            Import into your development environment
+                          </span>
+                        </li>
+                      </ol>
+
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white mb-2">
+                          Compatible Tools:
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <Code className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">Cursor</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <Code className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">Claude Code</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <Code className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">VS Code</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                            <Code className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                            <span className="text-xs text-gray-700 dark:text-gray-300">GitHub Copilot</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info Banner */}
+                  <div className="mt-6 p-4 bg-gradient-to-r from-pink-50 via-purple-50 to-cyan-50 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-cyan-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                          Your workflow depends on your project mode
+                        </p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          The mode is selected in <strong>Step 2</strong> when creating your project. <strong>Plain Mode</strong> is optimized
+                          for visual builders and no-code tools, while <strong>Technical Mode</strong> generates detailed tasks for developers
+                          and IDEs.
+                        </p>
                       </div>
                     </div>
                   </div>

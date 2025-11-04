@@ -17,6 +17,12 @@ export interface Project {
   createdAt: Date | string;
   updatedAt: Date | string;
   userId: string;
+  documents?: Array<{
+    id: string;
+    type: string;
+    status: string;
+    createdAt: string;
+  }>;
 }
 
 export function useProjects(filters?: {

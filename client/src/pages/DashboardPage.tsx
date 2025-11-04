@@ -10,7 +10,7 @@ import { Footer } from '../components/layout/Footer';
 import { ProjectList } from '../components/project/ProjectList';
 import { useProjects, useProjectStats, type Project } from '../hooks/useProjects';
 import { useAuth } from '../contexts/AuthContext';
-import { getPhaseProgress, type ProjectPhase } from '../lib/utils/stateMachine';
+import { calculateProjectProgress } from '../lib/utils/projectProgress';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -166,7 +166,8 @@ export function DashboardPage() {
                 Your Projects
               </h3>
               <Button
-                variant="outline"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700"
+                variant="primary"
                 size="sm"
                 onClick={handleCreateProject}
               >
@@ -180,7 +181,10 @@ export function DashboardPage() {
                 description: p.description,
                 mode: p.mode.toLowerCase() as 'plain' | 'technical',
                 status: p.status.toLowerCase() as 'active' | 'completed' | 'archived',
-                progress: getPhaseProgress(p.currentPhase as ProjectPhase),
+                progress: calculateProjectProgress(
+                  { mode: p.mode },
+                  p.documents || []
+                ),
                 createdAt: new Date(p.createdAt),
                 updatedAt: new Date(p.updatedAt),
               }))}
