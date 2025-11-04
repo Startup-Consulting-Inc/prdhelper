@@ -444,9 +444,51 @@ This project is licensed under the MIT License.
 
 ---
 
-## 📋 Recent Updates (October 27, 2025)
+## 📋 Recent Updates
 
-### Version 2.1.0 - Authentication & UI Enhancements
+### Version 2.2.0 - Admin Dashboard & Document Generation Improvements (November 4, 2025)
+
+#### ✨ New Features
+1. **Sortable Admin Tables** - All admin dashboard tables now support column sorting
+   - User Management: Sort by name, email, role, project count, created date
+   - Document Management: Sort by type, project, owner, status, created date
+   - Project Management: Sort by title, owner, status, mode, documents, created date
+   - Token Usage: Sort by user, project, operation, model, tokens, cost, date
+   - Audit Logs: Sort by action, user, target type, timestamp
+2. **Enhanced Audit Logs** - Improved data extraction from JSON details field
+3. **Clean Document Display** - Technical markers (<<TASKS_START>>, etc.) now hidden from users
+
+#### 🔧 Technical Changes
+- Implemented client-side sorting for all admin tables with proper handling of:
+  - Nested object properties (e.g., project.user.name)
+  - Null/undefined values
+  - String and numeric comparisons
+- Created content filter utility (`contentFilter.ts`) for stripping document markers
+- Applied filtering in DocumentPreview and DocumentViewer components
+- Removed Target ID column from Audit Logs (redundant data)
+
+#### 🐛 Fixes & Optimizations
+1. **Token Limit Increases** - Prevents document truncation
+   - BRD: 16,000 tokens (already optimized)
+   - PRD: 10,000 → 16,000 tokens
+   - TASKS: 8,000 → 16,000 tokens (fixes incomplete task lists)
+   - PROMPT_BUILD: 5,000 → 8,000 tokens
+2. **AI Assistant Improvements**
+   - Increased response limit from 500 to 2,000 tokens (fixes cutoff mid-response)
+   - Fixed unwanted content in task generation (removed kickoff prompts)
+3. **System Prompt Cleanup**
+   - Updated TASKS prompt to generate only task lists without extra content
+   - More explicit instructions for AI to prevent content drift
+
+#### 📊 Admin Dashboard Enhancements
+- Full sorting capability across all data tables
+- Better data visualization for audit logs
+- Cleaner UI with removed redundant columns
+- Improved data extraction from JSON fields
+
+---
+
+### Version 2.1.0 - Authentication & UI Enhancements (October 27, 2025)
 
 #### ✨ New Features
 1. **OAuth Integration** - Google OAuth authentication support
@@ -468,6 +510,8 @@ This project is licensed under the MIT License.
 - Improved error handling in auth components
 - Enhanced document preview functionality
 - Better state management across components
+
+---
 
 ### Version 2.0.0 - Major Feature Release
 
@@ -491,8 +535,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 2.1.0
-**Last Updated**: October 27, 2025
+**Version**: 2.2.0
+**Last Updated**: November 4, 2025
 **Status**: ✅ Production Ready
 
 For questions or issues, please open an issue on GitHub.
