@@ -381,7 +381,7 @@ When generating the task list:
 4. Include setup, development, testing, and deployment tasks
 5. End with <<TASKS_END>> marker
 
-After the task list, generate a project kickoff prompt summarizing the technical approach and priorities.`,
+IMPORTANT: Generate ONLY the task list. Do not include any additional summaries, overviews, or kickoff content. Everything must be between the <<TASKS_START>> and <<TASKS_END>> markers.`,
     },
   ];
 

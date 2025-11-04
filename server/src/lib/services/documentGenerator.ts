@@ -43,7 +43,7 @@ export async function generateBRD(
   // Call AI
   const response = await generateCompletion(messages, {
     temperature: 0.7,
-    maxTokens: 8000, // Increased for comprehensive BRD documents
+    maxTokens: 16000, // Increased for comprehensive BRD documents (Technical mode requires 10 sections)
   });
 
   const rawContent = response.content;
@@ -90,7 +90,7 @@ export async function generatePRD(
   // Call AI
   const response = await generateCompletion(messages, {
     temperature: 0.7,
-    maxTokens: 10000, // Increased for comprehensive PRD documents
+    maxTokens: 16000, // Increased for comprehensive PRD documents with detailed specifications
   });
 
   const rawContent = response.content;
@@ -130,14 +130,14 @@ export async function generateTasks(
     },
     {
       role: 'user' as const,
-      content: 'Based on the approved PRD and BRD, please generate a detailed technical task list. Remember to wrap it in <<TASKS_START>> and <<TASKS_END>> markers. Format each task with ID, title, description, acceptance criteria, priority, effort, dependencies, and tags.',
+      content: 'Based on the approved PRD and BRD, please generate a detailed technical task list. IMPORTANT: Generate ONLY the task list with NO additional content. Everything must be wrapped between <<TASKS_START>> and <<TASKS_END>> markers. Do not include summaries, overviews, or kickoff prompts. Format each task with ID, title, description, acceptance criteria, priority, effort, dependencies, and tags.',
     },
   ];
 
   // Call AI
   const response = await generateCompletion(messages, {
     temperature: 0.6,
-    maxTokens: 8000, // Increased for comprehensive task lists
+    maxTokens: 16000, // Increased for comprehensive task lists with all phases (Foundation, Features, Testing, Deployment, etc.)
   });
 
   const rawContent = response.content;
@@ -212,7 +212,7 @@ export async function generatePromptBuild(
   // Call AI
   const response = await generateCompletion(messages, {
     temperature: 0.7,
-    maxTokens: 5000,
+    maxTokens: 8000, // Increased for comprehensive prompts with detailed context and examples
   });
 
   const rawContent = response.content;

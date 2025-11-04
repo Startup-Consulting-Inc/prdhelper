@@ -4,7 +4,7 @@
  * Table for viewing token usage across users and projects with statistics.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DataTable, Column } from '../ui/DataTable';
 import { useTokenUsage, useTokenStats } from '../../hooks/useAdmin';
 import { StatsCard } from './StatsCard';
@@ -44,6 +44,58 @@ export function TokenUsageTable() {
     }
   };
 
+  // Sort usage data based on current sort key and direction
+  const sortedUsage = useMemo(() => {
+    if (!usage) return [];
+
+    return [...usage].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortKey) {
+        case 'user':
+          aValue = a.user.name;
+          bValue = b.user.name;
+          break;
+        case 'project':
+          aValue = a.project?.title || '';
+          bValue = b.project?.title || '';
+          break;
+        case 'operation':
+          aValue = a.operation;
+          bValue = b.operation;
+          break;
+        case 'model':
+          aValue = a.model;
+          bValue = b.model;
+          break;
+        case 'tokensUsed':
+          aValue = a.tokensUsed;
+          bValue = b.tokensUsed;
+          break;
+        case 'cost':
+          aValue = a.cost || 0;
+          bValue = b.cost || 0;
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      // Compare values
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      } else {
+        const comparison = (aValue as number) - (bValue as number);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+    });
+  }, [usage, sortKey, sortDirection]);
+
   const formatCost = (cost: number | undefined | null) => {
     if (!cost && cost !== 0) {
       return '$0.0000';
@@ -75,6 +127,7 @@ export function TokenUsageTable() {
     {
       key: 'user',
       header: 'User',
+      sortable: true,
       render: (usage) => (
         <div>
           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -89,6 +142,7 @@ export function TokenUsageTable() {
     {
       key: 'project',
       header: 'Project',
+      sortable: true,
       render: (usage) =>
         usage.project ? (
           <span className="text-sm text-gray-900 dark:text-gray-100">
@@ -101,6 +155,7 @@ export function TokenUsageTable() {
     {
       key: 'operation',
       header: 'Operation',
+      sortable: true,
       render: (usage) => (
         <span className="text-sm text-gray-900 dark:text-gray-100">
           {formatOperation(usage.operation)}
@@ -110,6 +165,7 @@ export function TokenUsageTable() {
     {
       key: 'model',
       header: 'Model',
+      sortable: true,
       render: (usage) => (
         <span className="text-xs font-mono text-gray-600 dark:text-gray-400">
           {usage.model}
@@ -245,7 +301,7 @@ export function TokenUsageTable() {
         </h3>
         <DataTable
           columns={columns}
-          data={usage || []}
+          data={sortedUsage}
           keyExtractor={(usage) => usage.id}
           sortKey={sortKey}
           sortDirection={sortDirection}

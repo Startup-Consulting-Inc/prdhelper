@@ -4,7 +4,7 @@
  * Table for viewing and managing users.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Shield, Trash2 } from 'lucide-react';
 import { DataTable, Column } from '../ui/DataTable';
 import { Badge } from '../ui/Badge';
@@ -26,6 +26,50 @@ export function UserManagementTable() {
       setSortDirection('asc');
     }
   };
+
+  // Sort users based on current sort key and direction
+  const sortedUsers = useMemo(() => {
+    if (!users) return [];
+
+    return [...users].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortKey) {
+        case 'name':
+          aValue = a.name;
+          bValue = b.name;
+          break;
+        case 'email':
+          aValue = a.email;
+          bValue = b.email;
+          break;
+        case 'role':
+          aValue = a.role;
+          bValue = b.role;
+          break;
+        case 'projectCount':
+          aValue = a.projectCount;
+          bValue = b.projectCount;
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      // Compare values
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      } else {
+        const comparison = (aValue as number) - (bValue as number);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+    });
+  }, [users, sortKey, sortDirection]);
 
   const handleRoleToggle = async (userId: string, currentRole: string) => {
     const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
@@ -61,6 +105,7 @@ export function UserManagementTable() {
     {
       key: 'role',
       header: 'Role',
+      sortable: true,
       render: (user) => (
         <Badge variant={user.role === 'ADMIN' ? 'primary' : 'default'}>
           {user.role}
@@ -114,7 +159,7 @@ export function UserManagementTable() {
       </h2>
       <DataTable
         columns={columns}
-        data={users}
+        data={sortedUsers}
         keyExtractor={(user) => user.id}
         sortKey={sortKey}
         sortDirection={sortDirection}

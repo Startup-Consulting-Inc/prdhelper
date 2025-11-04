@@ -14,6 +14,7 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeHighlight from 'rehype-highlight';
 import { cn } from '@/lib/utils/cn';
+import { stripDocumentMarkers } from '@/lib/utils/contentFilter';
 import { Button } from '../ui/Button';
 import { Copy, Download, Check } from 'lucide-react';
 import 'highlight.js/styles/github-dark.css';
@@ -172,7 +173,7 @@ const DocumentPreview = ({
               ),
             }}
           >
-            {content}
+            {stripDocumentMarkers(content)}
           </ReactMarkdown>
         </div>
       </div>

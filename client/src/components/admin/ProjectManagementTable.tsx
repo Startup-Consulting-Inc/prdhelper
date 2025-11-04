@@ -4,7 +4,7 @@
  * Table for viewing and managing all projects in the system.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Trash2, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable, Column } from '../ui/DataTable';
@@ -51,6 +51,54 @@ export function ProjectManagementTable() {
       setSortDirection('asc');
     }
   };
+
+  // Sort projects based on current sort key and direction
+  const sortedProjects = useMemo(() => {
+    if (!projects) return [];
+
+    return [...projects].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortKey) {
+        case 'title':
+          aValue = a.title;
+          bValue = b.title;
+          break;
+        case 'user':
+          aValue = a.user.name;
+          bValue = b.user.name;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'mode':
+          aValue = a.mode;
+          bValue = b.mode;
+          break;
+        case 'documents':
+          aValue = a._count.documents;
+          bValue = b._count.documents;
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      // Compare values
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      } else {
+        const comparison = (aValue as number) - (bValue as number);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+    });
+  }, [projects, sortKey, sortDirection]);
 
   const handleDelete = async (projectId: string, projectTitle: string) => {
     if (!confirm(`Are you sure you want to delete project "${projectTitle}"? This cannot be undone.`)) {
@@ -99,6 +147,7 @@ export function ProjectManagementTable() {
     {
       key: 'user',
       header: 'Owner',
+      sortable: true,
       render: (project) => (
         <div>
           <div className="text-sm text-gray-900 dark:text-gray-100">
@@ -113,6 +162,7 @@ export function ProjectManagementTable() {
     {
       key: 'status',
       header: 'Status',
+      sortable: true,
       render: (project) => (
         <Badge variant={getStatusVariant(project.status)}>
           {project.status}
@@ -122,6 +172,7 @@ export function ProjectManagementTable() {
     {
       key: 'mode',
       header: 'Mode',
+      sortable: true,
       render: (project) => (
         <span className="text-sm text-gray-600 dark:text-gray-400">
           {project.mode}
@@ -194,7 +245,7 @@ export function ProjectManagementTable() {
       </div>
       <DataTable
         columns={columns}
-        data={projects || []}
+        data={sortedProjects}
         keyExtractor={(project) => project.id}
         sortKey={sortKey}
         sortDirection={sortDirection}

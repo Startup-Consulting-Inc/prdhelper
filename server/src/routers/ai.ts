@@ -149,7 +149,7 @@ export const aiRouter = router({
       // Call AI
       const response = await generateCompletion(aiMessages, {
         temperature: 0.8,
-        maxTokens: 500,
+        maxTokens: 2000, // Increased to allow detailed technical explanations with examples
       });
 
       const question = response.content;
@@ -409,9 +409,8 @@ export const aiRouter = router({
         inputTokens = result.inputTokens;
         outputTokens = result.outputTokens;
 
-        // Generate kickoff prompt
-        const kickoffPrompt = generateKickoffPrompt(result.tasks, prdDoc.content.substring(0, 500));
-        content += `\n\n---\n\n${kickoffPrompt}`;
+        // Note: Kickoff prompt generation removed to keep task output clean
+        // Only the task list is included in the content
       }
 
       // Track token usage

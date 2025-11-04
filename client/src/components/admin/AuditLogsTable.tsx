@@ -4,7 +4,7 @@
  * Table for viewing system audit logs with filtering.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DataTable, Column } from '../ui/DataTable';
 import { Badge } from '../ui/Badge';
 import { useAuditLogs } from '../../hooks/useAdmin';
@@ -41,6 +41,78 @@ export function AuditLogsTable() {
       setSortDirection('asc');
     }
   };
+
+  // Helper function to extract target information from details JSON
+  const extractTargetInfo = (details: any) => {
+    if (!details || typeof details !== 'object') {
+      return { targetType: null, targetId: null };
+    }
+
+    // Check for common ID fields and determine type
+    if (details.projectId) {
+      return { targetType: 'PROJECT', targetId: details.projectId };
+    }
+    if (details.documentId) {
+      return { targetType: 'DOCUMENT', targetId: details.documentId };
+    }
+    if (details.userId || details.deletedUserId) {
+      return { targetType: 'USER', targetId: details.userId || details.deletedUserId };
+    }
+
+    return { targetType: null, targetId: null };
+  };
+
+  // Transform and sort logs
+  const transformedAndSortedLogs = useMemo(() => {
+    if (!logs) return [];
+
+    // First, transform the logs to extract target information
+    const transformed = logs.map((log: any) => {
+      const { targetType, targetId } = extractTargetInfo(log.details);
+      return {
+        ...log,
+        targetType,
+        targetId,
+        metadata: log.details,
+      };
+    });
+
+    // Then sort the transformed logs
+    return [...transformed].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortKey) {
+        case 'action':
+          aValue = a.action;
+          bValue = b.action;
+          break;
+        case 'user':
+          aValue = a.user?.name || 'System';
+          bValue = b.user?.name || 'System';
+          break;
+        case 'targetType':
+          aValue = a.targetType || '';
+          bValue = b.targetType || '';
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      // Compare values
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      } else {
+        const comparison = (aValue as number) - (bValue as number);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+    });
+  }, [logs, sortKey, sortDirection]);
 
   const getActionVariant = (action: string) => {
     if (action.includes('DELETE')) return 'error';
@@ -79,6 +151,7 @@ export function AuditLogsTable() {
     {
       key: 'user',
       header: 'User',
+      sortable: true,
       render: (log) => (
         <div>
           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -93,18 +166,10 @@ export function AuditLogsTable() {
     {
       key: 'targetType',
       header: 'Target Type',
+      sortable: true,
       render: (log) => (
         <span className="text-sm text-gray-600 dark:text-gray-400">
           {log.targetType || 'N/A'}
-        </span>
-      ),
-    },
-    {
-      key: 'targetId',
-      header: 'Target ID',
-      render: (log) => (
-        <span className="text-xs font-mono text-gray-600 dark:text-gray-400">
-          {log.targetId ? log.targetId.slice(0, 8) + '...' : 'N/A'}
         </span>
       ),
     },
@@ -159,7 +224,7 @@ export function AuditLogsTable() {
       </div>
       <DataTable
         columns={columns}
-        data={logs || []}
+        data={transformedAndSortedLogs}
         keyExtractor={(log) => log.id}
         sortKey={sortKey}
         sortDirection={sortDirection}

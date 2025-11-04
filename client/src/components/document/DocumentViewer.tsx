@@ -16,6 +16,7 @@ import rehypeHighlight from 'rehype-highlight';
 import { Button } from '../ui/Button';
 import { Copy, Check, Download, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { stripDocumentMarkers } from '@/lib/utils/contentFilter';
 import 'highlight.js/styles/github-dark.css';
 
 type ViewMode = 'preview' | 'markdown';
@@ -193,12 +194,12 @@ const DocumentViewer = ({
                 ),
               }}
             >
-              {content}
+              {stripDocumentMarkers(content)}
             </ReactMarkdown>
           </div>
         ) : (
           <pre className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 overflow-auto text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-mono border border-gray-200 dark:border-gray-800">
-            {content}
+            {stripDocumentMarkers(content)}
           </pre>
         )}
       </div>

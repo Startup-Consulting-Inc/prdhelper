@@ -4,7 +4,7 @@
  * Table for viewing and managing all documents in the system.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Trash2, Eye, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable, Column } from '../ui/DataTable';
@@ -54,6 +54,50 @@ export function DocumentManagementTable() {
       setSortDirection('asc');
     }
   };
+
+  // Sort documents based on current sort key and direction
+  const sortedDocuments = useMemo(() => {
+    if (!documents) return [];
+
+    return [...documents].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+
+      switch (sortKey) {
+        case 'type':
+          aValue = a.type;
+          bValue = b.type;
+          break;
+        case 'project':
+          aValue = a.project.title;
+          bValue = b.project.title;
+          break;
+        case 'owner':
+          aValue = a.project.user.name;
+          bValue = b.project.user.name;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      // Compare values
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      } else {
+        const comparison = (aValue as number) - (bValue as number);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+    });
+  }, [documents, sortKey, sortDirection]);
 
   const handleDelete = async (documentId: string, documentType: string, projectTitle: string) => {
     if (!confirm(`Are you sure you want to delete ${documentType} document from project "${projectTitle}"? This cannot be undone.`)) {
@@ -115,6 +159,7 @@ export function DocumentManagementTable() {
     {
       key: 'project',
       header: 'Project',
+      sortable: true,
       render: (document) => (
         <div className="text-sm text-gray-900 dark:text-gray-100 truncate max-w-xs">
           {document.project.title}
@@ -124,6 +169,7 @@ export function DocumentManagementTable() {
     {
       key: 'owner',
       header: 'Owner',
+      sortable: true,
       render: (document) => (
         <div>
           <div className="text-sm text-gray-900 dark:text-gray-100">
@@ -138,6 +184,7 @@ export function DocumentManagementTable() {
     {
       key: 'status',
       header: 'Status',
+      sortable: true,
       render: (document) => (
         <Badge variant={getStatusVariant(document.status)}>
           {document.status}
@@ -210,7 +257,7 @@ export function DocumentManagementTable() {
       </div>
       <DataTable
         columns={columns}
-        data={documents || []}
+        data={sortedDocuments}
         keyExtractor={(document) => document.id}
         sortKey={sortKey}
         sortDirection={sortDirection}
