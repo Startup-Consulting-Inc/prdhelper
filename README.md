@@ -13,6 +13,8 @@ An AI-powered requirements document generator that helps you create professional
 - 🌓 **Dark Mode**: Beautiful UI with dark mode support
 - ♿ **Accessible**: WCAG compliant with keyboard navigation
 - 🧪 **Well-Tested**: Comprehensive unit and E2E test coverage
+- 🔐 **OAuth Authentication**: Secure Google OAuth login with account chooser support
+- 📎 **File Upload**: Attach screenshots and videos to contact form inquiries
 
 ### Document Management
 - 🔄 **Document Regeneration**: Regenerate any document with optional feedback for improvements
@@ -446,6 +448,41 @@ This project is licensed under the MIT License.
 
 ## 📋 Recent Updates
 
+### Version 2.3.0 - Contact Form File Upload & OAuth Improvements (November 8, 2025)
+
+#### ✨ New Features
+1. **File Upload for Contact Form** - Users can now attach screenshots and videos
+   - Drag-and-drop file upload interface
+   - Support for images (PNG, JPG, GIF) and videos (MP4, WEBM)
+   - Up to 5 files per submission, 5MB max per file
+   - Files stored in Google Cloud Storage
+   - Download links included in admin email notifications
+2. **Enhanced OAuth Signup Flow** - Improved Google OAuth experience
+   - Added account chooser for signup (prompt=select_account)
+   - Users can select different Google accounts when signing up
+   - Better separation between login and signup flows
+
+#### 🔧 Technical Changes
+- Implemented multer for multipart file uploads
+- Added @google-cloud/storage integration for permanent file storage
+- Created reusable FileUpload React component with drag-and-drop
+- Updated Prisma schema with `attachments` JSON field
+- Enhanced email templates with attachment sections and download buttons
+- Added file validation (client and server-side)
+- Updated Cloud Build configuration with GCS environment variables
+
+#### 📦 New Components & Services
+- `FileUpload.tsx` - Reusable drag-and-drop file upload component
+- `server/src/lib/storage.ts` - Google Cloud Storage service
+- `server/src/routes/upload.ts` - File upload API endpoint
+- `client/src/lib/utils/fileUpload.ts` - Client-side file utilities
+
+#### 🗄️ Database Changes
+- Added `attachments` JSON field to `DemoRequest` table
+- Stores array of attachment metadata (url, filename, mimetype, size)
+
+---
+
 ### Version 2.2.0 - Admin Dashboard & Document Generation Improvements (November 4, 2025)
 
 #### ✨ New Features
@@ -535,8 +572,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 2.2.0
-**Last Updated**: November 4, 2025
+**Version**: 2.3.0
+**Last Updated**: November 8, 2025
 **Status**: ✅ Production Ready
 
 For questions or issues, please open an issue on GitHub.
