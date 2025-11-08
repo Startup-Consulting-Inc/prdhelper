@@ -54,7 +54,7 @@ steps:
       - '--timeout'
       - '300'
       - '--set-env-vars'
-      - 'NODE_ENV=production,CLIENT_URL=https://clearly.ai-biz.app,ADMIN_EMAIL=jsong@koreatous.com,GOOGLE_CLOUD_PROJECT_ID=myresume-457817'
+      - 'NODE_ENV=production,CLIENT_URL=https://clearly.ai-biz.app,ADMIN_EMAIL=jsong@koreatous.com,GOOGLE_CLOUD_PROJECT_ID=myresume-457817,GCS_BUCKET_NAME=prd-helper-uploads,GCP_PROJECT_ID=myresume-457817'
       - '--set-secrets'
       - 'DATABASE_URL=DATABASE_URL:latest,JWT_SECRET=JWT_SECRET:latest,OPENROUTER_API_KEY=OPENROUTER_API_KEY:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_CALLBACK_URL=GOOGLE_CALLBACK_URL:latest,GMAIL_USER=GMAIL_USER:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest'
       - '--update-labels'

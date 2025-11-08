@@ -28,6 +28,7 @@ import { appRouter } from './routers/index.js';
 import { createContext } from './lib/trpc/context.js';
 import { passport } from './lib/oauth.js';
 import { generateToken } from './lib/auth.js';
+import { uploadRouter } from './routes/upload.js';
 
 dotenv.config();
 
@@ -120,7 +121,17 @@ app.use(passport.session());
 // Google OAuth routes
 app.get(
   '/api/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  (req: Request, res: Response, next) => {
+    // Check if prompt parameter is provided (e.g., for forcing account selection during signup)
+    const prompt = req.query.prompt as string | undefined;
+    const authOptions: any = { scope: ['profile', 'email'] };
+
+    if (prompt) {
+      authOptions.prompt = prompt;
+    }
+
+    passport.authenticate('google', authOptions)(req, res, next);
+  }
 );
 
 app.get(
@@ -169,6 +180,9 @@ app.get(
     res.redirect(`${clientUrl.replace(/\/$/, '')}/auth/callback?token=${token}`);
   }
 );
+
+// File upload API endpoint (must come before tRPC)
+app.use('/api/upload', uploadRouter);
 
 // tRPC API endpoint
 app.use(

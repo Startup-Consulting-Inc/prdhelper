@@ -29,6 +29,7 @@ export const contactRouter = router({
           teamSize: input.teamSize || null,
           subject: input.subject || null,
           message: input.message || null,
+          attachments: input.attachments || undefined,
           status: 'PENDING',
         },
       });
@@ -44,6 +45,7 @@ export const contactRouter = router({
           teamSize: contactRequest.teamSize || undefined,
           subject: contactRequest.subject || undefined,
           message: contactRequest.message || undefined,
+          attachments: input.attachments,
           createdAt: contactRequest.createdAt,
         });
       } catch (emailError) {

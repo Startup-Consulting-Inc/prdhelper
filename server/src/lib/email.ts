@@ -10,6 +10,13 @@ import { getSecrets } from './secretManager.js';
 
 type InquiryType = 'GENERAL' | 'QUESTION' | 'BUG_REPORT' | 'DEMO' | 'FEATURE_REQUEST' | 'OTHER';
 
+interface Attachment {
+  url: string;
+  filename: string;
+  mimetype: string;
+  size: number;
+}
+
 interface ContactRequestEmailData {
   inquiryType: InquiryType;
   name: string;
@@ -19,6 +26,7 @@ interface ContactRequestEmailData {
   teamSize?: string;
   subject?: string;
   message?: string;
+  attachments?: Attachment[];
   createdAt: Date;
 }
 
@@ -94,6 +102,27 @@ function getInquiryTypeMetadata(type: InquiryType) {
     OTHER: { icon: '📋', color: '#6B7280', label: 'Other Inquiry' },
   };
   return metadata[type] || metadata.OTHER;
+}
+
+/**
+ * Format file size in human-readable format
+ */
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Get file icon based on MIME type
+ */
+function getFileIcon(mimetype: string): string {
+  if (mimetype.startsWith('image/')) return '🖼️';
+  if (mimetype.startsWith('video/')) return '🎥';
+  if (mimetype.startsWith('application/pdf')) return '📄';
+  return '📎';
 }
 
 /**
@@ -265,6 +294,34 @@ export async function sendContactNotificationEmail(contactRequest: ContactReques
           : ''
       }
 
+      ${
+        contactRequest.attachments && contactRequest.attachments.length > 0
+          ? `
+      <div class="field">
+        <div class="label">Attachments (${contactRequest.attachments.length})</div>
+        <div style="margin-top: 10px;">
+          ${contactRequest.attachments
+            .map(
+              (attachment) => `
+            <div style="background-color: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">${getFileIcon(attachment.mimetype)}</span>
+                <div>
+                  <div style="font-weight: 600; color: #111827;">${attachment.filename}</div>
+                  <div style="font-size: 12px; color: #6B7280;">${formatFileSize(attachment.size)}</div>
+                </div>
+              </div>
+              <a href="${attachment.url}" style="background-color: #4F46E5; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 600;">Download</a>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+      </div>
+      `
+          : ''
+      }
+
       <div class="field">
         <div class="label">Submitted</div>
         <div class="value">${contactRequest.createdAt.toLocaleString('en-US', {
@@ -292,7 +349,14 @@ ${contactRequest.role ? `Role: ${contactRequest.role}` : ''}
 ${contactRequest.teamSize ? `Team Size: ${contactRequest.teamSize}` : ''}
 ${contactRequest.subject ? `Subject: ${contactRequest.subject}` : ''}
 ${contactRequest.message ? `Message: ${contactRequest.message}` : ''}
-
+${
+  contactRequest.attachments && contactRequest.attachments.length > 0
+    ? `
+Attachments (${contactRequest.attachments.length}):
+${contactRequest.attachments.map((a) => `- ${a.filename} (${formatFileSize(a.size)}): ${a.url}`).join('\n')}
+`
+    : ''
+}
 Submitted: ${contactRequest.createdAt.toLocaleString()}
 
 Reply to ${contactRequest.email} to respond.

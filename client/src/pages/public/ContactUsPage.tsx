@@ -8,6 +8,7 @@ import { PublicLayout } from '../../components/layout/PublicLayout';
 import { Mail, MessageSquare, Clock, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { trpc } from '../../lib/trpc';
+import { FileUpload, UploadedFile } from '../../components/common/FileUpload';
 
 type InquiryType = 'GENERAL' | 'QUESTION' | 'BUG_REPORT' | 'DEMO' | 'FEATURE_REQUEST' | 'OTHER';
 
@@ -30,6 +31,7 @@ export default function ContactUsPage() {
     reason: '',
     message: '',
   });
+  const [attachments, setAttachments] = useState<UploadedFile[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +58,7 @@ export default function ContactUsPage() {
         company: formData.company || undefined,
         subject: `Contact Request: ${formData.reason}`,
         message: formData.message || undefined,
+        attachments: attachments.length > 0 ? attachments : undefined,
       });
     } catch (err) {
       // Error handled by mutation onError
@@ -278,6 +281,29 @@ export default function ContactUsPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="Please provide details about your inquiry..."
+                  />
+                </div>
+
+                {/* File Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Attachments (Optional)
+                  </label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    Upload screenshots or videos to help us better understand your inquiry
+                  </p>
+                  <FileUpload
+                    maxFiles={5}
+                    maxSize={5 * 1024 * 1024} // 5MB
+                    acceptedTypes={[
+                      'image/png',
+                      'image/jpeg',
+                      'image/jpg',
+                      'image/gif',
+                      'video/mp4',
+                      'video/webm',
+                    ]}
+                    onFilesChange={setAttachments}
                   />
                 </div>
 

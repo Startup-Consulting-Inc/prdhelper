@@ -251,6 +251,7 @@ model DemoRequest {
   teamSize      String?           @map("team_size")
   subject       String?
   message       String?           @db.Text
+  attachments   Json?             // Array of { url: string, filename: string, mimetype: string, size: number }
   status        DemoRequestStatus @default(PENDING)
   scheduledDate DateTime?         @map("scheduled_date")
   adminNotes    String?           @db.Text @map("admin_notes")

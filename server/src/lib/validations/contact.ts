@@ -22,6 +22,18 @@ export const InquiryTypeEnum = z.enum([
 export type InquiryType = z.infer<typeof InquiryTypeEnum>;
 
 /**
+ * Attachment metadata schema
+ */
+export const attachmentSchema = z.object({
+  url: z.string().url('Invalid attachment URL'),
+  filename: z.string().min(1, 'Filename is required'),
+  mimetype: z.string().min(1, 'MIME type is required'),
+  size: z.number().int().positive('File size must be positive'),
+});
+
+export type AttachmentMetadata = z.infer<typeof attachmentSchema>;
+
+/**
  * Schema for submitting a contact/inquiry request
  */
 export const submitContactSchema = z.object({
@@ -62,6 +74,10 @@ export const submitContactSchema = z.object({
     .trim()
     .optional()
     .or(z.literal('')),
+  attachments: z
+    .array(attachmentSchema)
+    .max(5, 'Maximum 5 attachments allowed')
+    .optional(),
 });
 
 export type SubmitContactInput = z.infer<typeof submitContactSchema>;
