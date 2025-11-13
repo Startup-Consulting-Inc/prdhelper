@@ -15,6 +15,7 @@ An AI-powered requirements document generator that helps you create professional
 - 🧪 **Well-Tested**: Comprehensive unit and E2E test coverage
 - 🔐 **OAuth Authentication**: Secure Google OAuth login with account chooser support
 - 📎 **File Upload**: Attach screenshots and videos to contact form inquiries
+- 👤 **Professional Profiles**: Comprehensive user profiles with bio, company, job title, LinkedIn, website, location, and GitHub integration
 
 ### Document Management
 - 🔄 **Document Regeneration**: Regenerate any document with optional feedback for improvements
@@ -334,6 +335,22 @@ The server serves both the API and the built frontend static files.
 
 ## 🎯 User Guide
 
+### Managing Your Profile
+
+1. Click your profile icon or navigate to `/profile`
+2. Update your professional information:
+   - **Name**: Your display name
+   - **Bio**: Professional summary (up to 500 characters)
+   - **Company**: Your organization
+   - **Job Title**: Your current role
+   - **Location**: City, Country or general location
+   - **LinkedIn**: Your LinkedIn profile URL
+   - **Website**: Personal or professional website
+   - **GitHub**: Your GitHub profile (for technical users)
+3. Choose your preferred mode (Plain or Technical)
+4. Change password (if not using OAuth)
+5. All fields are optional and can be updated anytime
+
 ### Creating a Project
 
 1. Sign up or log in
@@ -447,6 +464,47 @@ This project is licensed under the MIT License.
 ---
 
 ## 📋 Recent Updates
+
+### Version 2.4.0 - Enhanced User Profiles & Router Fix (November 12, 2025)
+
+#### ✨ New Features
+1. **Comprehensive User Profiles** - Professional profile fields for networking and collaboration
+   - Bio/About section (max 500 characters with character counter)
+   - Company and job title fields
+   - LinkedIn profile integration
+   - Personal website URL
+   - Location (city/country)
+   - GitHub profile for technical users
+   - Dark mode support with responsive design
+   - Two-column grid layout on desktop, single column on mobile
+
+#### 🐛 Bug Fixes
+1. **React Router Context Error** - Fixed critical routing issue
+   - Moved BrowserRouter from App.tsx to main.tsx
+   - Resolved "useNavigate() may be used only in the context of a Router" error
+   - AuthProvider now properly wrapped in Router context
+   - Improved component hierarchy and initialization order
+
+#### 🔧 Technical Changes
+- **Database Schema**: Added 7 new optional profile fields to User model
+  - `bio`, `company`, `jobTitle`, `linkedInUrl`, `websiteUrl`, `location`, `githubUrl`
+- **Backend Validation**: Enhanced with URL validation and field-specific constraints
+  - LinkedIn URLs validated against linkedin.com domain
+  - GitHub URLs validated against github.com domain
+  - Character limits enforced (bio: 500, others: 100)
+- **Frontend Types**: Updated User interface with new optional fields
+- **Profile Page UI**: Complete redesign of profile information section
+  - Professional layout with grouped fields
+  - Real-time character counter for bio
+  - Placeholder guidance for all fields
+  - Full backward compatibility (all fields optional)
+
+#### 📦 Database Changes
+- Updated User model schema with 7 new VARCHAR fields (all nullable)
+- Applied schema changes via `prisma db push`
+- No breaking changes (backward compatible)
+
+---
 
 ### Version 2.3.0 - Contact Form File Upload & OAuth Improvements (November 8, 2025)
 
@@ -572,8 +630,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 2.3.0
-**Last Updated**: November 8, 2025
+**Version**: 2.4.0
+**Last Updated**: November 12, 2025
 **Status**: ✅ Production Ready
 
 For questions or issues, please open an issue on GitHub.

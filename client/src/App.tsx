@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
@@ -193,38 +193,36 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-            <Spinner size="lg" />
-          </div>
-        }
-      >
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth/callback" element={<AuthCallbackPage />} />
-          <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/auth/verify-pending" element={<EmailVerificationPendingPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/case-studies" element={<CaseStudiesPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/schedule-demo" element={<ScheduleDemoPage />} />
-          <Route path="/contact" element={<ContactUsPage />} />
-          <Route path="/docs/vibe-coding" element={<VibeCodingPage />} />
-          <Route path="/docs/brd" element={<BRDDocPage />} />
-          <Route path="/docs/brd-guide" element={<BRDGuidePage />} />
-          <Route path="/docs/prd" element={<PRDDocPage />} />
-          <Route path="/docs/prd-guide" element={<PRDGuidePage />} />
-          <Route path="/docs/software-development-process" element={<SoftwareProcessPage />} />
-          <Route path="/docs/software-development-process-guide" element={<SoftwareProcessGuidePage />} />
-          <Route path="/docs/how-to-use" element={<HowToUsePage />} />
-          <Route path="/*" element={<AppContent />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/auth/verify-pending" element={<EmailVerificationPendingPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/case-studies" element={<CaseStudiesPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/schedule-demo" element={<ScheduleDemoPage />} />
+        <Route path="/contact" element={<ContactUsPage />} />
+        <Route path="/docs/vibe-coding" element={<VibeCodingPage />} />
+        <Route path="/docs/brd" element={<BRDDocPage />} />
+        <Route path="/docs/brd-guide" element={<BRDGuidePage />} />
+        <Route path="/docs/prd" element={<PRDDocPage />} />
+        <Route path="/docs/prd-guide" element={<PRDGuidePage />} />
+        <Route path="/docs/software-development-process" element={<SoftwareProcessPage />} />
+        <Route path="/docs/software-development-process-guide" element={<SoftwareProcessGuidePage />} />
+        <Route path="/docs/how-to-use" element={<HowToUsePage />} />
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
+    </Suspense>
   );
 }
 

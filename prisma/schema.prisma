@@ -24,6 +24,16 @@ model User {
   password      String?   // Nullable for OAuth users
   role          UserRole  @default(USER)
   modePreference UserMode @default(PLAIN) @map("mode_preference")
+
+  // Profile fields
+  bio           String? @db.VarChar(500)
+  company       String?
+  jobTitle      String? @map("job_title")
+  linkedInUrl   String? @map("linkedin_url")
+  websiteUrl    String? @map("website_url")
+  location      String?
+  githubUrl     String? @map("github_url")
+
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
