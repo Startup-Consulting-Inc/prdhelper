@@ -27,15 +27,72 @@ import {
 export const projectsRouter = router({
   /**
    * Get all user's projects with optional filters
+   * Returns owned projects + projects shared with user
    */
   getAll: protectedProcedure
     .input(getAllProjectsSchema)
     .query(async ({ ctx, input }) => {
       const { status, mode, limit = 50, offset = 0 } = input;
 
+      // Admins can see all projects
+      if (ctx.user.role === 'ADMIN') {
+        const where = {
+          ...(status && { status }),
+          ...(mode && { mode }),
+        };
+
+        const [projects, total] = await Promise.all([
+          ctx.prisma.project.findMany({
+            where,
+            take: limit,
+            skip: offset,
+            orderBy: { updatedAt: 'desc' },
+            include: {
+              documents: {
+                select: {
+                  id: true,
+                  type: true,
+                  status: true,
+                  createdAt: true,
+                },
+              },
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          }),
+          ctx.prisma.project.count({ where }),
+        ]);
+
+        return {
+          projects: projects.map(project => ({
+            ...project,
+            isOwner: project.userId === ctx.user.id,
+            userRole: project.userId === ctx.user.id ? 'OWNER' : null,
+          })),
+          total,
+          hasMore: offset + projects.length < total,
+        };
+      }
+
+      // Regular users: find owned projects + shared projects
       const where = {
-        // Admins can see all projects, regular users only see their own
-        ...(ctx.user.role !== 'ADMIN' && { userId: ctx.user.id }),
+        OR: [
+          // Projects owned by user
+          { userId: ctx.user.id },
+          // Projects shared with user
+          {
+            collaborators: {
+              some: {
+                userId: ctx.user.id,
+              },
+            },
+          },
+        ],
         ...(status && { status }),
         ...(mode && { mode }),
       };
@@ -55,13 +112,42 @@ export const projectsRouter = router({
                 createdAt: true,
               },
             },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            collaborators: {
+              where: {
+                userId: ctx.user.id,
+              },
+              select: {
+                role: true,
+              },
+            },
           },
         }),
         ctx.prisma.project.count({ where }),
       ]);
 
+      // Add ownership and role information
+      const projectsWithRole = projects.map(project => {
+        const isOwner = project.userId === ctx.user.id;
+        const collaborator = project.collaborators[0];
+
+        return {
+          ...project,
+          isOwner,
+          userRole: isOwner ? 'OWNER' : collaborator?.role || null,
+          // Remove collaborators array from response (only needed for role lookup)
+          collaborators: undefined,
+        };
+      });
+
       return {
-        projects,
+        projects: projectsWithRole,
         total,
         hasMore: offset + projects.length < total,
       };
@@ -69,6 +155,7 @@ export const projectsRouter = router({
 
   /**
    * Get project by ID with related data
+   * Accessible by owner or collaborators
    */
   getById: protectedProcedure
     .input(getProjectByIdSchema)
@@ -82,6 +169,21 @@ export const projectsRouter = router({
           conversations: {
             orderBy: { createdAt: 'desc' },
           },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          collaborators: {
+            where: {
+              userId: ctx.user.id,
+            },
+            select: {
+              role: true,
+            },
+          },
         },
       });
 
@@ -92,10 +194,25 @@ export const projectsRouter = router({
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(project.userId, ctx.user, 'project');
+      const isOwner = project.userId === ctx.user.id;
+      const collaborator = project.collaborators[0];
+      const isCollaborator = !!collaborator;
 
-      return project;
+      // Verify access (owner, collaborator, or admin)
+      if (!isOwner && !isCollaborator && ctx.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have access to this project',
+        });
+      }
+
+      return {
+        ...project,
+        isOwner,
+        userRole: isOwner ? 'OWNER' : collaborator?.role || null,
+        // Remove collaborators array from response
+        collaborators: undefined,
+      };
     }),
 
   /**
@@ -134,15 +251,26 @@ export const projectsRouter = router({
 
   /**
    * Update project details
+   * Accessible by owner or collaborators with EDITOR role
    */
   update: protectedProcedure
     .input(updateProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
 
-      // Verify ownership
+      // Verify access
       const project = await ctx.prisma.project.findUnique({
         where: { id },
+        include: {
+          collaborators: {
+            where: {
+              userId: ctx.user.id,
+            },
+            select: {
+              role: true,
+            },
+          },
+        },
       });
 
       if (!project) {
@@ -152,7 +280,17 @@ export const projectsRouter = router({
         });
       }
 
-      verifyResourceAccess(project.userId, ctx.user, 'project');
+      const isOwner = project.userId === ctx.user.id;
+      const collaborator = project.collaborators[0];
+      const isEditor = collaborator?.role === 'EDITOR';
+
+      // Only owner, editors, or admins can update
+      if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to edit this project',
+        });
+      }
 
       // Update project
       const updatedProject = await ctx.prisma.project.update({
@@ -168,6 +306,7 @@ export const projectsRouter = router({
           details: {
             projectId: id,
             updates: updateData,
+            role: isOwner ? 'OWNER' : collaborator?.role,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
         },
@@ -178,13 +317,24 @@ export const projectsRouter = router({
 
   /**
    * Update project phase
+   * Accessible by owner or collaborators with EDITOR role
    */
   updatePhase: protectedProcedure
     .input(updateProjectPhaseSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify ownership
+      // Verify access
       const project = await ctx.prisma.project.findUnique({
         where: { id: input.id },
+        include: {
+          collaborators: {
+            where: {
+              userId: ctx.user.id,
+            },
+            select: {
+              role: true,
+            },
+          },
+        },
       });
 
       if (!project) {
@@ -194,7 +344,17 @@ export const projectsRouter = router({
         });
       }
 
-      verifyResourceAccess(project.userId, ctx.user, 'project');
+      const isOwner = project.userId === ctx.user.id;
+      const collaborator = project.collaborators[0];
+      const isEditor = collaborator?.role === 'EDITOR';
+
+      // Only owner, editors, or admins can update phase
+      if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to update this project',
+        });
+      }
 
       // Update phase
       const updatedProject = await ctx.prisma.project.update({
@@ -211,6 +371,7 @@ export const projectsRouter = router({
             projectId: input.id,
             oldPhase: project.currentPhase,
             newPhase: input.phase,
+            role: isOwner ? 'OWNER' : collaborator?.role,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
         },
@@ -221,6 +382,7 @@ export const projectsRouter = router({
 
   /**
    * Archive project
+   * Only project owner can archive
    */
   archive: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
@@ -237,7 +399,13 @@ export const projectsRouter = router({
         });
       }
 
-      verifyResourceAccess(project.userId, ctx.user, 'project');
+      // Only owner or admin can archive
+      if (project.userId !== ctx.user.id && ctx.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only the project owner can archive this project',
+        });
+      }
 
       // Archive project
       const archivedProject = await ctx.prisma.project.update({
@@ -263,6 +431,7 @@ export const projectsRouter = router({
 
   /**
    * Delete project (cascade deletes documents and conversations)
+   * Only project owner can delete
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string().cuid() }))
@@ -279,7 +448,13 @@ export const projectsRouter = router({
         });
       }
 
-      verifyResourceAccess(project.userId, ctx.user, 'project');
+      // Only owner or admin can delete
+      if (project.userId !== ctx.user.id && ctx.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only the project owner can delete this project',
+        });
+      }
 
       // Delete project (cascade deletes related data)
       await ctx.prisma.project.delete({

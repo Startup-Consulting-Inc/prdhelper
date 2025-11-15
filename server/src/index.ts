@@ -181,6 +181,26 @@ app.get(
   }
 );
 
+// Logout endpoint - clears session and cookies
+app.post('/api/auth/logout', (req: Request, res: Response) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('Error logging out:', err);
+      return res.status(500).json({ success: false, error: 'Logout failed' });
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error destroying session:', err);
+        return res.status(500).json({ success: false, error: 'Session destroy failed' });
+      }
+
+      res.clearCookie('connect.sid');
+      res.json({ success: true });
+    });
+  });
+});
+
 // File upload API endpoint (must come before tRPC)
 app.use('/api/upload', uploadRouter);
 

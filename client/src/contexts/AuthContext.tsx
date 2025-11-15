@@ -120,13 +120,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   // Logout function
-  const logout = useCallback(() => {
-    localStorage.removeItem('auth_token');
-    setToken(null);
-    setUser(null);
-    // Navigate to homepage after logout
-    navigate('/');
-  }, [navigate]);
+  const logout = useCallback(async () => {
+    try {
+      // Call backend to clear session cookies
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with logout even if backend call fails
+    } finally {
+      // Clear local storage and state
+      localStorage.removeItem('auth_token');
+      setToken(null);
+      setUser(null);
+      // Use window.location for hard navigation to ensure state is cleared
+      // This prevents any race conditions with React Router
+      window.location.href = '/';
+    }
+  }, []);
 
   // Update user function
   const updateUser = useCallback((updatedUser: User) => {

@@ -17,6 +17,13 @@ export interface Project {
   createdAt: Date | string;
   updatedAt: Date | string;
   userId: string;
+  isOwner?: boolean;
+  userRole?: 'OWNER' | 'VIEWER' | 'EDITOR' | null;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   documents?: Array<{
     id: string;
     type: string;

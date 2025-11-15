@@ -138,7 +138,8 @@ const LoginForm = ({ onSubmit, error, isLoading = false }: LoginFormProps) => {
         className="w-full flex items-center justify-center gap-2"
         onClick={() => {
           // Use relative URL to work in all environments (development and production)
-          window.location.href = '/api/auth/google';
+          // Add prompt=select_account to force Google account picker
+          window.location.href = '/api/auth/google?prompt=select_account';
         }}
         disabled={isLoading}
       >

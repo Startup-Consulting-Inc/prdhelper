@@ -17,6 +17,17 @@ An AI-powered requirements document generator that helps you create professional
 - 📎 **File Upload**: Attach screenshots and videos to contact form inquiries
 - 👤 **Professional Profiles**: Comprehensive user profiles with bio, company, job title, LinkedIn, website, location, and GitHub integration
 
+### Team Collaboration
+- 👥 **Project Sharing**: Invite team members to collaborate on projects
+- 📧 **Email & Username Invites**: Invite collaborators by email address or username
+- 🔐 **Role-Based Permissions**:
+  - **VIEWER**: Read-only access to view project and documents
+  - **EDITOR**: Full edit access to modify project and documents
+- 📬 **Invitation Management**: Send, accept, reject, and track pending invitations
+- 👑 **Owner Controls**: Invite, remove, and manage team member roles
+- ⏰ **Invite Expiration**: Automatic 7-day expiration for pending invitations
+- 📊 **Team Overview**: View all collaborators and their roles on project pages
+
 ### Document Management
 - 🔄 **Document Regeneration**: Regenerate any document with optional feedback for improvements
 - 📝 **Version History**: View and restore previous versions of all documents
@@ -189,6 +200,18 @@ cd client
 ## 🗄️ Database
 
 ### Recent Schema Changes
+
+#### Team Collaboration Features (Migration: 20251115080212)
+- Added `ProjectInvite` model for invitation management
+  - Fields: email, invitedBy, role, status, expiresAt, timestamps
+  - Enums: `CollaboratorRole` (VIEWER, EDITOR), `InviteStatus` (PENDING, ACCEPTED, REJECTED, EXPIRED)
+  - 7-day expiration period for pending invitations
+- Added `ProjectCollaborator` model for team members
+  - Fields: user, project, role, addedBy, addedAt
+  - Unique constraint on userId + projectId
+  - Cascading deletes when project or user is removed
+- Enhanced project ownership and access control
+- Full backend API with collaborators router
 
 #### Document Version History (Migration: 20251027170107)
 - Added `DocumentVersion` model for tracking document history
@@ -429,6 +452,61 @@ The server serves both the API and the built frontend static files.
    - Sets status to DRAFT (requires re-approval)
    - Creates audit log entry
 
+### Team Collaboration
+
+#### Inviting Team Members
+1. Navigate to your project detail page
+2. Scroll to the "Team" section
+3. Click "Invite Collaborator" button
+4. In the invite modal:
+   - Enter collaborator's email address or username
+   - Select role:
+     - **VIEWER**: Can view project and all documents (read-only)
+     - **EDITOR**: Can edit project and modify documents
+   - Click "Send Invite"
+5. Invitation expires after 7 days if not accepted
+
+#### Managing Collaborators (Project Owners)
+1. View all team members in the "Team" section of project details
+2. For each collaborator, you can:
+   - **Change Role**: Click role dropdown to switch between VIEWER and EDITOR
+   - **Remove**: Click "Remove" button to revoke access
+3. View pending invitations with option to cancel
+
+#### Accepting/Rejecting Invitations
+1. View pending invitations on your dashboard
+2. Each invitation shows:
+   - Project name and description
+   - Inviter's name
+   - Assigned role (VIEWER or EDITOR)
+   - Expiration date
+3. Click "Accept" to join the project as a collaborator
+4. Click "Reject" to decline the invitation
+5. Accepted invitations grant immediate access to the project
+
+#### Permission Levels
+- **Owner** (Project Creator):
+  - Full control over project
+  - Invite and remove collaborators
+  - Change collaborator roles
+  - Delete project
+
+- **EDITOR**:
+  - View and edit project details
+  - View and regenerate all documents
+  - Approve documents
+  - Cannot manage team members
+  - Cannot delete project
+
+- **VIEWER**:
+  - View project details (read-only)
+  - View all documents (read-only)
+  - Cannot edit or regenerate documents
+  - Cannot manage team members
+  - Cannot delete project
+
+**Note**: Email notifications for invitations are not yet implemented. Users must check their dashboard for pending invites.
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -464,6 +542,67 @@ This project is licensed under the MIT License.
 ---
 
 ## 📋 Recent Updates
+
+### Version 2.5.0 - Team Collaboration & OAuth Improvements (November 15, 2025)
+
+#### ✨ New Features
+1. **Team Collaboration System** - Complete project sharing and collaboration workflow
+   - Invite collaborators by email address or username
+   - Role-based access control with VIEWER and EDITOR roles
+   - Pending invitation management with accept/reject
+   - Team overview on project detail pages
+   - Owner controls for managing team members and roles
+   - 7-day automatic expiration for pending invitations
+   - View all pending invites on user dashboard
+
+2. **OAuth Account Chooser** - Improved Google OAuth experience
+   - Added account picker on login (prompt=select_account)
+   - Users can easily switch between Google accounts
+   - Better separation between login flows and account selection
+
+#### 🐛 Bug Fixes
+1. **Google OAuth Logout** - Fixed account switching issue
+   - Added backend logout endpoint (`/api/auth/logout`)
+   - Properly clears session and authentication state
+   - Frontend logout now calls backend to clear sessions
+   - Users can switch Google accounts without browser cache issues
+
+#### 🔧 Technical Changes
+- **Database Schema**: New collaboration models and enums
+  - `ProjectInvite` model with email, role, status, expiration
+  - `ProjectCollaborator` model linking users to projects
+  - `CollaboratorRole` enum: VIEWER, EDITOR
+  - `InviteStatus` enum: PENDING, ACCEPTED, REJECTED, EXPIRED
+- **Backend API**: Complete collaborators router
+  - POST /invite - Send invitation
+  - GET /invites/pending - List user's pending invites
+  - POST /invites/:id/accept - Accept invitation
+  - POST /invites/:id/reject - Reject invitation
+  - GET /project/:id/collaborators - List project team
+  - PUT /collaborators/:id/role - Change member role
+  - DELETE /collaborators/:id - Remove member
+- **Frontend Components**: New collaboration UI
+  - InviteCollaboratorModal with user search
+  - PendingInvites section on dashboard
+  - Team management section on project detail pages
+  - Role selection and permission displays
+- **Authentication**: Enhanced OAuth and logout flows
+  - Backend session clearing on logout
+  - Account picker parameter in Google OAuth
+  - Proper state cleanup on logout
+
+#### 📦 Database Changes
+- Migration: `20251115080212_add_collaboration_features`
+- New tables: ProjectInvite, ProjectCollaborator
+- New enums: CollaboratorRole, InviteStatus
+- Unique constraints and cascading deletes
+
+#### 🚧 Known Limitations
+- Email notifications for invitations not yet implemented (TODO)
+- Users must check dashboard for pending invites
+- Invite expiration is date-based (7 days), not enforced in real-time
+
+---
 
 ### Version 2.4.0 - Enhanced User Profiles & Router Fix (November 12, 2025)
 
@@ -630,8 +769,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 2.4.0
-**Last Updated**: November 12, 2025
+**Version**: 2.5.0
+**Last Updated**: November 15, 2025
 **Status**: ✅ Production Ready
 
 For questions or issues, please open an issue on GitHub.
