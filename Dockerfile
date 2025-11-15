@@ -75,5 +75,5 @@ ENV PORT=3000
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Start the server (run migrations first)
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+# Start the server (migrations run in Cloud Build, not at startup)
+CMD ["npm", "start"]

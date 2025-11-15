@@ -485,9 +485,17 @@ export const projectsRouter = router({
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     // Get all projects with their documents to calculate completion based on approved docs
+    // Include both owned projects and collaborated projects
+    const projectFilter = {
+      OR: [
+        { userId: ctx.user.id },
+        { collaborators: { some: { userId: ctx.user.id } } },
+      ],
+    };
+
     const [projects, totalDocuments, currentMonthDocuments] = await Promise.all([
       ctx.prisma.project.findMany({
-        where: { userId: ctx.user.id },
+        where: projectFilter,
         include: {
           documents: {
             select: {
@@ -498,11 +506,11 @@ export const projectsRouter = router({
         },
       }),
       ctx.prisma.document.count({
-        where: { project: { userId: ctx.user.id } },
+        where: { project: projectFilter },
       }),
       ctx.prisma.document.count({
         where: {
-          project: { userId: ctx.user.id },
+          project: projectFilter,
           createdAt: { gte: currentMonthStart },
         },
       }),
