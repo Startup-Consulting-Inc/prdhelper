@@ -16,6 +16,7 @@ import { DocumentPreview } from '../components/common/DocumentPreview';
 import { VersionHistory } from '../components/document/VersionHistory';
 import { useDocument } from '../hooks/useDocuments';
 import { useProject } from '../hooks/useProjects';
+import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../lib/trpc';
 import { exportToPDF, generatePDFFilename } from '../lib/utils/pdfExport';
 
@@ -24,7 +25,11 @@ export function DocumentViewPage() {
   const navigate = useNavigate();
   const { document: doc, isLoading } = useDocument(documentId!);
   const { project } = useProject(doc?.projectId || '');
+  const { user } = useAuth();
   const utils = trpc.useUtils();
+
+  // Check if user can edit documents (OWNER, ADMIN, or EDITOR)
+  const canEditDocument = project?.isOwner || project?.userRole === 'EDITOR' || user?.role === 'ADMIN';
 
   const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -297,23 +302,27 @@ export function DocumentViewPage() {
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Approve Document
               </Button>
-              <Button
-                variant="outline"
-                onClick={handleEdit}
-                disabled={isApproving || regenerateDocumentMutation.isPending}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowFeedbackModal(true)}
-                isLoading={regenerateDocumentMutation.isPending}
-                disabled={isApproving || regenerateDocumentMutation.isPending}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Regenerate
-              </Button>
+              {canEditDocument && (
+                <Button
+                  variant="outline"
+                  onClick={handleEdit}
+                  disabled={isApproving || regenerateDocumentMutation.isPending}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
+              {canEditDocument && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFeedbackModal(true)}
+                  isLoading={regenerateDocumentMutation.isPending}
+                  disabled={isApproving || regenerateDocumentMutation.isPending}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Regenerate
+                </Button>
+              )}
             </div>
           )}
 
@@ -346,25 +355,27 @@ export function DocumentViewPage() {
                 This document was approved on{' '}
                 {doc.approvedAt ? new Date(doc.approvedAt).toLocaleDateString() : 'N/A'}
               </Alert>
-              <div className="mt-4 flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleEdit}
-                  disabled={regenerateDocumentMutation.isPending}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Document
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFeedbackModal(true)}
-                  isLoading={regenerateDocumentMutation.isPending}
-                  disabled={regenerateDocumentMutation.isPending}
-                >
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Regenerate Document
-                </Button>
-              </div>
+              {canEditDocument && (
+                <div className="mt-4 flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleEdit}
+                    disabled={regenerateDocumentMutation.isPending}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Document
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFeedbackModal(true)}
+                    isLoading={regenerateDocumentMutation.isPending}
+                    disabled={regenerateDocumentMutation.isPending}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Regenerate Document
+                  </Button>
+                </div>
+              )}
             </>
           )}
 
