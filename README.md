@@ -501,7 +501,8 @@ The server serves both the API and the built frontend static files.
 - **VIEWER**:
   - View project details (read-only)
   - View all documents (read-only)
-  - Cannot edit or regenerate documents
+  - Cannot edit or regenerate documents (edit buttons hidden from UI)
+  - Cannot approve documents (approve button visible for read-only viewing)
   - Cannot manage team members
   - Cannot delete project
 
@@ -561,7 +562,20 @@ This project is licensed under the MIT License.
    - Better separation between login flows and account selection
 
 #### 🐛 Bug Fixes
-1. **Google OAuth Logout** - Fixed account switching issue
+1. **Collaborator Visibility** - Fixed critical issue where collaborators couldn't see shared projects
+   - Updated `getStats` query to include collaborated projects in dashboard
+   - Created `verifyProjectAccess()` helper for proper role-based access control
+   - Updated all 9 document endpoints to support collaborator access with role hierarchy
+   - Dashboard now correctly shows project counts and documents for collaborators
+   - VIEWER, EDITOR, and OWNER roles now work as expected
+
+2. **Document Button Permissions** - Fixed UI showing edit buttons to VIEWER collaborators
+   - Added permission check for Edit Document and Regenerate Document buttons
+   - VIEWER role now sees read-only interface without edit controls
+   - EDITOR and OWNER roles see full editing capabilities
+   - Backend already enforced permissions; UI now matches server-side security
+
+3. **Google OAuth Logout** - Fixed account switching issue
    - Added backend logout endpoint (`/api/auth/logout`)
    - Properly clears session and authentication state
    - Frontend logout now calls backend to clear sessions
@@ -573,7 +587,7 @@ This project is licensed under the MIT License.
   - `ProjectCollaborator` model linking users to projects
   - `CollaboratorRole` enum: VIEWER, EDITOR
   - `InviteStatus` enum: PENDING, ACCEPTED, REJECTED, EXPIRED
-- **Backend API**: Complete collaborators router
+- **Backend API**: Complete collaborators router and permission system
   - POST /invite - Send invitation
   - GET /invites/pending - List user's pending invites
   - POST /invites/:id/accept - Accept invitation
@@ -581,11 +595,16 @@ This project is licensed under the MIT License.
   - GET /project/:id/collaborators - List project team
   - PUT /collaborators/:id/role - Change member role
   - DELETE /collaborators/:id - Remove member
-- **Frontend Components**: New collaboration UI
+  - New `verifyProjectAccess()` helper enforces role hierarchy (OWNER > EDITOR > VIEWER)
+  - All document endpoints updated to support collaborator access with proper permissions
+- **Frontend Components**: New collaboration UI with role-based permissions
   - InviteCollaboratorModal with user search
   - PendingInvites section on dashboard
   - Team management section on project detail pages
   - Role selection and permission displays
+  - DocumentViewPage updated with `canEditDocument` permission helper
+  - Edit/Regenerate buttons conditionally rendered based on user role
+  - VIEWER users see read-only interface without edit controls
 - **Authentication**: Enhanced OAuth and logout flows
   - Backend session clearing on logout
   - Account picker parameter in Google OAuth
