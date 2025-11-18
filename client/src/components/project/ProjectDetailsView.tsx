@@ -341,7 +341,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="primary"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/projects/${projectId}/wizard/brd`)}
+                        onClick={() => navigate(`/projects/${projectId}/wizard/brd?autoStart=true`)}
                       >
                         Start BRD
                       </Button>
@@ -409,7 +409,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="primary"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/projects/${projectId}/wizard/prd`)}
+                        onClick={() => navigate(`/projects/${projectId}/wizard/prd?autoStart=true`)}
                       >
                         Start PRD
                       </Button>
