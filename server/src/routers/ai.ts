@@ -10,7 +10,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../lib/trpc/trpc.js';
-import { generateCompletion } from '../lib/services/ai.js';
+import { generateCompletion, type ChatMessage } from '../lib/services/ai.js';
 import {
   generateBRD,
   generatePRD,
@@ -20,6 +20,11 @@ import {
 } from '../lib/services/documentGenerator.js';
 import { trackTokenUsage } from '../lib/services/tokenTracker.js';
 import type { Message } from '../lib/validations/conversation.js';
+import {
+  explanationCache,
+  hashExplanation,
+  type ExplanationResponse,
+} from '../lib/utils/cache.js';
 
 export const aiRouter = router({
   /**
@@ -736,5 +741,106 @@ export const aiRouter = router({
 
       return updatedDocument;
     }),
-});
 
+  /**
+   * Explain a wizard question using AI
+   * Provides context-aware guidance with tips, recommendations, and examples
+   */
+  explainQuestion: protectedProcedure
+    .input(
+      z.object({
+        question: z.string().min(1).max(2000),
+        projectMode: z.enum(['PLAIN', 'TECHNICAL']),
+        documentType: z.enum(['BRD', 'PRD']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check cache first for fast response
+      const cacheKey = hashExplanation(input.question, input.projectMode);
+      const cached = explanationCache.get(cacheKey);
+
+      if (cached) {
+        return cached as ExplanationResponse;
+      }
+
+      // Get explanation prompt from database
+      const systemPrompt = await ctx.prisma.systemPrompt.findFirst({
+        where: {
+          type: 'QUESTION_EXPLANATION',
+          isActive: true,
+        },
+      });
+
+      if (!systemPrompt) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Explanation prompt not configured',
+        });
+      }
+
+      // Build AI messages with context
+      const promptWithContext = systemPrompt.prompt
+        .replace('{projectMode}', input.projectMode)
+        .replace('{documentType}', input.documentType)
+        .replace('{question}', input.question);
+
+      const messages: ChatMessage[] = [
+        {
+          role: 'system',
+          content: promptWithContext,
+        },
+        {
+          role: 'user',
+          content: `Explain this question: "${input.question}"`,
+        },
+      ];
+
+      // Call AI with cheaper/faster model for explanations
+      const response = await generateCompletion(messages, {
+        temperature: 0.5, // More deterministic for explanations
+        maxTokens: 800, // Concise explanations
+        modelOverride: process.env.OPENROUTER_EXPLANATION_MODEL,
+      });
+
+      // Parse JSON response
+      let explanation: ExplanationResponse;
+      try {
+        const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          explanation = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      } catch (error) {
+        // Fallback to generic explanation if parsing fails
+        console.error('Failed to parse explanation JSON:', error);
+        explanation = {
+          purpose: 'Understanding project requirements',
+          importance: 'This helps create accurate technical specifications',
+          tips: [
+            'Be as specific as possible in your answer',
+            'Consider both current and future needs',
+            'Think about your users\' perspective',
+            'Ask yourself: what problem does this solve?',
+          ],
+        };
+      }
+
+      // Track token usage
+      if (response.usage) {
+        await trackTokenUsage({
+          userId: ctx.user.id,
+          operation: 'EXPLAIN_QUESTION',
+          model: response.model,
+          tokensUsed: response.usage.totalTokens,
+          inputTokens: response.usage.promptTokens,
+          outputTokens: response.usage.completionTokens,
+        });
+      }
+
+      // Cache for 24 hours
+      explanationCache.set(cacheKey, explanation);
+
+      return explanation;
+    }),
+});

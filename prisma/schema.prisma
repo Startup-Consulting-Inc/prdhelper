@@ -382,6 +382,7 @@ enum PromptType {
   PRD_TECHNICAL
   TASKS
   PROMPT_BUILD
+  QUESTION_EXPLANATION
 }
 
 enum InquiryType {

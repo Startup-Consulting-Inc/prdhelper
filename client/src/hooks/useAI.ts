@@ -23,6 +23,15 @@ export interface Conversation {
   updatedAt: Date | string;
 }
 
+export interface ExplanationResponse {
+  purpose: string;
+  importance: string;
+  tips: string[];
+  recommendation?: string;
+  examples?: string[];
+  prosAndCons?: { option: string; pros: string[]; cons: string[] }[];
+}
+
 export function useWizard(projectId: string, documentType: 'BRD' | 'PRD') {
   const utils = trpc.useUtils();
 
@@ -91,6 +100,22 @@ export function useConversation(projectId: string, documentType: 'BRD' | 'PRD' |
     clearConversation: clearConversation.mutate,
     clearConversationAsync: clearConversation.mutateAsync,
     isClearing: clearConversation.isPending,
+  };
+}
+
+/**
+ * Hook for getting AI-generated explanations for wizard questions
+ */
+export function useQuestionExplanation() {
+  const explainMutation = trpc.ai.explainQuestion.useMutation();
+
+  return {
+    explain: explainMutation.mutate,
+    explainAsync: explainMutation.mutateAsync,
+    isExplaining: explainMutation.isPending,
+    explanation: explainMutation.data,
+    error: explainMutation.error,
+    reset: explainMutation.reset,
   };
 }
 

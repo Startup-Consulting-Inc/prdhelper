@@ -6,6 +6,7 @@ An AI-powered requirements document generator that helps you create professional
 
 ### Core Features
 - 🤖 **AI-Powered Wizards**: Interactive Q&A flow that adapts to your responses
+- ❓ **Question Explanations**: Help button on AI questions provides detailed guidance, tips, and pros/cons comparisons
 - 📄 **Document Generation**: Automatically generates BRDs, PRDs, task lists, and vibe coding prompts
 - 🎯 **Two User Modes**: Plain language for business users, technical for developers
 - 💬 **Smart Conversations**: AI remembers context and asks relevant follow-up questions
@@ -388,6 +389,11 @@ The server serves both the API and the built frontend static files.
 1. Navigate to your project
 2. Click "Start BRD Wizard"
 3. Answer the AI's questions (minimum 3 questions)
+   - Click the help icon (?) next to any question to see:
+     - What the question is about and why it matters
+     - Tips for providing a good answer
+     - Pros and cons comparison for different options
+     - Common examples and use cases
 4. Click "Generate BRD"
 5. Review, regenerate (optional), or approve your document
 
@@ -396,6 +402,7 @@ The server serves both the API and the built frontend static files.
 1. Complete and approve the BRD first
 2. Click "Start PRD Wizard" from project details
 3. Answer additional questions
+   - Use the help icon (?) for guidance on complex technical questions
 4. Generate and review your PRD
 5. Approve to proceed to next step
 
