@@ -405,12 +405,16 @@ Generate a structured explanation in JSON format with the following fields:
     "Tip 3: Consider edge cases or future needs",
     "Tip 4: Think about user perspective"
   ],
-  "recommendation": "Your best practice recommendation for this question (2-3 sentences). Be specific and mention actual technologies or approaches when relevant.",
-  "examples": [
-    "Example option 1 with brief context",
-    "Example option 2 with brief context",
-    "Example option 3 with brief context"
-  ]
+  "answerAnalysis": [
+    {
+      "option": "Short name of the option/example mentioned in the question (e.g., 'Platform-as-a-Service' or 'Example 1')",
+      "explanation": "What this choice actually entails regarding technology/process",
+      "pros": ["Benefit 1", "Benefit 2"],
+      "cons": ["Drawback 1", "Drawback 2"],
+      "recommendation": "Best for [specific scenario/team type]"
+    }
+  ],
+  "recommendation": "Your overall best practice recommendation for this question (2-3 sentences). Be specific and mention actual technologies or approaches when relevant."
 }
 
 GUIDELINES:
@@ -422,6 +426,7 @@ GUIDELINES:
 - Consider the project mode (PLAIN vs TECHNICAL) when crafting explanations
 - For PLAIN mode: Focus on business value and user experience
 - For TECHNICAL mode: Include more technical considerations and implementation details
+- IMPORTANT: Analyze the "Example answers" or options provided in the question text. Create an entry in "answerAnalysis" for EACH example/option found.
 
 Return ONLY the JSON object, no additional text before or after.`,
       isActive: true,
