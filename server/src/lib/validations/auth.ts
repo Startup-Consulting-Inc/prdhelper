@@ -50,6 +50,41 @@ export const loginSchema = z.object({
 });
 
 /**
+ * URL validation helper
+ */
+const urlSchema = z
+  .string()
+  .url('Invalid URL format')
+  .optional()
+  .or(z.literal(''));
+
+/**
+ * LinkedIn URL validation
+ */
+const linkedInUrlSchema = z
+  .string()
+  .url('Invalid LinkedIn URL')
+  .refine(
+    (url) => url === '' || url.includes('linkedin.com'),
+    'Must be a valid LinkedIn URL'
+  )
+  .optional()
+  .or(z.literal(''));
+
+/**
+ * GitHub URL validation
+ */
+const githubUrlSchema = z
+  .string()
+  .url('Invalid GitHub URL')
+  .refine(
+    (url) => url === '' || url.includes('github.com'),
+    'Must be a valid GitHub URL'
+  )
+  .optional()
+  .or(z.literal(''));
+
+/**
  * Update profile schema
  */
 export const updateProfileSchema = z.object({
@@ -59,6 +94,30 @@ export const updateProfileSchema = z.object({
     .max(100, 'Name must not exceed 100 characters')
     .optional(),
   modePreference: z.enum(['PLAIN', 'TECHNICAL']).optional(),
+  bio: z
+    .string()
+    .max(500, 'Bio must not exceed 500 characters')
+    .optional()
+    .or(z.literal('')),
+  company: z
+    .string()
+    .max(100, 'Company name must not exceed 100 characters')
+    .optional()
+    .or(z.literal('')),
+  jobTitle: z
+    .string()
+    .max(100, 'Job title must not exceed 100 characters')
+    .optional()
+    .or(z.literal('')),
+  linkedInUrl: linkedInUrlSchema,
+  websiteUrl: urlSchema,
+  location: z
+    .string()
+    .min(2, 'Location must be at least 2 characters')
+    .max(100, 'Location must not exceed 100 characters')
+    .optional()
+    .or(z.literal('')),
+  githubUrl: githubUrlSchema,
 });
 
 /**

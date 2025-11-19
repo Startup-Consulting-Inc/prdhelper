@@ -1,11 +1,14 @@
 /**
  * Authentication Context
- * 
+ *
  * Provides authentication state and methods throughout the app.
+ * Includes automatic session timeout after 1 hour of inactivity.
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { trpc } from '../lib/trpc';
+import { useActivityTimeout } from '../hooks/useActivityTimeout';
 
 interface User {
   id: string;
@@ -13,6 +16,14 @@ interface User {
   email: string;
   role: 'USER' | 'ADMIN';
   modePreference: 'PLAIN' | 'TECHNICAL';
+  image?: string | null;
+  bio?: string | null;
+  company?: string | null;
+  jobTitle?: string | null;
+  linkedInUrl?: string | null;
+  websiteUrl?: string | null;
+  location?: string | null;
+  githubUrl?: string | null;
   createdAt: Date | string;
 }
 
@@ -36,6 +47,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('auth_token');
@@ -108,10 +120,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   // Logout function
-  const logout = useCallback(() => {
-    localStorage.removeItem('auth_token');
-    setToken(null);
-    setUser(null);
+  const logout = useCallback(async () => {
+    try {
+      // Call backend to clear session cookies
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with logout even if backend call fails
+    } finally {
+      // Clear local storage and state
+      localStorage.removeItem('auth_token');
+      setToken(null);
+      setUser(null);
+      // Use window.location for hard navigation to ensure state is cleared
+      // This prevents any race conditions with React Router
+      window.location.href = '/';
+    }
   }, []);
 
   // Update user function
@@ -124,6 +151,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('auth_token', newToken);
     setToken(newToken);
   }, []);
+
+  // Activity timeout - automatically logout after 1 hour of inactivity
+  useActivityTimeout(
+    logout,
+    60 * 60 * 1000, // 1 hour in milliseconds
+    !!user && !!token // Only track when user is authenticated
+  );
 
   const value: AuthContextType = {
     user,

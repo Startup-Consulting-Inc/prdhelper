@@ -21,9 +21,6 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@google-cloud/secret-manager": "^6.1.1",
     "@google-cloud/storage": "^7.17.3",
@@ -43,6 +40,7 @@
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "lru-cache": "^11.2.2",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.10",
     "passport": "^0.7.0",

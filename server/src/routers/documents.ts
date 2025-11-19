@@ -12,7 +12,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../lib/trpc/trpc.js';
-import { verifyResourceAccess } from '../lib/utils/authorization.js';
+import { verifyResourceAccess, verifyProjectAccess } from '../lib/utils/authorization.js';
 import {
   getDocumentsByProjectSchema,
   getDocumentByIdSchema,
@@ -29,19 +29,14 @@ export const documentsRouter = router({
   getByProjectId: protectedProcedure
     .input(getDocumentsByProjectSchema)
     .query(async ({ ctx, input }) => {
-      // Verify project ownership
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.projectId },
-      });
-
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
-        });
-      }
-
-      verifyResourceAccess(project.userId, ctx.user, 'project');
+      // Verify project access (owner or collaborator with VIEWER role or higher)
+      await verifyProjectAccess(
+        input.projectId,
+        ctx.user.id,
+        'VIEWER',
+        ctx.prisma,
+        ctx.user
+      );
 
       // Get documents
       const documents = await ctx.prisma.document.findMany({
@@ -73,8 +68,14 @@ export const documentsRouter = router({
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(document.project.userId, ctx.user, 'document');
+      // Verify project access (owner or collaborator with VIEWER role or higher)
+      await verifyProjectAccess(
+        document.projectId,
+        ctx.user.id,
+        'VIEWER',
+        ctx.prisma,
+        ctx.user
+      );
 
       return document;
     }),
@@ -85,19 +86,14 @@ export const documentsRouter = router({
   create: protectedProcedure
     .input(createDocumentSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify project ownership
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.projectId },
-      });
-
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
-        });
-      }
-
-      verifyResourceAccess(project.userId, ctx.user, 'project');
+      // Verify project access (owner or collaborator with EDITOR role or higher)
+      await verifyProjectAccess(
+        input.projectId,
+        ctx.user.id,
+        'EDITOR',
+        ctx.prisma,
+        ctx.user
+      );
 
       // Create document
       const document = await ctx.prisma.document.create({
@@ -146,8 +142,14 @@ export const documentsRouter = router({
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(document.project.userId, ctx.user, 'document');
+      // Verify project access (owner or collaborator with EDITOR role or higher)
+      await verifyProjectAccess(
+        document.projectId,
+        ctx.user.id,
+        'EDITOR',
+        ctx.prisma,
+        ctx.user
+      );
 
       // Approve document
       const approvedDocument = await ctx.prisma.document.update({
@@ -209,8 +211,14 @@ export const documentsRouter = router({
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(document.project.userId, ctx.user, 'document');
+      // Verify project access (owner or collaborator with EDITOR role or higher)
+      await verifyProjectAccess(
+        document.projectId,
+        ctx.user.id,
+        'EDITOR',
+        ctx.prisma,
+        ctx.user
+      );
 
       // Save current version to history before updating
       await ctx.prisma.documentVersion.create({
@@ -274,8 +282,14 @@ export const documentsRouter = router({
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(document.project.userId, ctx.user, 'document');
+      // Verify project access (owner or collaborator with VIEWER role or higher)
+      await verifyProjectAccess(
+        document.projectId,
+        ctx.user.id,
+        'VIEWER',
+        ctx.prisma,
+        ctx.user
+      );
 
       // Format document with metadata
       const metadata = {
@@ -319,8 +333,14 @@ ${document.content}`;
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(document.project.userId, ctx.user, 'document');
+      // Verify project access (owner or collaborator with VIEWER role or higher)
+      await verifyProjectAccess(
+        document.projectId,
+        ctx.user.id,
+        'VIEWER',
+        ctx.prisma,
+        ctx.user
+      );
 
       // Get all versions
       const versions = await ctx.prisma.documentVersion.findMany({
@@ -369,8 +389,14 @@ ${document.content}`;
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(version.document.project.userId, ctx.user, 'version');
+      // Verify project access (owner or collaborator with VIEWER role or higher)
+      await verifyProjectAccess(
+        version.document.projectId,
+        ctx.user.id,
+        'VIEWER',
+        ctx.prisma,
+        ctx.user
+      );
 
       return version;
     }),
@@ -397,8 +423,14 @@ ${document.content}`;
         });
       }
 
-      // Verify ownership
-      verifyResourceAccess(version.document.project.userId, ctx.user, 'version');
+      // Verify project access (owner or collaborator with EDITOR role or higher)
+      await verifyProjectAccess(
+        version.document.projectId,
+        ctx.user.id,
+        'EDITOR',
+        ctx.prisma,
+        ctx.user
+      );
 
       // Save current version to history before restoring
       await ctx.prisma.documentVersion.create({

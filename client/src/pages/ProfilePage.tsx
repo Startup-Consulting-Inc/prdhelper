@@ -25,6 +25,13 @@ export function ProfilePage() {
   // Profile update
   const [profileName, setProfileName] = useState(user?.name || '');
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [company, setCompany] = useState(user?.company || '');
+  const [jobTitle, setJobTitle] = useState(user?.jobTitle || '');
+  const [linkedInUrl, setLinkedInUrl] = useState(user?.linkedInUrl || '');
+  const [websiteUrl, setWebsiteUrl] = useState(user?.websiteUrl || '');
+  const [location, setLocation] = useState(user?.location || '');
+  const [githubUrl, setGithubUrl] = useState(user?.githubUrl || '');
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
 
@@ -56,12 +63,26 @@ export function ProfilePage() {
       const result = await updateProfileMutation.mutateAsync({
         name: profileName,
         modePreference,
+        bio: bio || '',
+        company: company || '',
+        jobTitle: jobTitle || '',
+        linkedInUrl: linkedInUrl || '',
+        websiteUrl: websiteUrl || '',
+        location: location || '',
+        githubUrl: githubUrl || '',
       });
 
       updateUser({
         ...user!,
         name: result.name,
         modePreference: result.modePreference as 'PLAIN' | 'TECHNICAL',
+        bio: result.bio,
+        company: result.company,
+        jobTitle: result.jobTitle,
+        linkedInUrl: result.linkedInUrl,
+        websiteUrl: result.websiteUrl,
+        location: result.location,
+        githubUrl: result.githubUrl,
       });
 
       setProfileSuccess('Profile updated successfully');
@@ -246,6 +267,105 @@ export function ProfilePage() {
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       Email cannot be changed
                     </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Bio
+                    </label>
+                    <textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      rows={3}
+                      maxLength={500}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="A short professional bio..."
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {bio.length}/500 characters
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Company
+                      </label>
+                      <input
+                        type="text"
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Your company"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Job Title
+                      </label>
+                      <input
+                        type="text"
+                        value={jobTitle}
+                        onChange={(e) => setJobTitle(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Your job title"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="City, Country"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      LinkedIn Profile
+                    </label>
+                    <input
+                      type="url"
+                      value={linkedInUrl}
+                      onChange={(e) => setLinkedInUrl(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://linkedin.com/in/username"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Website
+                      </label>
+                      <input
+                        type="url"
+                        value={websiteUrl}
+                        onChange={(e) => setWebsiteUrl(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://yourwebsite.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        GitHub Profile
+                      </label>
+                      <input
+                        type="url"
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://github.com/username"
+                      />
+                    </div>
                   </div>
                 </div>
 

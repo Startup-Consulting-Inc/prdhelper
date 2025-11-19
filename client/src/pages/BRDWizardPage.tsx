@@ -27,6 +27,9 @@ export function BRDWizardPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
 
+  // Check if wizard should auto-start (skip welcome screen)
+  const autoStart = new URLSearchParams(location.search).get('autoStart') === 'true';
+
   const { project, isLoading: isLoadingProject } = useProject(projectId!);
   const { messages, isLoading: isLoadingMessages } = useConversation(
     projectId!,
@@ -153,14 +156,11 @@ export function BRDWizardPage() {
 
   // Auto-start wizard if autoStart query param is present
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const shouldAutoStart = params.get('autoStart') === 'true';
-
-    if (shouldAutoStart && messages.length === 0 && !isLoadingMessages && !isSubmitting) {
+    if (autoStart && messages.length === 0 && !isLoadingMessages && !isSubmitting) {
       handleStartWizard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search, messages.length, isLoadingMessages, isSubmitting]);
+  }, [autoStart, messages.length, isLoadingMessages, isSubmitting]);
 
   if (isLoadingProject) {
     return (
@@ -241,7 +241,7 @@ export function BRDWizardPage() {
             <div className="flex items-center justify-center py-12">
               <Spinner size="lg" />
             </div>
-          ) : messages.length === 0 ? (
+          ) : messages.length === 0 && !autoStart ? (
             // Welcome Screen
             <Card className="max-w-2xl mx-auto">
               <div className="p-8 text-center">

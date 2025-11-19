@@ -11,12 +11,12 @@
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-interface ChatMessage {
+export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-interface AIResponse {
+export interface AIResponse {
   content: string;
   model: string;
   usage?: {
@@ -35,19 +35,21 @@ export async function generateCompletion(
     temperature?: number;
     maxTokens?: number;
     retries?: number;
+    modelOverride?: string;
   } = {}
 ): Promise<AIResponse> {
   const {
     temperature = 0.7,
     maxTokens = 2000,
     retries = 3,
+    modelOverride,
   } = options;
 
   let lastError: Error | null = null;
 
   // Get API key and model dynamically to ensure .env is loaded
   const apiKey = process.env.OPENROUTER_API_KEY || '';
-  const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+  const model = modelOverride || process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
 
   if (!apiKey) {
     throw new Error('OPENROUTER_API_KEY is not configured');

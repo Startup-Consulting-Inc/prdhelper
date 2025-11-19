@@ -24,6 +24,16 @@ model User {
   password      String?   // Nullable for OAuth users
   role          UserRole  @default(USER)
   modePreference UserMode @default(PLAIN) @map("mode_preference")
+
+  // Profile fields
+  bio           String? @db.VarChar(500)
+  company       String?
+  jobTitle      String? @map("job_title")
+  linkedInUrl   String? @map("linkedin_url")
+  websiteUrl    String? @map("website_url")
+  location      String?
+  githubUrl     String? @map("github_url")
+
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -35,6 +45,10 @@ model User {
   tokenUsage       TokenUsage[]
   promptVersions   PromptVersion[]
   documentVersions DocumentVersion[]
+  projectInvitesSent ProjectInvite[] @relation("InviteSender")
+  projectInvitesReceived ProjectInvite[] @relation("InviteReceiver")
+  collaborations   ProjectCollaborator[]
+  collaborationsInvited ProjectCollaborator[] @relation("CollaborationInviter")
 
   @@map("users")
 }
@@ -99,11 +113,59 @@ model Project {
   documents     Document[]
   conversations Conversation[]
   tokenUsage    TokenUsage[]
+  invites       ProjectInvite[]
+  collaborators ProjectCollaborator[]
 
   @@index([userId])
   @@index([status])
   @@index([createdAt])
   @@map("projects")
+}
+
+model ProjectInvite {
+  id             String            @id @default(cuid())
+  projectId      String            @map("project_id")
+  invitedEmail   String            @map("invited_email")
+  invitedUserId  String?           @map("invited_user_id") // Nullable, set if user exists
+  inviterId      String            @map("inviter_id")
+  role           CollaboratorRole
+  token          String            @unique @default(cuid()) // For email invite links
+  status         InviteStatus      @default(PENDING)
+  expiresAt      DateTime          @map("expires_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  project      Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  inviter      User    @relation("InviteSender", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitedUser  User?   @relation("InviteReceiver", fields: [invitedUserId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([invitedEmail])
+  @@index([invitedUserId])
+  @@index([token])
+  @@index([status])
+  @@map("project_invites")
+}
+
+model ProjectCollaborator {
+  id         String           @id @default(cuid())
+  projectId  String           @map("project_id")
+  userId     String           @map("user_id")
+  role       CollaboratorRole
+  invitedBy  String           @map("invited_by")
+  invitedAt  DateTime         @map("invited_at")
+  acceptedAt DateTime         @default(now()) @map("accepted_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inviter User    @relation("CollaborationInviter", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_collaborators")
 }
 
 model Document {
@@ -320,6 +382,7 @@ enum PromptType {
   PRD_TECHNICAL
   TASKS
   PROMPT_BUILD
+  QUESTION_EXPLANATION
 }
 
 enum InquiryType {
@@ -337,4 +400,16 @@ enum DemoRequestStatus {
   SCHEDULED
   COMPLETED
   CANCELLED
+}
+
+enum CollaboratorRole {
+  VIEWER
+  EDITOR
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
 }

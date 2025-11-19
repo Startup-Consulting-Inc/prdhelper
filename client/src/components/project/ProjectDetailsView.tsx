@@ -1,9 +1,10 @@
 /**
  * Project Details View
- * 
+ *
  * Complete project detail page showing progress, documents, and wizard access.
  */
 
+import { useState } from 'react';
 import { ArrowLeft, FileText, Code, CheckCircle, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
@@ -12,6 +13,8 @@ import { Card } from '../ui/Card';
 import { Progress } from '../ui/Progress';
 import { Spinner } from '../ui/Spinner';
 import { CurrentPhaseCard } from './CurrentPhaseCard';
+import ProjectCollaborators from './ProjectCollaborators';
+import InviteCollaboratorModal from './InviteCollaboratorModal';
 import { useProject } from '../../hooks/useProjects';
 import { useDocuments } from '../../hooks/useDocuments';
 import { trpc } from '../../lib/trpc';
@@ -29,6 +32,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const { documents, isLoading: isLoadingDocuments } = useDocuments(projectId);
   const generateTasksMutation = trpc.ai.generateDocument.useMutation();
   const generatePromptBuildMutation = trpc.ai.generateDocument.useMutation();
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   if (isLoadingProject) {
     return (
@@ -255,6 +259,18 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
           </div>
         </Card>
 
+        {/* Team Collaboration */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Team
+          </h2>
+          <ProjectCollaborators
+            projectId={projectId}
+            isOwner={project.isOwner || false}
+            onInviteClick={() => setInviteModalOpen(true)}
+          />
+        </div>
+
         {/* Documents */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -325,7 +341,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="primary"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/projects/${projectId}/wizard/brd`)}
+                        onClick={() => navigate(`/projects/${projectId}/wizard/brd?autoStart=true`)}
                       >
                         Start BRD
                       </Button>
@@ -393,7 +409,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="primary"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/projects/${projectId}/wizard/prd`)}
+                        onClick={() => navigate(`/projects/${projectId}/wizard/prd?autoStart=true`)}
                       >
                         Start PRD
                       </Button>
@@ -639,6 +655,13 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
           </div>
         </Card>
       </main>
+
+      {/* Invite Collaborator Modal */}
+      <InviteCollaboratorModal
+        projectId={projectId}
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+      />
     </div>
   );
 }

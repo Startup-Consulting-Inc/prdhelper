@@ -363,6 +363,14 @@ export const authRouter = router({
       email: ctx.user.email,
       role: ctx.user.role,
       modePreference: ctx.user.modePreference,
+      image: ctx.user.image,
+      bio: ctx.user.bio,
+      company: ctx.user.company,
+      jobTitle: ctx.user.jobTitle,
+      linkedInUrl: ctx.user.linkedInUrl,
+      websiteUrl: ctx.user.websiteUrl,
+      location: ctx.user.location,
+      githubUrl: ctx.user.githubUrl,
       createdAt: ctx.user.createdAt,
     };
   }),
@@ -373,12 +381,21 @@ export const authRouter = router({
   updateProfile: protectedProcedure
     .input(updateProfileSchema)
     .mutation(async ({ ctx, input }) => {
+      // Prepare update data - convert empty strings to null
+      const updateData: any = {};
+      if (input.name !== undefined) updateData.name = input.name;
+      if (input.modePreference !== undefined) updateData.modePreference = input.modePreference;
+      if (input.bio !== undefined) updateData.bio = input.bio === '' ? null : input.bio;
+      if (input.company !== undefined) updateData.company = input.company === '' ? null : input.company;
+      if (input.jobTitle !== undefined) updateData.jobTitle = input.jobTitle === '' ? null : input.jobTitle;
+      if (input.linkedInUrl !== undefined) updateData.linkedInUrl = input.linkedInUrl === '' ? null : input.linkedInUrl;
+      if (input.websiteUrl !== undefined) updateData.websiteUrl = input.websiteUrl === '' ? null : input.websiteUrl;
+      if (input.location !== undefined) updateData.location = input.location === '' ? null : input.location;
+      if (input.githubUrl !== undefined) updateData.githubUrl = input.githubUrl === '' ? null : input.githubUrl;
+
       const updatedUser = await ctx.prisma.user.update({
         where: { id: ctx.user.id },
-        data: {
-          ...(input.name && { name: input.name }),
-          ...(input.modePreference && { modePreference: input.modePreference }),
-        },
+        data: updateData,
       });
 
       // Create audit log
@@ -397,6 +414,14 @@ export const authRouter = router({
         email: updatedUser.email,
         role: updatedUser.role,
         modePreference: updatedUser.modePreference,
+        image: updatedUser.image,
+        bio: updatedUser.bio,
+        company: updatedUser.company,
+        jobTitle: updatedUser.jobTitle,
+        linkedInUrl: updatedUser.linkedInUrl,
+        websiteUrl: updatedUser.websiteUrl,
+        location: updatedUser.location,
+        githubUrl: updatedUser.githubUrl,
         createdAt: updatedUser.createdAt,
       };
     }),

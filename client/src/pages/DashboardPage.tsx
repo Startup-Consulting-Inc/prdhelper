@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Footer } from '../components/layout/Footer';
 import { ProjectList } from '../components/project/ProjectList';
+import PendingInvites from '../components/project/PendingInvites';
 import { useProjects, useProjectStats, type Project } from '../hooks/useProjects';
 import { useAuth } from '../contexts/AuthContext';
 import { calculateProjectProgress } from '../lib/utils/projectProgress';
@@ -158,6 +159,9 @@ export function DashboardPage() {
               </div>
             </div>
           )}
+
+          {/* Pending Invitations */}
+          <PendingInvites />
 
           {/* Projects */}
           <div>
