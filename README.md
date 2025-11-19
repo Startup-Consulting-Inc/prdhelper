@@ -1,12 +1,14 @@
-# PRD Helper
+# Clearly
 
-An AI-powered requirements document generator that helps you create professional Business Requirements Documents (BRDs) and Product Requirements Documents (PRDs) through an intelligent Q&A wizard interface.
+In the era of AI-driven development—whether you're using Cursor, Claude, or other AI coding tools—the quality of your specifications directly impacts your outcomes. Clear requirements = better AI-generated code.
+
+Clearly uses an intelligent Q&A wizard to guide both technical and non-technical team members through the specification process, generating actionable outputs that work seamlessly with modern development workflows.
 
 ## ✨ Features
 
 ### Core Features
 - 🤖 **AI-Powered Wizards**: Interactive Q&A flow that adapts to your responses
-- ❓ **Question Explanations**: Help button on AI questions provides detailed guidance, tips, and pros/cons comparisons
+- 💡 **Contextual Tips**: Helpful tips explaining what questions mean and why they matter, with detailed explanations, pros and cons for each sample answer—no matter your technical background
 - 📄 **Document Generation**: Automatically generates BRDs, PRDs, task lists, and vibe coding prompts
 - 🎯 **Two User Modes**: Plain language for business users, technical for developers
 - 💬 **Smart Conversations**: AI remembers context and asks relevant follow-up questions
@@ -19,7 +21,7 @@ An AI-powered requirements document generator that helps you create professional
 - 👤 **Professional Profiles**: Comprehensive user profiles with bio, company, job title, LinkedIn, website, location, and GitHub integration
 
 ### Team Collaboration
-- 👥 **Project Sharing**: Invite team members to collaborate on projects
+- 👥 **Real-time Collaboration**: Invite team members to collaborate on projects with viewer or editor permissions, making it easy to align stakeholders and iterate together on your requirements
 - 📧 **Email & Username Invites**: Invite collaborators by email address or username
 - 🔐 **Role-Based Permissions**:
   - **VIEWER**: Read-only access to view project and documents

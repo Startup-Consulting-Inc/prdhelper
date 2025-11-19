@@ -17,7 +17,8 @@ import {
   Zap,
   CheckCircle,
   ArrowRight,
-  X
+  X,
+  Lightbulb
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -47,7 +48,7 @@ export function LandingPage() {
             Requirements Made Clear
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8">
-            Transform ideas into professional BRDs and PRDs in minutes with AI-guided conversations. No templates. No guesswork. Just clear requirements.
+            In the era of AI-driven development—whether you're using Cursor, Claude, or other AI coding tools—the quality of your specifications directly impacts your outcomes. Clear requirements = better AI-generated code.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button variant="primary" size="lg" onClick={() => navigate('/login')}>
@@ -72,7 +73,7 @@ export function LandingPage() {
               What is Clearly?
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Clearly is the intelligent requirements platform that makes documentation simple. Whether you're a business stakeholder with a vision or a technical team planning implementation, our AI adapts to your expertise and creates industry-standard documentation in a fraction of the time.
+              Clearly uses an intelligent Q&A wizard to guide both technical and non-technical team members through the specification process, generating actionable outputs that work seamlessly with modern development workflows.
             </p>
           </div>
 
@@ -94,6 +95,54 @@ export function LandingPage() {
                 </p>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Updates */}
+      <section className="py-12 bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              Latest Features
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              We're still in beta with a small group of early users, and the feedback has been invaluable in shaping these features.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="p-8 border-primary-100 dark:border-primary-900/50 bg-primary-50/30 dark:bg-primary-900/10">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-primary-100 dark:bg-primary-900/50 rounded-lg">
+                  <Lightbulb className="h-8 w-8 text-primary-600 dark:text-primary-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                    Contextual Tips
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Not everyone speaks the same technical language. Now when Clearly asks a question, you'll see helpful tips explaining what we're asking and why it matters. Each sample answer includes detailed explanations, pros and cons, so you can make informed decisions—no matter your technical background.
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-8 border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-900/10">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                  <Users className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                    Real-time Collaboration
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Great products are built by teams, not individuals. You can now invite collaborators with viewer or editor permissions, making it easy to align stakeholders and iterate together on your requirements.
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
