@@ -1,0 +1,102 @@
+# Cloud Build configuration for deploying to Cloud Run (STAGING)
+# Project: clearly-478614
+# Service: Clearly - Intelligent Requirements Platform (STAGING)
+
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_SENTRY_DSN=$$VITE_SENTRY_DSN'
+      - '-t'
+      - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/clearly-478614/clearly-stage:latest'
+      - '.'
+    secretEnv:
+      - 'VITE_SENTRY_DSN'
+    id: 'build-image'
+
+  # Step 2: Push the image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
+    id: 'push-image-sha'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/clearly-478614/clearly-stage:latest'
+    id: 'push-image-latest'
+
+  # Step 3: Run database migrations
+  - name: 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
+    entrypoint: 'sh'
+    dir: '/app'
+    args:
+      - '-c'
+      - 'DATABASE_URL=$$DIRECT_URL npx prisma migrate deploy'
+    secretEnv:
+      - 'DATABASE_URL'
+      - 'DIRECT_URL'
+    id: 'run-migrations'
+
+  # Step 4: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'clearly-stage'
+      - '--image'
+      - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
+      - '--region'
+      - 'us-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '3000'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--timeout'
+      - '300'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,CLIENT_URL=https://stage.clearlyreqs.com,ADMIN_EMAIL=jsong@koreatous.com,GOOGLE_CLOUD_PROJECT_ID=clearly-478614,GCS_BUCKET_NAME=clearly-uploads,GCP_PROJECT_ID=clearly-478614'
+      - '--set-secrets'
+      - 'DATABASE_URL=DATABASE_URL:latest,DIRECT_URL=DIRECT_URL:latest,JWT_SECRET=JWT_SECRET:latest,OPENROUTER_API_KEY=OPENROUTER_API_KEY:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_CALLBACK_URL=GOOGLE_CALLBACK_Stage_URL:latest,GMAIL_USER=GMAIL_USER:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest'
+      - '--update-labels'
+      - 'managed-by=cloud-build,app=clearly,env=staging'
+    id: 'deploy-cloud-run'
+
+# Store images in Google Container Registry
+images:
+  - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
+  - 'gcr.io/clearly-478614/clearly-stage:latest'
+
+# Build configuration
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+  logStreamingOption: STREAM_ON
+
+# Build timeout (30 minutes)
+timeout: 1800s
+
+# Available secrets for build steps
+availableSecrets:
+  secretManager:
+    - versionName: projects/clearly-478614/secrets/DATABASE_URL/versions/latest
+      env: 'DATABASE_URL'
+    - versionName: projects/clearly-478614/secrets/DIRECT_URL/versions/latest
+      env: 'DIRECT_URL'
+    - versionName: projects/clearly-478614/secrets/VITE_SENTRY_DSN/versions/latest
+      env: 'VITE_SENTRY_DSN'
