@@ -1,0 +1,50 @@
+services:
+  # Backend Server
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: prd-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./server:/app/server
+      - ./client:/app/client
+      - ./shared:/app/shared
+      - ./prisma:/app/prisma
+      - /app/node_modules
+      - /app/client/node_modules
+    command: >
+      sh -c "
+        echo 'Starting server...' &&
+        npx prisma generate &&
+        npm run dev:server
+      "
+
+  # Frontend Client (Vite dev server)
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: prd-client
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env
+    volumes:
+      - ./client:/app/client
+      - ./shared:/app/shared
+      - /app/client/node_modules
+    working_dir: /app/client
+    command: >
+      sh -c "
+        if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules)\" ]; then
+          echo 'Installing client dependencies...';
+          npm install;
+        fi;
+        npm run dev
+      "

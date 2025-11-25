@@ -1,0 +1,28 @@
+# Development Dockerfile for PRD Helper
+# Multi-stage build for development environment
+
+FROM node:20-alpine AS development
+
+WORKDIR /app
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++ git
+
+# Copy package files
+COPY package*.json ./
+COPY client/package*.json ./client/
+COPY prisma ./prisma
+
+# Install dependencies
+RUN npm install
+RUN cd client && npm install
+
+# Copy application code
+COPY . .
+
+# Expose ports
+EXPOSE 3000
+
+# Prisma generate will run at startup with env vars available
+# Default command (can be overridden in docker-compose)
+CMD ["npm", "run", "dev:server"]

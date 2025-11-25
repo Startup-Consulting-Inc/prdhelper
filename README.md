@@ -45,6 +45,8 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 
 ### Admin Features
 - 👤 **User Management**: Admin dashboard for managing users and permissions
+  - Export users to CSV with all user data (name, email, role, projects, created date)
+  - Sortable columns for easy data organization
 - 🔧 **System Prompt Management**: Edit and version control all AI system prompts
 - 📊 **Token Usage Tracking**: Monitor AI token consumption and costs
 - 📜 **Audit Logs**: Complete audit trail of all system actions

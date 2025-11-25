@@ -7,11 +7,15 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '--build-arg'
+      - 'VITE_SENTRY_DSN=$$VITE_SENTRY_DSN'
       - '-t'
       - 'gcr.io/clearly-478614/clearly:$BUILD_ID'
       - '-t'
       - 'gcr.io/clearly-478614/clearly:latest'
       - '.'
+    secretEnv:
+      - 'VITE_SENTRY_DSN'
     id: 'build-image'
 
   # Step 2: Push the image to Google Container Registry
@@ -94,3 +98,5 @@ availableSecrets:
       env: 'DATABASE_URL'
     - versionName: projects/clearly-478614/secrets/DIRECT_URL/versions/latest
       env: 'DIRECT_URL'
+    - versionName: projects/clearly-478614/secrets/VITE_SENTRY_DSN/versions/latest
+      env: 'VITE_SENTRY_DSN'
