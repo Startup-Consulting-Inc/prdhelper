@@ -45,6 +45,11 @@ RUN npm rebuild
 # Copy the rest of the source code
 COPY . .
 
+# --- Build Arguments for Production ---
+# Frontend Sentry DSN (passed via --build-arg during production build)
+ARG VITE_SENTRY_DSN
+ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
+
 # --- IMPORTANT: This block is ONLY needed for 'docker build' time ---
 # For local development: Prisma + Docker needs a DATABASE_URL at build time to generate the client.
 # These dummy credentials are only used during the build step and do NOT affect runtime configuration.

@@ -45,6 +45,8 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 
 ### Admin Features
 - 👤 **User Management**: Admin dashboard for managing users and permissions
+  - Export users to CSV with all user data (name, email, role, projects, created date)
+  - Sortable columns for easy data organization
 - 🔧 **System Prompt Management**: Edit and version control all AI system prompts
 - 📊 **Token Usage Tracking**: Monitor AI token consumption and costs
 - 📜 **Audit Logs**: Complete audit trail of all system actions
@@ -274,20 +276,53 @@ Required variables in `.env`:
 ```env
 # Database
 DATABASE_URL="postgresql://user:password@localhost:5432/prd_helper"
+DIRECT_URL="postgresql://user:password@localhost:5432/prd_helper"
 
-# API URLs
-API_URL="http://localhost:3000"
+# Server
+PORT=3000
+NODE_ENV="development"
+
+# Security & Authentication (REQUIRED - no fallbacks)
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+JWT_EXPIRES_IN="7d"
+SESSION_SECRET="your-session-secret-different-from-jwt"
+
+# Client Configuration
 CLIENT_URL="http://localhost:5173"
 
 # AI Integration
-OPENROUTER_API_KEY="your_openrouter_api_key"
+OPENROUTER_API_KEY="your-openrouter-api-key"
+OPENROUTER_MODEL="google/gemini-2.5-flash"
+OPENROUTER_EXPLANATION_MODEL="google/gemini-flash-1.5"
 
-# Authentication (optional)
-NEXTAUTH_SECRET="your_secret_key"
-NEXTAUTH_URL="http://localhost:5173"
+# OAuth Providers
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+GOOGLE_CALLBACK_URL="http://localhost:3000/api/auth/google/callback"
+
+# Google Cloud (for production)
+GOOGLE_CLOUD_PROJECT_ID="your-project-id"
+GCS_BUCKET_NAME="your-bucket-name"
+GCP_PROJECT_ID="your-project-id"
+
+# Email Configuration
+ADMIN_EMAIL="admin@example.com"
+GMAIL_USER="your-gmail@gmail.com"
+GMAIL_APP_PASSWORD="your-16-char-app-password"
+
+# Logging & Monitoring
+LOG_LEVEL="debug"  # trace, debug, info, warn, error, fatal
+SENTRY_DSN="your-backend-sentry-dsn"  # Optional: Backend error tracking
+VITE_SENTRY_DSN="your-frontend-sentry-dsn"  # Optional: Frontend error tracking
 ```
 
-See `.env.example` for all available options.
+**Important Security Notes**:
+- **JWT_SECRET**: REQUIRED - App will not start without it. Generate with: `openssl rand -base64 32`
+- **SESSION_SECRET**: Recommended for production. If not provided, JWT_SECRET will be used as fallback
+- **No Default Secrets**: The app uses fail-fast approach - missing secrets will cause immediate startup failure
+- **Sentry DSNs**: Optional but highly recommended for production error tracking
+
+See `.env.example` for all available options and detailed explanations.
 
 ### Code Quality
 
@@ -343,12 +378,204 @@ cd client && npm run preview
 
 ## 🚀 Deployment
 
+### Local Production Build
+
 ```bash
+# Build everything
+npm run build
+
 # Start production server
 npm start
 ```
 
 The server serves both the API and the built frontend static files.
+
+### Docker Deployment
+
+#### Development with Docker Compose
+
+```bash
+# Build and start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+
+# Rebuild after changes
+docker compose build --no-cache
+docker compose up -d
+```
+
+Access the application at:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
+
+#### Production Docker Build
+
+```bash
+# Build production image with Sentry DSN
+docker build \
+  --build-arg VITE_SENTRY_DSN="your-frontend-sentry-dsn" \
+  -t clearly:latest .
+
+# Run production container
+docker run -p 3000:3000 \
+  --env-file .env \
+  clearly:latest
+```
+
+### Google Cloud Run Deployment
+
+#### Prerequisites
+
+1. **Set up Google Cloud Project**:
+```bash
+# Install and configure gcloud CLI
+gcloud init
+gcloud config set project clearly-478614
+```
+
+2. **Create Required Secrets in Secret Manager**:
+```bash
+# Database secrets
+echo -n "your-database-url" | gcloud secrets create DATABASE_URL --data-file=-
+echo -n "your-direct-url" | gcloud secrets create DIRECT_URL --data-file=-
+
+# Authentication secrets
+echo -n "your-jwt-secret" | gcloud secrets create JWT_SECRET --data-file=-
+echo -n "your-session-secret" | gcloud secrets create SESSION_SECRET --data-file=-
+
+# OAuth secrets
+echo -n "your-google-client-id" | gcloud secrets create GOOGLE_CLIENT_ID --data-file=-
+echo -n "your-google-client-secret" | gcloud secrets create GOOGLE_CLIENT_SECRET --data-file=-
+echo -n "https://your-domain.com/api/auth/google/callback" | gcloud secrets create GOOGLE_CALLBACK_URL --data-file=-
+echo -n "https://stage.your-domain.com/api/auth/google/callback" | gcloud secrets create GOOGLE_CALLBACK_Stage_URL --data-file=-
+
+# Email secrets
+echo -n "your-gmail@gmail.com" | gcloud secrets create GMAIL_USER --data-file=-
+echo -n "your-app-password" | gcloud secrets create GMAIL_APP_PASSWORD --data-file=-
+
+# API secrets
+echo -n "your-openrouter-key" | gcloud secrets create OPENROUTER_API_KEY --data-file=-
+
+# Sentry secrets
+echo -n "your-backend-sentry-dsn" | gcloud secrets create SENTRY_DSN --data-file=-
+echo -n "your-frontend-sentry-dsn" | gcloud secrets create VITE_SENTRY_DSN --data-file=-
+```
+
+3. **Grant Cloud Build Permissions**:
+```bash
+# Get your project number
+PROJECT_NUMBER=$(gcloud projects describe clearly-478614 --format='value(projectNumber)')
+
+# Grant Secret Manager access to Cloud Build
+gcloud secrets add-iam-policy-binding DATABASE_URL \
+  --member="serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+
+# Repeat for all secrets (DIRECT_URL, VITE_SENTRY_DSN, etc.)
+```
+
+4. **Configure Google OAuth**:
+   - Go to [Google Cloud Console > APIs & Services > Credentials](https://console.cloud.google.com/apis/credentials)
+   - Add authorized redirect URIs:
+     - `https://your-production-domain.com/api/auth/google/callback`
+     - `https://your-staging-domain.com/api/auth/google/callback`
+
+#### Deployment Workflow
+
+**Staging Deployment** (Test before production):
+```bash
+# Deploy to staging environment
+./scripts/deploy-stage.sh
+
+# Or manually:
+gcloud builds submit --config=cloudbuild.stage.yaml --project=clearly-478614 .
+```
+
+**Production Deployment**:
+```bash
+# Deploy to production (requires typing "yes")
+./scripts/deploy-prod.sh
+
+# Or manually:
+gcloud builds submit --config=cloudbuild.prod.yaml --project=clearly-478614 .
+```
+
+#### Post-Deployment
+
+1. **Make Service Publicly Accessible**:
+```bash
+# Staging
+gcloud run services add-iam-policy-binding clearly-stage \
+  --region=us-west1 \
+  --member="allUsers" \
+  --role="roles/run.invoker"
+
+# Production
+gcloud run services add-iam-policy-binding clearly \
+  --region=us-west1 \
+  --member="allUsers" \
+  --role="roles/run.invoker"
+```
+
+2. **Get Service URL**:
+```bash
+# Staging
+gcloud run services describe clearly-stage \
+  --region=us-west1 \
+  --format='value(status.url)'
+
+# Production
+gcloud run services describe clearly \
+  --region=us-west1 \
+  --format='value(status.url)'
+```
+
+3. **Monitor Deployment**:
+```bash
+# View logs
+gcloud run services logs read clearly --region=us-west1 --limit=50
+
+# Check service status
+gcloud run services describe clearly --region=us-west1
+```
+
+4. **Rollback if Needed**:
+```bash
+# List revisions
+gcloud run revisions list --service=clearly --region=us-west1
+
+# Rollback to previous revision
+gcloud run services update-traffic clearly \
+  --to-revisions=PREVIOUS_REVISION=100 \
+  --region=us-west1
+```
+
+#### Health Check
+
+After deployment, verify the service is healthy:
+```bash
+curl https://your-service-url/health
+```
+
+Expected response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-19T...",
+  "version": "1.0.0",
+  "environment": "production",
+  "services": {
+    "database": {"status": "ok", "responseTime": 45},
+    "storage": {"status": "ok", "responseTime": 120},
+    "email": {"status": "ok"}
+  }
+}
+```
 
 ## 📚 Documentation
 
@@ -552,6 +779,114 @@ This project is licensed under the MIT License.
 ---
 
 ## 📋 Recent Updates
+
+### Version 2.6.0 - Production Deployment & Security Hardening (November 19, 2025)
+
+#### ✨ New Features
+1. **Staging and Production Deployment** - Separate deployment workflows for testing and production
+   - Staging environment (`clearly-stage`) for production-like testing
+   - Production environment (`clearly`) for live service
+   - Automated deployment scripts with confirmation prompts
+   - Google Cloud Run deployment with Cloud Build
+   - Zero-downtime deployments with traffic management
+
+2. **Comprehensive Security Hardening** - Enterprise-grade security improvements
+   - **Rate Limiting**: Multi-tier protection (auth: 5/15min, upload: 10/hour, API: 100/15min)
+   - **JWT Security**: No fallback secrets, fail-fast on missing JWT_SECRET
+   - **Session Security**: Dedicated SESSION_SECRET with SameSite CSRF protection
+   - **File Upload Security**: Authentication required for all file uploads
+   - **Secure Error Handling**: Production-safe error messages (no internal exposure)
+   - **Trust Proxy Configuration**: Cloud Run-specific proxy settings (single hop)
+
+3. **Production Monitoring & Observability** - Full-stack error tracking and logging
+   - **Sentry Integration**: Separate error tracking for frontend (React) and backend (Node.js)
+   - **Structured Logging**: Pino logger with JSON format for production
+   - **Request Correlation**: Unique correlation IDs for distributed tracing
+   - **Enhanced Health Checks**: Database, Cloud Storage, and Email service monitoring
+   - **Performance Monitoring**: 10% sampling for performance metrics
+   - **Session Replay**: 100% replay on errors for debugging
+
+4. **Docker Support** - Complete containerization for development and production
+   - **Docker Compose**: Local development with hot-reloading
+   - **Multi-stage Builds**: Optimized production Docker images
+   - **Separate Containers**: Independent server and client containers for development
+   - **Environment Management**: .env file integration for all configurations
+
+#### 🔧 Technical Changes
+- **Security Middleware**: New rate limiting, authentication, and error handling middleware
+- **Logger Infrastructure**: Replaced all console.log with structured Pino logging
+- **Health Check System**: Comprehensive dependency monitoring with degraded states
+- **Deployment Scripts**: `deploy-stage.sh` and `deploy-prod.sh` with safeguards
+- **Cloud Build Configuration**: Separate configs for staging and production
+- **Secret Management**: Google Cloud Secret Manager integration
+- **Correlation Middleware**: Request tracking across services
+- **Production Dockerfile**: Debian Slim base with Prisma CDN optimizations
+
+#### 📦 New Files & Scripts
+- `cloudbuild.stage.yaml` - Staging deployment configuration
+- `cloudbuild.prod.yaml` - Production deployment configuration
+- `scripts/deploy-stage.sh` - Staging deployment helper
+- `scripts/deploy-prod.sh` - Production deployment helper (requires "yes" confirmation)
+- `server/src/lib/logger.ts` - Structured logging infrastructure
+- `server/src/lib/middleware/rateLimiter.ts` - Rate limiting middleware
+- `server/src/lib/middleware/auth.ts` - Authentication middleware
+- `server/src/lib/middleware/correlationId.ts` - Request correlation
+- `server/src/lib/middleware/errorHandler.ts` - Secure error handling
+- `server/src/lib/health/` - Health check services (database, storage, email)
+- `docker-compose.yaml` - Docker development environment
+- `Dockerfile.dev` - Development Docker image
+- `Dockerfile.client` - Client-only Docker image
+
+#### 🔒 Security Improvements
+- Removed all fallback secrets (fail-fast approach)
+- Rate limiting on authentication, uploads, and API endpoints
+- CSRF protection via SameSite cookies
+- Authenticated file upload endpoints
+- Production-safe error messages (no stack traces exposed)
+- Trust proxy configured for Cloud Run (single hop validation)
+- Request correlation for security auditing
+- Comprehensive logging with security event tracking
+
+#### 📊 Monitoring & Observability
+- Frontend Sentry: React error tracking with session replay
+- Backend Sentry: Node.js error tracking with performance monitoring
+- Structured JSON logging for log aggregation
+- Correlation IDs for distributed tracing across services
+- Health check endpoint with dependency status
+- Production-only Sentry activation (no dev noise)
+- Log levels: trace, debug, info, warn, error, fatal
+
+#### 🚀 Deployment Workflow
+1. **Test in Staging**: Deploy to `clearly-stage` and verify
+2. **Verify**: Check staging URL and test all functionality
+3. **Deploy to Production**: Deploy to `clearly` with confidence
+4. **Monitor**: Use Sentry and Cloud Logging for observability
+5. **Rollback**: Cloud Run traffic management for instant rollback
+
+#### 🗄️ Environment Variables
+New required variables:
+- `SESSION_SECRET` - Dedicated session cookie secret
+- `SENTRY_DSN` - Backend Sentry DSN (Node.js)
+- `VITE_SENTRY_DSN` - Frontend Sentry DSN (React)
+- `LOG_LEVEL` - Logging verbosity (trace, debug, info, warn, error, fatal)
+- `GOOGLE_CLOUD_PROJECT_ID` - GCP project ID
+- `GCS_BUCKET_NAME` - Google Cloud Storage bucket
+
+#### 🐛 Fixes
+- Fixed trust proxy warning in express-rate-limit
+- Fixed static file serving in development vs production
+- Fixed OAuth redirect issues with separate callback URLs
+- Fixed Prisma generate in Docker builds
+- Fixed 403 errors with Cloud Run invoker permissions
+
+#### 📚 Documentation Updates
+- Updated README with deployment instructions
+- Added Docker usage documentation
+- Documented new security features
+- Added environment variable reference
+- Included deployment workflow guide
+
+---
 
 ### Version 2.5.0 - Team Collaboration & OAuth Improvements (November 15, 2025)
 
@@ -797,8 +1132,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 2.5.0
-**Last Updated**: November 15, 2025
-**Status**: ✅ Production Ready
+**Version**: 2.6.0
+**Last Updated**: November 19, 2025
+**Status**: ✅ Production Ready with Staging Environment
 
 For questions or issues, please open an issue on GitHub.

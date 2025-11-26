@@ -222,8 +222,76 @@ const ConversationMessage = ({
                 </div>
               )}
 
-              {/* Pros and Cons (if available) */}
-              {explanation.prosAndCons && explanation.prosAndCons.length > 0 && (
+              {/* Answer Analysis (Detailed Options) */}
+              {explanation.answerAnalysis && explanation.answerAnalysis.length > 0 ? (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                    Detailed Analysis of Options:
+                  </h4>
+                  <div className="space-y-4">
+                    {explanation.answerAnalysis.map((analysis, index) => (
+                      <div
+                        key={index}
+                        className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 bg-white dark:bg-gray-900/50"
+                      >
+                        <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2 text-base flex items-center gap-2">
+                          <span className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold">
+                            {index + 1}
+                          </span>
+                          {analysis.option}
+                        </h5>
+                        
+                        {/* Explanation */}
+                        <div className="mb-4 pl-8">
+                           <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                            {analysis.explanation}
+                           </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 pl-8">
+                          {/* Pros */}
+                          <div className="bg-green-50/50 dark:bg-green-900/10 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-2 uppercase tracking-wider flex items-center gap-1">
+                              <span>✓</span> Pros
+                            </p>
+                            <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1.5">
+                              {analysis.pros.map((pro, proIndex) => (
+                                <li key={proIndex} className="flex items-start gap-1.5">
+                                  <span className="mt-0.5">•</span>
+                                  <span>{pro}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          {/* Cons */}
+                          <div className="bg-red-50/50 dark:bg-red-900/10 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-2 uppercase tracking-wider flex items-center gap-1">
+                              <span>✗</span> Cons
+                            </p>
+                            <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1.5">
+                              {analysis.cons.map((con, conIndex) => (
+                                <li key={conIndex} className="flex items-start gap-1.5">
+                                  <span className="mt-0.5">•</span>
+                                  <span>{con}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Specific Recommendation */}
+                        <div className="pl-8">
+                          <div className="bg-gray-100 dark:bg-gray-800 rounded p-3 text-sm flex gap-2">
+                             <span className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Best for:</span>
+                             <span className="text-gray-700 dark:text-gray-300">{analysis.recommendation}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : explanation.prosAndCons && explanation.prosAndCons.length > 0 && (
+                // Fallback for legacy cached explanations
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
                     Comparing your options:

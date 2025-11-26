@@ -2,11 +2,15 @@
  * File Upload Router
  *
  * Handles file uploads for contact form attachments
+ *
+ * SECURITY: All upload endpoints require authentication
  */
 
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { uploadFilesToGCS } from '../lib/storage.js';
+import { authenticateUser } from '../lib/middleware/auth.js';
+import { logger } from '../lib/logger.js';
 
 export const uploadRouter = Router();
 
@@ -55,9 +59,12 @@ const upload = multer({
 /**
  * Upload contact form attachments
  * POST /api/upload/contact-attachments
+ *
+ * SECURITY: Requires authentication
  */
 uploadRouter.post(
   '/contact-attachments',
+  authenticateUser, // Require authentication
   upload.array('attachments', MAX_FILES),
   async (req: Request, res: Response) => {
     try {
@@ -87,6 +94,13 @@ uploadRouter.post(
       // Upload files to GCS
       const uploadedFiles = await uploadFilesToGCS(files, 'contact-attachments');
 
+      logger.info({
+        userId: req.tokenPayload?.userId,
+        correlationId: req.correlationId,
+        fileCount: uploadedFiles.length,
+        totalSize: files.reduce((sum, f) => sum + f.size, 0),
+      }, 'Files uploaded successfully');
+
       // Return uploaded file metadata
       return res.json({
         success: true,
@@ -98,7 +112,11 @@ uploadRouter.post(
         })),
       });
     } catch (error) {
-      console.error('Error uploading files:', error);
+      logger.error({
+        err: error,
+        userId: req.tokenPayload?.userId,
+        correlationId: req.correlationId,
+      }, 'Error uploading files');
 
       // Handle multer-specific errors
       if (error instanceof multer.MulterError) {

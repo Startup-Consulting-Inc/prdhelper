@@ -18,6 +18,13 @@ export interface ExplanationResponse {
   recommendation?: string;
   examples?: string[];
   prosAndCons?: { option: string; pros: string[]; cons: string[] }[];
+  answerAnalysis?: {
+    option: string;
+    explanation: string;
+    pros: string[];
+    cons: string[];
+    recommendation: string;
+  }[];
 }
 
 /**

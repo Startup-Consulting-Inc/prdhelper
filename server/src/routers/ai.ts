@@ -755,11 +755,14 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      console.log('[AI] Explaining question:', input.question);
+      
       // Check cache first for fast response
       const cacheKey = hashExplanation(input.question, input.projectMode);
       const cached = explanationCache.get(cacheKey);
 
       if (cached) {
+        console.log('[AI] Returning cached explanation');
         return cached as ExplanationResponse;
       }
 
@@ -798,9 +801,11 @@ export const aiRouter = router({
       // Call AI with cheaper/faster model for explanations
       const response = await generateCompletion(messages, {
         temperature: 0.5, // More deterministic for explanations
-        maxTokens: 800, // Concise explanations
+        maxTokens: 1500, // Increased for detailed analysis
         modelOverride: process.env.OPENROUTER_EXPLANATION_MODEL,
       });
+
+      console.log('[AI] Raw explanation response:', response.content);
 
       // Parse JSON response
       let explanation: ExplanationResponse;
@@ -808,12 +813,18 @@ export const aiRouter = router({
         const jsonMatch = response.content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           explanation = JSON.parse(jsonMatch[0]);
+          
+          // Validate structure lightly (ensure answerAnalysis exists if expected)
+          if (!explanation.answerAnalysis && !explanation.prosAndCons) {
+             console.warn('[AI] Explanation missing detailed analysis sections');
+          }
         } else {
           throw new Error('No JSON found in response');
         }
       } catch (error) {
         // Fallback to generic explanation if parsing fails
         console.error('Failed to parse explanation JSON:', error);
+        console.error('Response content was:', response.content);
         explanation = {
           purpose: 'Understanding project requirements',
           importance: 'This helps create accurate technical specifications',

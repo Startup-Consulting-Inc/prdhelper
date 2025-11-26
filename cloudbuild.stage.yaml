@@ -1,6 +1,6 @@
-# Cloud Build configuration for deploying to Cloud Run
-# Project: clearly-478614 
-# Service: Clearly - Intelligent Requirements Platform
+# Cloud Build configuration for deploying to Cloud Run (STAGING)
+# Project: clearly-478614
+# Service: Clearly - Intelligent Requirements Platform (STAGING)
 
 steps:
   # Step 1: Build the Docker image
@@ -10,9 +10,9 @@ steps:
       - '--build-arg'
       - 'VITE_SENTRY_DSN=$$VITE_SENTRY_DSN'
       - '-t'
-      - 'gcr.io/clearly-478614/clearly:$BUILD_ID'
+      - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
       - '-t'
-      - 'gcr.io/clearly-478614/clearly:latest'
+      - 'gcr.io/clearly-478614/clearly-stage:latest'
       - '.'
     secretEnv:
       - 'VITE_SENTRY_DSN'
@@ -22,17 +22,17 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/clearly-478614/clearly:$BUILD_ID'
+      - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
     id: 'push-image-sha'
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/clearly-478614/clearly:latest'
+      - 'gcr.io/clearly-478614/clearly-stage:latest'
     id: 'push-image-latest'
 
   # Step 3: Run database migrations
-  - name: 'gcr.io/clearly-478614/clearly:$BUILD_ID'
+  - name: 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
     entrypoint: 'sh'
     dir: '/app'
     args:
@@ -49,9 +49,9 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'clearly'
+      - 'clearly-stage'
       - '--image'
-      - 'gcr.io/clearly-478614/clearly:$BUILD_ID'
+      - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
       - '--region'
       - 'us-west1'
       - '--platform'
@@ -70,17 +70,17 @@ steps:
       - '--timeout'
       - '300'
       - '--set-env-vars'
-      - 'NODE_ENV=production,CLIENT_URL=https://www.clearlyreqs.com,ADMIN_EMAIL=jsong@koreatous.com,GOOGLE_CLOUD_PROJECT_ID=clearly-478614 ,GCS_BUCKET_NAME=clearly-uploads,GCP_PROJECT_ID=clearly-478614 '
+      - 'NODE_ENV=production,CLIENT_URL=https://stage.clearlyreqs.com,ADMIN_EMAIL=jsong@koreatous.com,GOOGLE_CLOUD_PROJECT_ID=clearly-478614,GCS_BUCKET_NAME=clearly-uploads,GCP_PROJECT_ID=clearly-478614'
       - '--set-secrets'
-      - 'DATABASE_URL=DATABASE_URL:latest,DIRECT_URL=DIRECT_URL:latest,JWT_SECRET=JWT_SECRET:latest,OPENROUTER_API_KEY=OPENROUTER_API_KEY:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_CALLBACK_URL=GOOGLE_CALLBACK_URL:latest,GMAIL_USER=GMAIL_USER:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest'
+      - 'DATABASE_URL=DATABASE_URL:latest,DIRECT_URL=DIRECT_URL:latest,JWT_SECRET=JWT_SECRET:latest,OPENROUTER_API_KEY=OPENROUTER_API_KEY:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_CALLBACK_URL=GOOGLE_CALLBACK_Stage_URL:latest,GMAIL_USER=GMAIL_USER:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest'
       - '--update-labels'
-      - 'managed-by=cloud-build,app=clearly,env=production'
+      - 'managed-by=cloud-build,app=clearly,env=staging'
     id: 'deploy-cloud-run'
 
 # Store images in Google Container Registry
 images:
-  - 'gcr.io/clearly-478614/clearly:$BUILD_ID'
-  - 'gcr.io/clearly-478614/clearly:latest'
+  - 'gcr.io/clearly-478614/clearly-stage:$BUILD_ID'
+  - 'gcr.io/clearly-478614/clearly-stage:latest'
 
 # Build configuration
 options:

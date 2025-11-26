@@ -6,7 +6,6 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 export interface PublicHeaderProps {
@@ -23,9 +22,10 @@ export function PublicHeader({ className }: PublicHeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-            <span
-              className="text-xl font-bold text-gray-900 dark:text-gray-100 cursor-pointer"
+            <img
+              src="/logo.svg"
+              alt="Clearly"
+              className="h-8 cursor-pointer"
               onClick={() => {
                 // Check auth in localStorage (assuming JWT or session), fallback to / if missing
                 const isLoggedIn = Boolean(localStorage.getItem('clearly_token'));
@@ -40,9 +40,7 @@ export function PublicHeader({ className }: PublicHeaderProps) {
                 }
               }}
               aria-label="Go to home"
-            >
-              Clearly
-            </span>
+            />
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>

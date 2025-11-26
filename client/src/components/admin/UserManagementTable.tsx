@@ -5,7 +5,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Shield, Trash2 } from 'lucide-react';
+import { Shield, Trash2, Download } from 'lucide-react';
 import { DataTable, Column } from '../ui/DataTable';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -91,6 +91,47 @@ export function UserManagementTable() {
     }
   };
 
+  const handleDownloadCSV = () => {
+    if (!sortedUsers || sortedUsers.length === 0) {
+      alert('No users to download');
+      return;
+    }
+
+    // CSV headers
+    const headers = ['Name', 'Email', 'Role', 'Projects', 'Created'];
+    
+    // Convert users to CSV rows
+    const csvRows = [
+      headers.join(','),
+      ...sortedUsers.map((user) => {
+        const name = `"${user.name.replace(/"/g, '""')}"`;
+        const email = `"${user.email.replace(/"/g, '""')}"`;
+        const role = user.role;
+        const projects = user.projectCount ?? 0;
+        const created = new Date(user.createdAt).toLocaleDateString();
+        return [name, email, role, projects, created].join(',');
+      }),
+    ];
+
+    // Create CSV content
+    const csvContent = csvRows.join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+  };
+
   const columns: Column<any>[] = [
     {
       key: 'name',
@@ -154,9 +195,20 @@ export function UserManagementTable() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-        User Management
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          User Management
+        </h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownloadCSV}
+          disabled={isLoading || !sortedUsers || sortedUsers.length === 0}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Download CSV
+        </Button>
+      </div>
       <DataTable
         columns={columns}
         data={sortedUsers}

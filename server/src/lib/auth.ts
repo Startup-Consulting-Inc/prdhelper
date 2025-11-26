@@ -1,16 +1,26 @@
 /**
  * Authentication Utilities
- * 
+ *
  * Provides JWT token generation, verification, and password hashing utilities.
+ *
+ * SECURITY: JWT_SECRET must be configured in environment variables.
+ * The application will fail to start if this is not set.
  */
 
 import jwt from 'jsonwebtoken';
 import { hash, compare } from 'bcryptjs';
 import type { User } from '@prisma/client';
+import { logger } from './logger.js';
 
-// JWT Configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-key';
+// JWT Configuration - No fallback for security
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+// Validate JWT_SECRET exists on module load
+if (!JWT_SECRET) {
+  logger.fatal('JWT_SECRET environment variable is not set');
+  throw new Error('JWT_SECRET environment variable is required for security');
+}
 
 // Token payload interface
 export interface TokenPayload {
@@ -29,7 +39,7 @@ export function generateToken(user: User): string {
     role: user.role,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, JWT_SECRET!, {
     expiresIn: JWT_EXPIRES_IN as string,
   } as jwt.SignOptions);
 }
@@ -39,9 +49,10 @@ export function generateToken(user: User): string {
  */
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    const decoded = jwt.verify(token, JWT_SECRET!) as TokenPayload;
     return decoded;
   } catch (error) {
+    logger.warn({ err: error }, 'Token verification failed');
     return null;
   }
 }
