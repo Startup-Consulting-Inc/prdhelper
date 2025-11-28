@@ -8,7 +8,7 @@
 import { z } from 'zod';
 
 /**
- * Inquiry type enum matching Prisma schema
+ * Inquiry type enum for contact form submissions
  */
 export const InquiryTypeEnum = z.enum([
   'GENERAL',

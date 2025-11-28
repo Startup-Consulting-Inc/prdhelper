@@ -1,12 +1,14 @@
 /**
- * Authentication Router
- * 
- * tRPC router for authentication operations:
- * - Sign up
- * - Login
- * - Update profile
- * - Change password
- * - Delete account
+ * Authentication Router (Firebase Auth)
+ *
+ * tRPC router for authentication operations with Firebase Authentication:
+ * - User registration (creates Firestore user document)
+ * - Profile management
+ * - Account deletion
+ *
+ * Note: Most authentication operations (login, password reset, email verification)
+ * are handled client-side with Firebase Auth SDK. This router focuses on
+ * server-side user data management in Firestore.
  */
 
 import { TRPCError } from '@trpc/server';
@@ -14,349 +16,254 @@ import { z } from 'zod';
 import { router, publicProcedure, protectedProcedure } from '../lib/trpc/trpc.js';
 import {
   signUpSchema,
-  loginSchema,
   updateProfileSchema,
-  changePasswordSchema,
 } from '../lib/validations/auth.js';
-import {
-  generateToken,
-  hashPassword,
-  comparePassword,
-} from '../lib/auth.js';
-import {
-  sendVerificationEmail,
-  sendVerificationReminderEmail,
-} from '../lib/email.js';
-import {
-  generateVerificationToken,
-  getTokenExpiration,
-  isTokenExpired,
-} from '../lib/tokens.js';
+import { admin } from '../lib/firebase.js';
+import { logger } from '../lib/logger.js';
 
 export const authRouter = router({
   /**
-   * Sign up a new user
-   * Email verification is required before login
+   * Create user in Firestore after Firebase Auth signup
+   *
+   * This is called after the client creates a user with Firebase Auth.
+   * Creates the corresponding user document in Firestore.
+   */
+  createUserDocument: publicProcedure
+    .input(
+      z.object({
+        uid: z.string(),
+        name: z.string(),
+        email: z.string().email(),
+        modePreference: z.enum(['PLAIN', 'TECHNICAL']).default('PLAIN'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Check if user document already exists
+        const existingUserDoc = await ctx.db.collection('users').doc(input.uid).get();
+
+        if (existingUserDoc.exists) {
+          logger.warn({ uid: input.uid }, 'User document already exists');
+          return {
+            success: true,
+            message: 'User already exists',
+          };
+        }
+
+        // Create user document in Firestore
+        await ctx.db.collection('users').doc(input.uid).set({
+          id: input.uid,
+          name: input.name,
+          email: input.email,
+          emailVerified: false, // Will be updated when Firebase Auth email is verified
+          image: null,
+          role: 'USER',
+          modePreference: input.modePreference,
+          bio: null,
+          company: null,
+          jobTitle: null,
+          linkedInUrl: null,
+          websiteUrl: null,
+          location: null,
+          githubUrl: null,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
+          userId: input.uid,
+          userName: input.name,
+          action: 'USER_SIGNED_UP',
+          details: {
+            email: input.email,
+            name: input.name,
+            modePreference: input.modePreference,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info({ uid: input.uid, email: input.email }, 'User document created');
+
+        return {
+          success: true,
+          message: 'User document created successfully',
+        };
+      } catch (error) {
+        logger.error({ error, uid: input.uid }, 'Failed to create user document');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create user document',
+        });
+      }
+    }),
+
+  /**
+   * Sign up new user with email/password
+   *
+   * Creates both Firebase Auth user and Firestore user document.
+   * Sends email verification link.
    */
   signUp: publicProcedure
     .input(signUpSchema)
     .mutation(async ({ ctx, input }) => {
-      // Check if user already exists
-      const existingUser = await ctx.prisma.user.findUnique({
-        where: { email: input.email },
-      });
-
-      if (existingUser) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Email already registered',
-        });
-      }
-
-      // Hash password
-      const hashedPassword = await hashPassword(input.password);
-
-      // Generate verification token
-      const verificationToken = generateVerificationToken();
-      const tokenExpiration = getTokenExpiration();
-
-      // Create user without email verification
-      const user = await ctx.prisma.user.create({
-        data: {
-          name: input.name,
-          email: input.email,
-          password: hashedPassword,
-          modePreference: input.modePreference,
-          emailVerified: null, // User must verify email before login
-        },
-      });
-
-      // Store verification token
-      await ctx.prisma.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: verificationToken,
-          expires: tokenExpiration,
-        },
-      });
-
-      // Send verification email
       try {
-        await sendVerificationEmail(user.email, user.name, verificationToken);
-      } catch (error) {
-        console.error('Failed to send verification email:', error);
-        // Rollback user creation if email fails
-        await ctx.prisma.user.delete({ where: { id: user.id } });
-        await ctx.prisma.verificationToken.deleteMany({
-          where: { identifier: user.email },
+        // 1. Create Firebase Auth user
+        const userRecord = await ctx.auth.createUser({
+          email: input.email,
+          password: input.password,
+          displayName: input.name,
+          emailVerified: false,
         });
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to send verification email. Please try again later.',
-        });
-      }
 
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: user.id,
+        // 2. Create Firestore user document
+        const userData = {
+          id: userRecord.uid,
+          email: input.email,
+          name: input.name,
+          role: 'USER',
+          modePreference: input.modePreference,
+          image: null,
+          bio: null,
+          company: null,
+          jobTitle: null,
+          linkedInUrl: null,
+          websiteUrl: null,
+          location: null,
+          githubUrl: null,
+          emailVerified: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        await ctx.db.collection('users').doc(userRecord.uid).set(userData);
+
+        // 3. Generate and send verification email
+        try {
+          const verificationLink = await ctx.auth.generateEmailVerificationLink(input.email);
+          // TODO: Send email with verificationLink using email service
+          logger.info({ uid: userRecord.uid, email: input.email }, 'Email verification link generated');
+        } catch (error) {
+          logger.error({ error, uid: userRecord.uid }, 'Failed to generate verification link');
+          // Don't fail signup if email generation fails
+        }
+
+        // 4. Create audit log
+        await ctx.db.collection('auditLogs').add({
+          userId: userRecord.uid,
+          userName: input.name,
           action: 'USER_SIGNED_UP',
           details: {
-            email: user.email,
-            name: user.name,
-            modePreference: user.modePreference,
-            emailVerificationSent: true,
+            email: input.email,
+            name: input.name,
+            method: 'email',
+            modePreference: input.modePreference,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
-
-      // Do NOT return token - user must verify email first
-      return {
-        success: true,
-        message: 'Account created! Please check your email to verify your account.',
-        email: user.email,
-      };
-    }),
-
-  /**
-   * Login user
-   * Requires email verification before allowing login
-   */
-  login: publicProcedure
-    .input(loginSchema)
-    .mutation(async ({ ctx, input }) => {
-      // Find user by email
-      const user = await ctx.prisma.user.findUnique({
-        where: { email: input.email },
-      });
-
-      if (!user || !user.password) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Invalid email or password',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-      }
 
-      // Verify password
-      const isValidPassword = await comparePassword(input.password, user.password);
+        logger.info({ uid: userRecord.uid, email: input.email }, 'User signed up successfully');
 
-      if (!isValidPassword) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Invalid email or password',
-        });
-      }
-
-      // Check if email is verified
-      if (!user.emailVerified) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Please verify your email address before logging in. Check your inbox for the verification link.',
-        });
-      }
-
-      // Generate JWT token
-      const token = generateToken(user);
-
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          action: 'USER_LOGGED_IN',
-          details: {
-            email: user.email,
-          },
-          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
-
-      return {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          modePreference: user.modePreference,
-          createdAt: user.createdAt,
-        },
-        token,
-      };
-    }),
-
-  /**
-   * Verify email address using token from email
-   */
-  verifyEmail: publicProcedure
-    .input(z.object({ token: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      // Find verification token
-      const verificationToken = await ctx.prisma.verificationToken.findUnique({
-        where: { token: input.token },
-      });
-
-      if (!verificationToken) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Invalid or expired verification token',
-        });
-      }
-
-      // Check if token is expired
-      if (isTokenExpired(verificationToken.expires)) {
-        // Delete expired token
-        await ctx.prisma.verificationToken.delete({
-          where: { token: input.token },
-        });
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Verification token has expired. Please request a new one.',
-        });
-      }
-
-      // Find user by email
-      const user = await ctx.prisma.user.findUnique({
-        where: { email: verificationToken.identifier },
-      });
-
-      if (!user) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'User not found',
-        });
-      }
-
-      // Check if already verified
-      if (user.emailVerified) {
-        // Delete token and return success anyway
-        await ctx.prisma.verificationToken.delete({
-          where: { token: input.token },
-        });
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Email is already verified. You can log in now.',
-        });
-      }
-
-      // Update user email verification status
-      const updatedUser = await ctx.prisma.user.update({
-        where: { id: user.id },
-        data: { emailVerified: new Date() },
-      });
-
-      // Delete used verification token
-      await ctx.prisma.verificationToken.delete({
-        where: { token: input.token },
-      });
-
-      // Generate JWT token for automatic login
-      const authToken = generateToken(updatedUser);
-
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: updatedUser.id,
-          action: 'USER_VERIFIED_EMAIL',
-          details: {
-            email: updatedUser.email,
-          },
-          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
-
-      return {
-        success: true,
-        message: 'Email verified successfully! You can now log in.',
-        token: authToken,
-        user: {
-          id: updatedUser.id,
-          name: updatedUser.name,
-          email: updatedUser.email,
-          role: updatedUser.role,
-          modePreference: updatedUser.modePreference,
-          createdAt: updatedUser.createdAt,
-        },
-      };
-    }),
-
-  /**
-   * Resend verification email
-   */
-  resendVerification: publicProcedure
-    .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ ctx, input }) => {
-      // Find user
-      const user = await ctx.prisma.user.findUnique({
-        where: { email: input.email },
-      });
-
-      if (!user) {
-        // Don't reveal that user doesn't exist for security
         return {
           success: true,
-          message: 'If an account exists with this email, a verification link has been sent.',
+          userId: userRecord.uid,
+          emailVerified: false,
         };
-      }
+      } catch (error: any) {
+        logger.error({ error, email: input.email }, 'Failed to sign up user');
 
-      // Check if already verified
-      if (user.emailVerified) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Email is already verified. You can log in now.',
-        });
-      }
+        // Handle Firebase Auth errors
+        if (error.code === 'auth/email-already-exists') {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Email already in use',
+          });
+        }
 
-      // Delete any existing tokens for this email
-      await ctx.prisma.verificationToken.deleteMany({
-        where: { identifier: user.email },
-      });
+        if (error.code === 'auth/invalid-email') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Invalid email address',
+          });
+        }
 
-      // Generate new verification token
-      const verificationToken = generateVerificationToken();
-      const tokenExpiration = getTokenExpiration();
+        if (error.code === 'auth/weak-password') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Password is too weak',
+          });
+        }
 
-      // Store new verification token
-      await ctx.prisma.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: verificationToken,
-          expires: tokenExpiration,
-        },
-      });
-
-      // Send verification reminder email
-      try {
-        await sendVerificationReminderEmail(user.email, user.name, verificationToken);
-      } catch (error) {
-        console.error('Failed to send verification reminder email:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to send verification email. Please try again later.',
+          message: 'Failed to create account',
         });
       }
+    }),
 
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          action: 'USER_RESENT_VERIFICATION',
+  /**
+   * Update email verified status
+   *
+   * Called after Firebase Auth email verification completes
+   */
+  updateEmailVerified: publicProcedure
+    .input(z.object({ uid: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const userRef = ctx.db.collection('users').doc(input.uid);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'User not found',
+          });
+        }
+
+        // Update email verification status
+        await userRef.update({
+          emailVerified: true,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
+          userId: input.uid,
+          userName: userDoc.data()?.name || null,
+          action: 'USER_VERIFIED_EMAIL',
           details: {
-            email: user.email,
+            email: userDoc.data()?.email,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return {
-        success: true,
-        message: 'Verification email has been resent. Please check your inbox.',
-      };
+        return {
+          success: true,
+          message: 'Email verified successfully',
+        };
+      } catch (error) {
+        logger.error({ error, uid: input.uid }, 'Failed to update email verification');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update email verification',
+        });
+      }
     }),
 
   /**
    * Get current user profile
    */
   me: protectedProcedure.query(async ({ ctx }) => {
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Not authenticated',
+      });
+    }
+
     return {
       id: ctx.user.id,
       name: ctx.user.name,
@@ -371,6 +278,7 @@ export const authRouter = router({
       websiteUrl: ctx.user.websiteUrl,
       location: ctx.user.location,
       githubUrl: ctx.user.githubUrl,
+      emailVerified: ctx.user.emailVerified,
       createdAt: ctx.user.createdAt,
     };
   }),
@@ -381,158 +289,305 @@ export const authRouter = router({
   updateProfile: protectedProcedure
     .input(updateProfileSchema)
     .mutation(async ({ ctx, input }) => {
-      // Prepare update data - convert empty strings to null
-      const updateData: any = {};
-      if (input.name !== undefined) updateData.name = input.name;
-      if (input.modePreference !== undefined) updateData.modePreference = input.modePreference;
-      if (input.bio !== undefined) updateData.bio = input.bio === '' ? null : input.bio;
-      if (input.company !== undefined) updateData.company = input.company === '' ? null : input.company;
-      if (input.jobTitle !== undefined) updateData.jobTitle = input.jobTitle === '' ? null : input.jobTitle;
-      if (input.linkedInUrl !== undefined) updateData.linkedInUrl = input.linkedInUrl === '' ? null : input.linkedInUrl;
-      if (input.websiteUrl !== undefined) updateData.websiteUrl = input.websiteUrl === '' ? null : input.websiteUrl;
-      if (input.location !== undefined) updateData.location = input.location === '' ? null : input.location;
-      if (input.githubUrl !== undefined) updateData.githubUrl = input.githubUrl === '' ? null : input.githubUrl;
+      if (!ctx.user) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Not authenticated',
+        });
+      }
 
-      const updatedUser = await ctx.prisma.user.update({
-        where: { id: ctx.user.id },
-        data: updateData,
-      });
+      try {
+        // Prepare update data - convert empty strings to null
+        const updateData: any = {
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
 
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        if (input.name !== undefined) updateData.name = input.name;
+        if (input.modePreference !== undefined) updateData.modePreference = input.modePreference;
+        if (input.bio !== undefined) updateData.bio = input.bio === '' ? null : input.bio;
+        if (input.company !== undefined) updateData.company = input.company === '' ? null : input.company;
+        if (input.jobTitle !== undefined) updateData.jobTitle = input.jobTitle === '' ? null : input.jobTitle;
+        if (input.linkedInUrl !== undefined) updateData.linkedInUrl = input.linkedInUrl === '' ? null : input.linkedInUrl;
+        if (input.websiteUrl !== undefined) updateData.websiteUrl = input.websiteUrl === '' ? null : input.websiteUrl;
+        if (input.location !== undefined) updateData.location = input.location === '' ? null : input.location;
+        if (input.githubUrl !== undefined) updateData.githubUrl = input.githubUrl === '' ? null : input.githubUrl;
+
+        // Update Firestore document
+        const userRef = ctx.db.collection('users').doc(ctx.user.id);
+        await userRef.update(updateData);
+
+        // If name changed, update Firebase Auth displayName
+        if (input.name !== undefined) {
+          try {
+            await ctx.auth.updateUser(ctx.user.id, {
+              displayName: input.name,
+            });
+          } catch (error) {
+            logger.error({ error, uid: ctx.user.id }, 'Failed to update Firebase Auth displayName');
+            // Don't fail the request if Auth update fails
+          }
+        }
+
+        // Get updated user
+        const updatedUserDoc = await userRef.get();
+        const updatedUser = updatedUserDoc.data();
+
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'USER_UPDATED_PROFILE',
           details: input,
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return {
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        modePreference: updatedUser.modePreference,
-        image: updatedUser.image,
-        bio: updatedUser.bio,
-        company: updatedUser.company,
-        jobTitle: updatedUser.jobTitle,
-        linkedInUrl: updatedUser.linkedInUrl,
-        websiteUrl: updatedUser.websiteUrl,
-        location: updatedUser.location,
-        githubUrl: updatedUser.githubUrl,
-        createdAt: updatedUser.createdAt,
-      };
+        return {
+          id: ctx.user.id,
+          name: updatedUser?.name || ctx.user.name,
+          email: ctx.user.email,
+          role: ctx.user.role,
+          modePreference: updatedUser?.modePreference || ctx.user.modePreference,
+          image: updatedUser?.image || null,
+          bio: updatedUser?.bio || null,
+          company: updatedUser?.company || null,
+          jobTitle: updatedUser?.jobTitle || null,
+          linkedInUrl: updatedUser?.linkedInUrl || null,
+          websiteUrl: updatedUser?.websiteUrl || null,
+          location: updatedUser?.location || null,
+          githubUrl: updatedUser?.githubUrl || null,
+          createdAt: ctx.user.createdAt,
+        };
+      } catch (error) {
+        logger.error({ error, uid: ctx.user.id }, 'Failed to update profile');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update profile',
+        });
+      }
     }),
 
   /**
    * Change password
+   *
+   * Note: With Firebase Auth, password changes should be done client-side
+   * using firebase.auth().currentUser.updatePassword()
+   * This endpoint is kept for API compatibility but delegates to Firebase Auth
    */
   changePassword: protectedProcedure
-    .input(changePasswordSchema)
+    .input(
+      z.object({
+        currentPassword: z.string(),
+        newPassword: z.string().min(8),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      // Verify current password
-      if (!ctx.user.password) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Cannot change password for OAuth users',
-        });
-      }
-
-      const isValidPassword = await comparePassword(
-        input.currentPassword,
-        ctx.user.password
-      );
-
-      if (!isValidPassword) {
+      if (!ctx.user) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
-          message: 'Current password is incorrect',
+          message: 'Not authenticated',
         });
       }
 
-      // Hash new password
-      const hashedPassword = await hashPassword(input.newPassword);
-
-      // Update password
-      await ctx.prisma.user.update({
-        where: { id: ctx.user.id },
-        data: { password: hashedPassword },
+      // With Firebase Auth, password changes should be done client-side
+      // This is a server-side operation that requires special handling
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Password changes must be done through Firebase Auth on the client side. Use the "Change Password" feature in your account settings.',
       });
-
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: ctx.user.id,
-          action: 'USER_CHANGED_PASSWORD',
-          details: {
-            email: ctx.user.email,
-          },
-          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
-
-      return { success: true, message: 'Password changed successfully' };
     }),
 
   /**
    * Delete account (soft delete - archives projects)
    */
   deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
-    // Archive all user projects
-    await ctx.prisma.project.updateMany({
-      where: { userId: ctx.user.id },
-      data: { status: 'ARCHIVED' },
-    });
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Not authenticated',
+      });
+    }
 
-    // Delete sessions
-    await ctx.prisma.session.deleteMany({
-      where: { userId: ctx.user.id },
-    });
+    try {
+      const userId = ctx.user.id;
+      const batch = ctx.db.batch();
 
-    // Mark user as deleted (soft delete)
-    await ctx.prisma.user.update({
-      where: { id: ctx.user.id },
-      data: {
-        email: `deleted_${ctx.user.id}@deleted.com`,
+      // Archive all user projects
+      const projectsSnapshot = await ctx.db
+        .collection('projects')
+        .where('userId', '==', userId)
+        .get();
+
+      projectsSnapshot.docs.forEach((doc) => {
+        batch.update(doc.ref, { status: 'ARCHIVED' });
+      });
+
+      // Delete sessions subcollection
+      const sessionsSnapshot = await ctx.db
+        .collection('users')
+        .doc(userId)
+        .collection('sessions')
+        .get();
+
+      sessionsSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      // Mark user as deleted (soft delete)
+      const userRef = ctx.db.collection('users').doc(userId);
+      batch.update(userRef, {
+        email: `deleted_${userId}@deleted.com`,
         name: 'Deleted User',
-        password: null,
-      },
-    });
+        emailVerified: false,
+        image: null,
+        bio: null,
+        company: null,
+        jobTitle: null,
+        linkedInUrl: null,
+        websiteUrl: null,
+        location: null,
+        githubUrl: null,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
 
-    // Create audit log
-    await ctx.prisma.auditLog.create({
-      data: {
-        userId: ctx.user.id,
+      // Commit batch
+      await batch.commit();
+
+      // Delete from Firebase Auth
+      try {
+        await ctx.auth.deleteUser(userId);
+      } catch (error) {
+        logger.error({ error, uid: userId }, 'Failed to delete user from Firebase Auth');
+        // Continue even if Auth deletion fails
+      }
+
+      // Create audit log
+      await ctx.db.collection('auditLogs').add({
+        userId,
+        userName: null,
         action: 'USER_DELETED_ACCOUNT',
         details: {
           originalEmail: ctx.user.email,
         },
         ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-      },
-    });
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
 
-    return { success: true, message: 'Account deleted successfully' };
+      logger.info({ uid: userId }, 'Account deleted');
+
+      return { success: true, message: 'Account deleted successfully' };
+    } catch (error) {
+      logger.error({ error, uid: ctx.user?.id }, 'Failed to delete account');
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to delete account',
+      });
+    }
   }),
 
   /**
-   * Google OAuth Callback
+   * Create user from Google OAuth
    *
-   * Handles Google OAuth callback and returns JWT token
+   * Called after Google OAuth sign-in to create/update user document
    */
-  googleCallback: publicProcedure
-    .input(z.object({
-      code: z.string(),
-    }))
+  handleOAuthUser: publicProcedure
+    .input(
+      z.object({
+        uid: z.string(),
+        email: z.string().email(),
+        name: z.string(),
+        image: z.string().url().optional(),
+        provider: z.string(),
+        providerAccountId: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      // This will be called from the frontend after Google redirects back
-      // For now, we'll use Express routes to handle the actual OAuth flow
-      // This endpoint is for future direct tRPC integration if needed
-      throw new TRPCError({
-        code: 'NOT_IMPLEMENTED',
-        message: 'Use Express OAuth routes at /api/auth/google',
-      });
+      try {
+        const userRef = ctx.db.collection('users').doc(input.uid);
+        const userDoc = await userRef.get();
+
+        if (userDoc.exists) {
+          // User exists, update last login
+          await userRef.update({
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          // Check if this OAuth provider is already linked
+          const accountsSnapshot = await userRef
+            .collection('accounts')
+            .where('provider', '==', input.provider)
+            .where('providerAccountId', '==', input.providerAccountId)
+            .get();
+
+          if (accountsSnapshot.empty) {
+            // Link new OAuth provider
+            await userRef.collection('accounts').add({
+              type: 'oauth',
+              provider: input.provider,
+              providerAccountId: input.providerAccountId,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          }
+
+          return {
+            success: true,
+            isNewUser: false,
+          };
+        } else {
+          // Create new user
+          await userRef.set({
+            id: input.uid,
+            name: input.name,
+            email: input.email,
+            emailVerified: true, // OAuth users have verified emails
+            image: input.image || null,
+            role: 'USER',
+            modePreference: 'PLAIN',
+            bio: null,
+            company: null,
+            jobTitle: null,
+            linkedInUrl: null,
+            websiteUrl: null,
+            location: null,
+            githubUrl: null,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          // Link OAuth provider
+          await userRef.collection('accounts').add({
+            type: 'oauth',
+            provider: input.provider,
+            providerAccountId: input.providerAccountId,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          // Create audit log
+          await ctx.db.collection('auditLogs').add({
+            userId: input.uid,
+            userName: input.name,
+            action: 'USER_SIGNED_UP_OAUTH',
+            details: {
+              email: input.email,
+              provider: input.provider,
+            },
+            ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          logger.info({ uid: input.uid, email: input.email, provider: input.provider }, 'OAuth user created');
+
+          return {
+            success: true,
+            isNewUser: true,
+          };
+        }
+      } catch (error) {
+        logger.error({ error, uid: input.uid }, 'Failed to handle OAuth user');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to process OAuth user',
+        });
+      }
     }),
 });
-

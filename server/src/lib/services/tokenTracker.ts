@@ -4,9 +4,8 @@
  * Tracks AI API token usage and costs for analytics and billing.
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getFirestore } from '../firebase.js';
+import admin from 'firebase-admin';
 
 // Model pricing (cost per 1M tokens in USD)
 // Based on typical OpenRouter pricing
@@ -55,15 +54,17 @@ export async function trackTokenUsage(data: {
   const cost = calculateCost(model, inputTokens, outputTokens);
 
   // Store in database
-  await prisma.tokenUsage.create({
-    data: {
-      userId,
-      projectId,
-      operation,
-      model,
-      tokensUsed,
-      cost,
-    },
+  const db = getFirestore();
+  await db.collection('tokenUsage').add({
+    userId,
+    projectId: projectId || null,
+    operation,
+    model,
+    tokensUsed,
+    inputTokens,
+    outputTokens,
+    cost,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 }
 

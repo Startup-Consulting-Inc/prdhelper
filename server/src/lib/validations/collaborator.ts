@@ -11,10 +11,10 @@ import { z } from 'zod';
  * Supports both email and userId invitation
  */
 export const inviteCollaboratorSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   // Either email or userId must be provided
   email: z.string().email('Invalid email address').optional(),
-  userId: z.string().cuid('Invalid user ID').optional(),
+  userId: z.string().min(1, 'Invalid user ID').optional(),
   role: z.enum(['VIEWER', 'EDITOR'], {
     message: 'Role must be either VIEWER or EDITOR',
   }),
@@ -37,23 +37,23 @@ export const acceptInviteSchema = z.object({
  * Reject invite schema
  */
 export const rejectInviteSchema = z.object({
-  inviteId: z.string().cuid('Invalid invite ID'),
+  inviteId: z.string().min(1, 'Invalid invite ID'),
 });
 
 /**
  * Remove collaborator schema
  */
 export const removeCollaboratorSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
-  collaboratorId: z.string().cuid('Invalid collaborator ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
+  collaboratorId: z.string().min(1, 'Invalid collaborator ID'),
 });
 
 /**
  * Update collaborator role schema
  */
 export const updateCollaboratorRoleSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
-  collaboratorId: z.string().cuid('Invalid collaborator ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
+  collaboratorId: z.string().min(1, 'Invalid collaborator ID'),
   role: z.enum(['VIEWER', 'EDITOR'], {
     message: 'Role must be either VIEWER or EDITOR',
   }),
@@ -63,7 +63,7 @@ export const updateCollaboratorRoleSchema = z.object({
  * Get project collaborators schema
  */
 export const getProjectCollaboratorsSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
 });
 
 /**
@@ -79,7 +79,7 @@ export const getPendingInvitesSchema = z.object({
  */
 export const searchUsersSchema = z.object({
   query: z.string().min(1, 'Search query is required').max(100),
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   limit: z.number().min(1).max(20).default(10).optional(),
 });
 

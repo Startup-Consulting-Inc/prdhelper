@@ -25,7 +25,7 @@ export const messageSchema = z.object({
  * Get conversation by project schema
  */
 export const getConversationByProjectSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   documentType: documentTypeSchema,
 });
 
@@ -33,7 +33,7 @@ export const getConversationByProjectSchema = z.object({
  * Add message schema
  */
 export const addMessageSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   documentType: documentTypeSchema,
   role: messageRoleSchema,
   content: z
@@ -46,7 +46,7 @@ export const addMessageSchema = z.object({
  * Update message schema
  */
 export const updateMessageSchema = z.object({
-  conversationId: z.string().cuid('Invalid conversation ID'),
+  conversationId: z.string().min(1, 'Invalid conversation ID'),
   messageIndex: z.number().int().min(0),
   content: z
     .string()
@@ -58,7 +58,7 @@ export const updateMessageSchema = z.object({
  * Clear conversation schema
  */
 export const clearConversationSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   documentType: documentTypeSchema,
 });
 

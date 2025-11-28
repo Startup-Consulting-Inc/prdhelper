@@ -1,6 +1,6 @@
 /**
- * Projects Router
- * 
+ * Projects Router (Firestore)
+ *
  * tRPC router for project operations:
  * - Get all projects
  * - Get project by ID
@@ -15,7 +15,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure } from '../lib/trpc/trpc.js';
-import { verifyResourceAccess } from '../lib/utils/authorization.js';
 import {
   createProjectSchema,
   updateProjectSchema,
@@ -23,6 +22,8 @@ import {
   updateProjectPhaseSchema,
   getAllProjectsSchema,
 } from '../lib/validations/project.js';
+import { admin } from '../lib/firebase.js';
+import { logger } from '../lib/logger.js';
 
 export const projectsRouter = router({
   /**
@@ -34,123 +35,183 @@ export const projectsRouter = router({
     .query(async ({ ctx, input }) => {
       const { status, mode, limit = 50, offset = 0 } = input;
 
-      // Admins can see all projects
-      if (ctx.user.role === 'ADMIN') {
-        const where = {
-          ...(status && { status }),
-          ...(mode && { mode }),
-        };
+      try {
+        // Admins can see all projects
+        if (ctx.user.role === 'ADMIN') {
+          let query = ctx.db.collection('projects').orderBy('updatedAt', 'desc');
 
-        const [projects, total] = await Promise.all([
-          ctx.prisma.project.findMany({
-            where,
-            take: limit,
-            skip: offset,
-            orderBy: { updatedAt: 'desc' },
-            include: {
-              documents: {
-                select: {
-                  id: true,
-                  type: true,
-                  status: true,
-                  createdAt: true,
-                },
-              },
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          }),
-          ctx.prisma.project.count({ where }),
-        ]);
+          // Apply filters
+          if (status) query = query.where('status', '==', status);
+          if (mode) query = query.where('mode', '==', mode);
+
+          // Get total count with filters
+          const countSnapshot = await query.get();
+          const total = countSnapshot.size;
+
+          // Apply pagination
+          const snapshot = await query.limit(limit).offset(offset).get();
+
+          // Fetch related data for each project
+          const projects = await Promise.all(
+            snapshot.docs.map(async (doc) => {
+              const projectData = doc.data();
+
+              // Get documents subcollection
+              const documentsSnapshot = await doc.ref
+                .collection('documents')
+                .orderBy('createdAt', 'desc')
+                .get();
+
+              const documents = documentsSnapshot.docs.map((docDoc) => ({
+                id: docDoc.id,
+                type: docDoc.data().type,
+                status: docDoc.data().status,
+                createdAt: docDoc.data().createdAt?.toDate(),
+              }));
+
+              // Get user info
+              const userDoc = await ctx.db.collection('users').doc(projectData.userId).get();
+              const userData = userDoc.exists ? userDoc.data() : null;
+
+              return {
+                id: doc.id,
+                ...projectData,
+                createdAt: projectData.createdAt?.toDate(),
+                updatedAt: projectData.updatedAt?.toDate(),
+                documents,
+                user: userData ? {
+                  id: userDoc.id,
+                  name: userData.name,
+                  email: userData.email,
+                } : null,
+                isOwner: projectData.userId === ctx.user.id,
+                userRole: projectData.userId === ctx.user.id ? 'OWNER' : null,
+              };
+            })
+          );
+
+          return {
+            projects,
+            total,
+            hasMore: offset + projects.length < total,
+          };
+        }
+
+        // Regular users: find owned projects + shared projects
+        // First, get projects owned by user
+        let ownedQuery = ctx.db.collection('projects').where('userId', '==', ctx.user.id);
+
+        if (status) ownedQuery = ownedQuery.where('status', '==', status);
+        if (mode) ownedQuery = ownedQuery.where('mode', '==', mode);
+
+        const ownedSnapshot = await ownedQuery.orderBy('updatedAt', 'desc').get();
+
+        // Then, find projects where user is a collaborator
+        const allProjectsSnapshot = await ctx.db.collection('projects').get();
+        const sharedProjectIds: string[] = [];
+
+        for (const projectDoc of allProjectsSnapshot.docs) {
+          const collaboratorsSnapshot = await projectDoc.ref
+            .collection('collaborators')
+            .where('userId', '==', ctx.user.id)
+            .get();
+
+          if (!collaboratorsSnapshot.empty) {
+            const projectData = projectDoc.data();
+            // Apply filters
+            const matchesStatus = !status || projectData.status === status;
+            const matchesMode = !mode || projectData.mode === mode;
+
+            if (matchesStatus && matchesMode) {
+              sharedProjectIds.push(projectDoc.id);
+            }
+          }
+        }
+
+        // Combine owned and shared projects
+        const allProjectDocs = [
+          ...ownedSnapshot.docs,
+          ...sharedProjectIds.map((id) => {
+            return allProjectsSnapshot.docs.find((doc) => doc.id === id);
+          }).filter(Boolean) as FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
+        ];
+
+        // Remove duplicates and sort by updatedAt
+        const uniqueProjectDocs = Array.from(
+          new Map(allProjectDocs.map((doc) => [doc.id, doc])).values()
+        ).sort((a, b) => {
+          const aTime = a.data().updatedAt?.toMillis() || 0;
+          const bTime = b.data().updatedAt?.toMillis() || 0;
+          return bTime - aTime;
+        });
+
+        const total = uniqueProjectDocs.length;
+
+        // Apply pagination
+        const paginatedDocs = uniqueProjectDocs.slice(offset, offset + limit);
+
+        // Fetch related data for each project
+        const projects = await Promise.all(
+          paginatedDocs.map(async (doc) => {
+            const projectData = doc.data();
+
+            // Get documents subcollection
+            const documentsSnapshot = await doc.ref
+              .collection('documents')
+              .orderBy('createdAt', 'desc')
+              .get();
+
+            const documents = documentsSnapshot.docs.map((docDoc) => ({
+              id: docDoc.id,
+              type: docDoc.data().type,
+              status: docDoc.data().status,
+              createdAt: docDoc.data().createdAt?.toDate(),
+            }));
+
+            // Get user info
+            const userDoc = await ctx.db.collection('users').doc(projectData.userId).get();
+            const userData = userDoc.exists ? userDoc.data() : null;
+
+            // Check if user is collaborator
+            const collaboratorSnapshot = await doc.ref
+              .collection('collaborators')
+              .where('userId', '==', ctx.user.id)
+              .get();
+
+            const isOwner = projectData.userId === ctx.user.id;
+            const collaboratorRole = !collaboratorSnapshot.empty
+              ? collaboratorSnapshot.docs[0].data().role
+              : null;
+
+            return {
+              id: doc.id,
+              ...projectData,
+              createdAt: projectData.createdAt?.toDate(),
+              updatedAt: projectData.updatedAt?.toDate(),
+              documents,
+              user: userData ? {
+                id: userDoc.id,
+                name: userData.name,
+                email: userData.email,
+              } : null,
+              isOwner,
+              userRole: isOwner ? 'OWNER' : collaboratorRole,
+            };
+          })
+        );
 
         return {
-          projects: projects.map(project => ({
-            ...project,
-            isOwner: project.userId === ctx.user.id,
-            userRole: project.userId === ctx.user.id ? 'OWNER' : null,
-          })),
+          projects,
           total,
           hasMore: offset + projects.length < total,
         };
+      } catch (error) {
+        logger.error({ error, userId: ctx.user.id }, 'Failed to get projects');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch projects',
+        });
       }
-
-      // Regular users: find owned projects + shared projects
-      const where = {
-        OR: [
-          // Projects owned by user
-          { userId: ctx.user.id },
-          // Projects shared with user
-          {
-            collaborators: {
-              some: {
-                userId: ctx.user.id,
-              },
-            },
-          },
-        ],
-        ...(status && { status }),
-        ...(mode && { mode }),
-      };
-
-      const [projects, total] = await Promise.all([
-        ctx.prisma.project.findMany({
-          where,
-          take: limit,
-          skip: offset,
-          orderBy: { updatedAt: 'desc' },
-          include: {
-            documents: {
-              select: {
-                id: true,
-                type: true,
-                status: true,
-                createdAt: true,
-              },
-            },
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            collaborators: {
-              where: {
-                userId: ctx.user.id,
-              },
-              select: {
-                role: true,
-              },
-            },
-          },
-        }),
-        ctx.prisma.project.count({ where }),
-      ]);
-
-      // Add ownership and role information
-      const projectsWithRole = projects.map(project => {
-        const isOwner = project.userId === ctx.user.id;
-        const collaborator = project.collaborators[0];
-
-        return {
-          ...project,
-          isOwner,
-          userRole: isOwner ? 'OWNER' : collaborator?.role || null,
-          // Remove collaborators array from response (only needed for role lookup)
-          collaborators: undefined,
-        };
-      });
-
-      return {
-        projects: projectsWithRole,
-        total,
-        hasMore: offset + projects.length < total,
-      };
     }),
 
   /**
@@ -160,59 +221,98 @@ export const projectsRouter = router({
   getById: protectedProcedure
     .input(getProjectByIdSchema)
     .query(async ({ ctx, input }) => {
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.id },
-        include: {
-          documents: {
-            orderBy: { createdAt: 'desc' },
-          },
-          conversations: {
-            orderBy: { createdAt: 'desc' },
-          },
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          collaborators: {
-            where: {
-              userId: ctx.user.id,
-            },
-            select: {
-              role: true,
-            },
-          },
-        },
-      });
+      try {
+        const projectDoc = await ctx.db.collection('projects').doc(input.id).get();
 
-      if (!project) {
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const projectData = projectDoc.data();
+        if (!projectData) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const isOwner = projectData.userId === ctx.user.id;
+
+        // Check if user is collaborator
+        const collaboratorSnapshot = await projectDoc.ref
+          .collection('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
+
+        const isCollaborator = !collaboratorSnapshot.empty;
+        const collaboratorRole = isCollaborator ? collaboratorSnapshot.docs[0].data().role : null;
+
+        // Verify access (owner, collaborator, or admin)
+        if (!isOwner && !isCollaborator && ctx.user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this project',
+          });
+        }
+
+        // Get documents subcollection
+        const documentsSnapshot = await projectDoc.ref
+          .collection('documents')
+          .orderBy('createdAt', 'desc')
+          .get();
+
+        const documents = documentsSnapshot.docs.map((docDoc) => ({
+          id: docDoc.id,
+          ...docDoc.data(),
+          createdAt: docDoc.data().createdAt?.toDate(),
+          updatedAt: docDoc.data().updatedAt?.toDate(),
+        }));
+
+        // Get conversations subcollection
+        const conversationsSnapshot = await projectDoc.ref
+          .collection('conversations')
+          .orderBy('createdAt', 'desc')
+          .get();
+
+        const conversations = conversationsSnapshot.docs.map((convDoc) => ({
+          id: convDoc.id,
+          ...convDoc.data(),
+          createdAt: convDoc.data().createdAt?.toDate(),
+          updatedAt: convDoc.data().updatedAt?.toDate(),
+        }));
+
+        // Get user info
+        const userDoc = await ctx.db.collection('users').doc(projectData.userId).get();
+        const userData = userDoc.exists ? userDoc.data() : null;
+
+        return {
+          id: projectDoc.id,
+          ...projectData,
+          createdAt: projectData.createdAt?.toDate(),
+          updatedAt: projectData.updatedAt?.toDate(),
+          documents,
+          conversations,
+          user: userData ? {
+            id: userDoc.id,
+            name: userData.name,
+            email: userData.email,
+          } : null,
+          isOwner,
+          userRole: isOwner ? 'OWNER' : collaboratorRole,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        logger.error({ error, projectId: input.id, userId: ctx.user.id }, 'Failed to get project');
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch project',
         });
       }
-
-      const isOwner = project.userId === ctx.user.id;
-      const collaborator = project.collaborators[0];
-      const isCollaborator = !!collaborator;
-
-      // Verify access (owner, collaborator, or admin)
-      if (!isOwner && !isCollaborator && ctx.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have access to this project',
-        });
-      }
-
-      return {
-        ...project,
-        isOwner,
-        userRole: isOwner ? 'OWNER' : collaborator?.role || null,
-        // Remove collaborators array from response
-        collaborators: undefined,
-      };
     }),
 
   /**
@@ -221,32 +321,52 @@ export const projectsRouter = router({
   create: protectedProcedure
     .input(createProjectSchema)
     .mutation(async ({ ctx, input }) => {
-      const project = await ctx.prisma.project.create({
-        data: {
+      try {
+        // Create project document
+        const projectRef = ctx.db.collection('projects').doc();
+
+        const projectData = {
+          id: projectRef.id,
           userId: ctx.user.id,
           title: input.title,
           description: input.description,
           mode: input.mode,
           status: 'ACTIVE',
           currentPhase: 'BRD_QUESTIONS',
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
 
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        await projectRef.set(projectData);
+
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'PROJECT_CREATED',
           details: {
-            projectId: project.id,
-            title: project.title,
-            mode: project.mode,
+            projectId: projectRef.id,
+            title: input.title,
+            mode: input.mode,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return project;
+        logger.info({ projectId: projectRef.id, userId: ctx.user.id }, 'Project created');
+
+        return {
+          ...projectData,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      } catch (error) {
+        logger.error({ error, userId: ctx.user.id }, 'Failed to create project');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create project',
+        });
+      }
     }),
 
   /**
@@ -258,61 +378,87 @@ export const projectsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, ...updateData } = input;
 
-      // Verify access
-      const project = await ctx.prisma.project.findUnique({
-        where: { id },
-        include: {
-          collaborators: {
-            where: {
-              userId: ctx.user.id,
-            },
-            select: {
-              role: true,
-            },
-          },
-        },
-      });
+      try {
+        // Verify access
+        const projectRef = ctx.db.collection('projects').doc(id);
+        const projectDoc = await projectRef.get();
 
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const projectData = projectDoc.data();
+        if (!projectData) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const isOwner = projectData.userId === ctx.user.id;
+
+        // Check if user is collaborator with EDITOR role
+        const collaboratorSnapshot = await projectRef
+          .collection('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
+
+        const isEditor = !collaboratorSnapshot.empty &&
+          collaboratorSnapshot.docs[0].data().role === 'EDITOR';
+
+        // Only owner, editors, or admins can update
+        if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to edit this project',
+          });
+        }
+
+        // Update project
+        await projectRef.update({
+          ...updateData,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-      }
 
-      const isOwner = project.userId === ctx.user.id;
-      const collaborator = project.collaborators[0];
-      const isEditor = collaborator?.role === 'EDITOR';
-
-      // Only owner, editors, or admins can update
-      if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to edit this project',
-        });
-      }
-
-      // Update project
-      const updatedProject = await ctx.prisma.project.update({
-        where: { id },
-        data: updateData,
-      });
-
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'PROJECT_UPDATED',
           details: {
             projectId: id,
             updates: updateData,
-            role: isOwner ? 'OWNER' : collaborator?.role,
+            role: isOwner ? 'OWNER' : 'EDITOR',
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return updatedProject;
+        logger.info({ projectId: id, userId: ctx.user.id }, 'Project updated');
+
+        // Fetch updated project
+        const updatedDoc = await projectRef.get();
+        const updatedData = updatedDoc.data();
+
+        return {
+          id: updatedDoc.id,
+          ...updatedData,
+          createdAt: updatedData?.createdAt?.toDate(),
+          updatedAt: updatedData?.updatedAt?.toDate(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        logger.error({ error, projectId: id, userId: ctx.user.id }, 'Failed to update project');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update project',
+        });
+      }
     }),
 
   /**
@@ -322,62 +468,90 @@ export const projectsRouter = router({
   updatePhase: protectedProcedure
     .input(updateProjectPhaseSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify access
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.id },
-        include: {
-          collaborators: {
-            where: {
-              userId: ctx.user.id,
-            },
-            select: {
-              role: true,
-            },
-          },
-        },
-      });
+      try {
+        // Verify access
+        const projectRef = ctx.db.collection('projects').doc(input.id);
+        const projectDoc = await projectRef.get();
 
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const projectData = projectDoc.data();
+        if (!projectData) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const isOwner = projectData.userId === ctx.user.id;
+
+        // Check if user is collaborator with EDITOR role
+        const collaboratorSnapshot = await projectRef
+          .collection('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
+
+        const isEditor = !collaboratorSnapshot.empty &&
+          collaboratorSnapshot.docs[0].data().role === 'EDITOR';
+
+        // Only owner, editors, or admins can update phase
+        if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to update this project',
+          });
+        }
+
+        const oldPhase = projectData.currentPhase;
+
+        // Update phase
+        await projectRef.update({
+          currentPhase: input.phase,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-      }
 
-      const isOwner = project.userId === ctx.user.id;
-      const collaborator = project.collaborators[0];
-      const isEditor = collaborator?.role === 'EDITOR';
-
-      // Only owner, editors, or admins can update phase
-      if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to update this project',
-        });
-      }
-
-      // Update phase
-      const updatedProject = await ctx.prisma.project.update({
-        where: { id: input.id },
-        data: { currentPhase: input.phase },
-      });
-
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'PROJECT_PHASE_UPDATED',
           details: {
             projectId: input.id,
-            oldPhase: project.currentPhase,
+            oldPhase,
             newPhase: input.phase,
-            role: isOwner ? 'OWNER' : collaborator?.role,
+            role: isOwner ? 'OWNER' : 'EDITOR',
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return updatedProject;
+        logger.info({ projectId: input.id, oldPhase, newPhase: input.phase, userId: ctx.user.id }, 'Project phase updated');
+
+        // Fetch updated project
+        const updatedDoc = await projectRef.get();
+        const updatedData = updatedDoc.data();
+
+        return {
+          id: updatedDoc.id,
+          ...updatedData,
+          createdAt: updatedData?.createdAt?.toDate(),
+          updatedAt: updatedData?.updatedAt?.toDate(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        logger.error({ error, projectId: input.id, userId: ctx.user.id }, 'Failed to update project phase');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update project phase',
+        });
+      }
     }),
 
   /**
@@ -385,48 +559,77 @@ export const projectsRouter = router({
    * Only project owner can archive
    */
   archive: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Verify ownership
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.id },
-      });
+      try {
+        // Verify ownership
+        const projectRef = ctx.db.collection('projects').doc(input.id);
+        const projectDoc = await projectRef.get();
 
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const projectData = projectDoc.data();
+        if (!projectData) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        // Only owner or admin can archive
+        if (projectData.userId !== ctx.user.id && ctx.user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only the project owner can archive this project',
+          });
+        }
+
+        // Archive project
+        await projectRef.update({
+          status: 'ARCHIVED',
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-      }
 
-      // Only owner or admin can archive
-      if (project.userId !== ctx.user.id && ctx.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Only the project owner can archive this project',
-        });
-      }
-
-      // Archive project
-      const archivedProject = await ctx.prisma.project.update({
-        where: { id: input.id },
-        data: { status: 'ARCHIVED' },
-      });
-
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'PROJECT_ARCHIVED',
           details: {
             projectId: input.id,
-            title: project.title,
+            title: projectData.title,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return archivedProject;
+        logger.info({ projectId: input.id, userId: ctx.user.id }, 'Project archived');
+
+        // Fetch updated project
+        const updatedDoc = await projectRef.get();
+        const updatedData = updatedDoc.data();
+
+        return {
+          id: updatedDoc.id,
+          ...updatedData,
+          createdAt: updatedData?.createdAt?.toDate(),
+          updatedAt: updatedData?.updatedAt?.toDate(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        logger.error({ error, projectId: input.id, userId: ctx.user.id }, 'Failed to archive project');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to archive project',
+        });
+      }
     }),
 
   /**
@@ -434,116 +637,193 @@ export const projectsRouter = router({
    * Only project owner can delete
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().cuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Verify ownership
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.id },
-      });
+      try {
+        // Verify ownership
+        const projectRef = ctx.db.collection('projects').doc(input.id);
+        const projectDoc = await projectRef.get();
 
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const projectData = projectDoc.data();
+        if (!projectData) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        // Only owner or admin can delete
+        if (projectData.userId !== ctx.user.id && ctx.user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only the project owner can delete this project',
+          });
+        }
+
+        const batch = ctx.db.batch();
+
+        // Delete documents subcollection
+        const documentsSnapshot = await projectRef.collection('documents').get();
+        documentsSnapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
         });
-      }
 
-      // Only owner or admin can delete
-      if (project.userId !== ctx.user.id && ctx.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Only the project owner can delete this project',
+        // Delete conversations subcollection
+        const conversationsSnapshot = await projectRef.collection('conversations').get();
+        conversationsSnapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
         });
-      }
 
-      // Delete project (cascade deletes related data)
-      await ctx.prisma.project.delete({
-        where: { id: input.id },
-      });
+        // Delete collaborators subcollection
+        const collaboratorsSnapshot = await projectRef.collection('collaborators').get();
+        collaboratorsSnapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
 
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        // Delete invites subcollection
+        const invitesSnapshot = await projectRef.collection('invites').get();
+        invitesSnapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+
+        // Delete project document
+        batch.delete(projectRef);
+
+        // Commit batch
+        await batch.commit();
+
+        // Create audit log (after deletion)
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'PROJECT_DELETED',
           details: {
             projectId: input.id,
-            title: project.title,
+            title: projectData.title,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return { success: true, message: 'Project deleted successfully' };
+        logger.info({ projectId: input.id, userId: ctx.user.id }, 'Project deleted');
+
+        return { success: true, message: 'Project deleted successfully' };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        logger.error({ error, projectId: input.id, userId: ctx.user.id }, 'Failed to delete project');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete project',
+        });
+      }
     }),
 
   /**
    * Get user statistics
    */
   getStats: protectedProcedure.query(async ({ ctx }) => {
-    const now = new Date();
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    try {
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Get all projects with their documents to calculate completion based on approved docs
-    // Include both owned projects and collaborated projects
-    const projectFilter = {
-      OR: [
-        { userId: ctx.user.id },
-        { collaborators: { some: { userId: ctx.user.id } } },
-      ],
-    };
+      // Get all projects owned by user
+      const ownedProjectsSnapshot = await ctx.db
+        .collection('projects')
+        .where('userId', '==', ctx.user.id)
+        .get();
 
-    const [projects, totalDocuments, currentMonthDocuments] = await Promise.all([
-      ctx.prisma.project.findMany({
-        where: projectFilter,
-        include: {
-          documents: {
-            select: {
-              type: true,
-              status: true,
-            },
-          },
-        },
-      }),
-      ctx.prisma.document.count({
-        where: { project: projectFilter },
-      }),
-      ctx.prisma.document.count({
-        where: {
-          project: projectFilter,
-          createdAt: { gte: currentMonthStart },
-        },
-      }),
-    ]);
+      // Get all projects where user is collaborator
+      const allProjectsSnapshot = await ctx.db.collection('projects').get();
+      const collaboratedProjectIds: string[] = [];
 
-    // Calculate completion based on approved documents (same logic as progress calculation)
-    const completedProjects = projects.filter((project) => {
-      const brdDoc = project.documents.find((d) => d.type === 'BRD');
-      const prdDoc = project.documents.find((d) => d.type === 'PRD');
-      const finalDoc = project.documents.find((d) =>
-        d.type === (project.mode === 'PLAIN' ? 'PROMPT_BUILD' : 'TASKS')
+      for (const projectDoc of allProjectsSnapshot.docs) {
+        const collaboratorSnapshot = await projectDoc.ref
+          .collection('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
+
+        if (!collaboratorSnapshot.empty) {
+          collaboratedProjectIds.push(projectDoc.id);
+        }
+      }
+
+      // Combine owned and collaborated projects
+      const allUserProjects = [
+        ...ownedProjectsSnapshot.docs,
+        ...collaboratedProjectIds.map((id) => {
+          return allProjectsSnapshot.docs.find((doc) => doc.id === id);
+        }).filter(Boolean) as FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
+      ];
+
+      // Remove duplicates
+      const uniqueProjects = Array.from(
+        new Map(allUserProjects.map((doc) => [doc.id, doc])).values()
       );
 
-      // Project is complete if all three required documents are approved
-      return (
-        brdDoc?.status === 'APPROVED' &&
-        prdDoc?.status === 'APPROVED' &&
-        finalDoc?.status === 'APPROVED'
-      );
-    }).length;
+      // Get documents for each project and calculate completion
+      let totalDocuments = 0;
+      let currentMonthDocuments = 0;
+      let completedProjects = 0;
 
-    const completionRate =
-      projects.length > 0
-        ? Math.round((completedProjects / projects.length) * 100)
-        : 0;
+      for (const projectDoc of uniqueProjects) {
+        const projectData = projectDoc.data();
+        const documentsSnapshot = await projectDoc.ref.collection('documents').get();
 
-    return {
-      totalProjects: projects.length,
-      completedProjects,
-      totalDocuments,
-      currentMonthDocuments,
-      completionRate,
-    };
+        totalDocuments += documentsSnapshot.size;
+
+        // Count current month documents
+        documentsSnapshot.docs.forEach((docDoc) => {
+          const docData = docDoc.data();
+          const createdAt = docData.createdAt?.toDate();
+          if (createdAt && createdAt >= currentMonthStart) {
+            currentMonthDocuments++;
+          }
+        });
+
+        // Check if project is complete
+        const brdDoc = documentsSnapshot.docs.find((d) => d.data().type === 'BRD');
+        const prdDoc = documentsSnapshot.docs.find((d) => d.data().type === 'PRD');
+        const finalDocType = projectData.mode === 'PLAIN' ? 'PROMPT_BUILD' : 'TASKS';
+        const finalDoc = documentsSnapshot.docs.find((d) => d.data().type === finalDocType);
+
+        // Project is complete if all three required documents are approved
+        if (
+          brdDoc?.data().status === 'APPROVED' &&
+          prdDoc?.data().status === 'APPROVED' &&
+          finalDoc?.data().status === 'APPROVED'
+        ) {
+          completedProjects++;
+        }
+      }
+
+      const totalProjects = uniqueProjects.length;
+      const completionRate =
+        totalProjects > 0
+          ? Math.round((completedProjects / totalProjects) * 100)
+          : 0;
+
+      return {
+        totalProjects,
+        completedProjects,
+        totalDocuments,
+        currentMonthDocuments,
+        completionRate,
+      };
+    } catch (error) {
+      logger.error({ error, userId: ctx.user.id }, 'Failed to get project stats');
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch project statistics',
+      });
+    }
   }),
 });
-

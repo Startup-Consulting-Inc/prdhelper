@@ -26,6 +26,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { randomBytes } from 'crypto';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import * as Sentry from '@sentry/node';
@@ -45,6 +46,32 @@ import { checkEmailHealth } from './lib/health/email.js';
 
 // Load environment variables FIRST
 dotenv.config();
+
+// Log startup immediately to help debug
+console.log('🚀 Starting server...');
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`PORT: ${process.env.PORT || '3000'}`);
+
+// Initialize Firebase (must be early for auth and database)
+// Don't throw on failure - let server start and log error
+import { initializeFirebase } from './lib/firebase.js';
+let firebaseInitialized = false;
+try {
+  console.log('🔥 Initializing Firebase...');
+  initializeFirebase();
+  firebaseInitialized = true;
+  console.log('✅ Firebase initialized successfully');
+  logger.info('Firebase Admin SDK initialized successfully');
+} catch (error) {
+  console.error('❌ Firebase initialization failed:', error);
+  logger.error({ error }, 'Failed to initialize Firebase Admin SDK - server will start but Firebase features may not work');
+  // Don't throw - allow server to start for debugging
+  // In production, this should be fatal, but for now let's see what the actual error is
+  if (process.env.NODE_ENV === 'production' && process.env.FAIL_ON_FIREBASE_INIT === 'true') {
+    logger.fatal({ error }, 'FIREBASE_INIT_FAILED - Exiting due to FAIL_ON_FIREBASE_INIT=true');
+    process.exit(1);
+  }
+}
 
 // Initialize Sentry for error tracking (must be first)
 const SENTRY_DSN = process.env.SENTRY_DSN;
@@ -70,10 +97,8 @@ const PORT = process.env.PORT || 3000;
 // Respect proxy headers (required for correct protocol/host on Cloud Run & proxies)
 app.set('trust proxy', 1);
 
-// Request handling must be the first middleware (for Sentry tracing)
-if (SENTRY_DSN && process.env.NODE_ENV === 'production') {
-  app.use(Sentry.expressErrorHandler());
-}
+// Sentry Express integration is already configured via expressIntegration() in Sentry.init()
+// No need for separate request handler when using expressIntegration()
 
 // Correlation ID middleware (must be early for logging)
 app.use(correlationIdMiddleware);
@@ -113,17 +138,37 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://apis.google.com', // Google OAuth API
+          'https://www.gstatic.com', // Google static resources
+          'blob:', // Allow blobs for workers
+        ],
+        workerSrc: ["'self'", 'blob:'], // Explicitly allow workers from blobs
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'"],
-        fontSrc: ["'self'", 'data:'],
+        connectSrc: [
+          "'self'",
+          'https://*.googleapis.com', // Google APIs
+          'https://*.firebaseio.com', // Firebase Realtime Database
+          'https://*.firebaseapp.com', // Firebase Hosting
+          'https://*.sentry.io', // Sentry error tracking
+        ],
+        fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
-        frameSrc: ["'self'", 'https://www.youtube.com', 'https://www.youtube-nocookie.com'], // Allow YouTube embeds
+        frameSrc: [
+          "'self'",
+          'https://*.firebaseapp.com', // Firebase Auth
+          'https://clearly-478614.firebaseapp.com', // Explicit Auth Domain
+          'https://www.youtube.com',
+          'https://www.youtube-nocookie.com'
+        ], // Allow YouTube embeds and Firebase Auth
       },
     },
     crossOriginEmbedderPolicy: false, // Allow embedding for video playback
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // Allow Firebase Auth popups
   })
 );
 
@@ -156,13 +201,12 @@ app.use('/api', apiLimiter);
 // SECURITY: Using dedicated SESSION_SECRET, SameSite cookies for CSRF protection
 const SESSION_SECRET = process.env.SESSION_SECRET || process.env.JWT_SECRET;
 if (!SESSION_SECRET) {
-  logger.fatal('SESSION_SECRET or JWT_SECRET environment variable is not set');
-  throw new Error('SESSION_SECRET is required for security');
+  logger.warn('SESSION_SECRET environment variable is not set - using random secret (sessions will not persist)');
 }
 
 app.use(
   session({
-    secret: SESSION_SECRET,
+    secret: SESSION_SECRET || randomBytes(32).toString('hex'),
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -290,6 +334,15 @@ app.use(
   })
 );
 
+// Simple root endpoint for Cloud Run health checks
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'clearly-api',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Comprehensive health check endpoint
 app.get('/health', async (_req: Request, res: Response) => {
   try {
@@ -342,7 +395,10 @@ if (clientDistExists) {
   });
 }
 
-// Sentry error handler already registered above
+// Sentry error handler (must be before other error handlers)
+if (SENTRY_DSN && process.env.NODE_ENV === 'production') {
+  app.use(Sentry.expressErrorHandler());
+}
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
@@ -350,14 +406,22 @@ app.use(notFoundHandler);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+// Start server - listen on all interfaces (0.0.0.0) for Cloud Run
+const portNumber = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
+
+console.log(`📡 Starting server on port ${portNumber}...`);
+
+// Ensure we listen on the correct port and interface
+const server = app.listen(portNumber, '0.0.0.0', () => {
   logger.info({
-    port: PORT,
+    port: portNumber,
     environment: process.env.NODE_ENV || 'development',
     staticPath: clientDistPath,
+    firebaseInitialized,
   }, 'Server started successfully');
 
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${portNumber}`);
+  console.log(`🌐 Listening on: 0.0.0.0:${portNumber}`);
   if (clientDistExists) {
     console.log(`📁 Serving static files from: ${clientDistPath}`);
   } else {
@@ -367,7 +431,30 @@ app.listen(PORT, () => {
   console.log(`🔗 tRPC endpoint: /api/trpc`);
   console.log(`💚 Health check: /health`);
   console.log(`📊 Logging: ${process.env.LOG_LEVEL || 'info'} level`);
+  console.log(`🔥 Firebase: ${firebaseInitialized ? '✅ Initialized' : '❌ Failed to initialize'}`);
   if (SENTRY_DSN) {
     console.log(`🔍 Error tracking: Sentry enabled`);
   }
+});
+
+// Handle server errors
+server.on('error', (error: NodeJS.ErrnoException) => {
+  logger.error({ error }, 'Server error');
+  if (error.code === 'EADDRINUSE') {
+    logger.fatal({ port: portNumber }, 'Port already in use');
+    process.exit(1);
+  } else {
+    logger.fatal({ error }, 'Unexpected server error');
+    process.exit(1);
+  }
+});
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  logger.fatal({ error }, 'Uncaught exception');
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error({ reason, promise }, 'Unhandled rejection');
 });

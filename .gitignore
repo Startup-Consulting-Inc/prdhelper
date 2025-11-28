@@ -63,6 +63,20 @@ storybook-static/
 *.sqlite
 *.sqlite3
 
+# Migrations
+migrations/
+
+# Terraform
+terraform/
+
+# Scripts
+scripts/
+
+# Service account keys
+serviceAccountKey.json
+*.json
+
+
 # Runtime data
 pids
 *.pid

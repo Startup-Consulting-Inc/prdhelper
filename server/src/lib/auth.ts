@@ -9,17 +9,16 @@
 
 import jwt from 'jsonwebtoken';
 import { hash, compare } from 'bcryptjs';
-import type { User } from '@prisma/client';
+import type { User } from '../lib/trpc/context.js';
 import { logger } from './logger.js';
 
-// JWT Configuration - No fallback for security
+// JWT Configuration - Optional since Firebase Auth is primary
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-// Validate JWT_SECRET exists on module load
+// Warn if JWT_SECRET is not set (Firebase Auth is now primary)
 if (!JWT_SECRET) {
-  logger.fatal('JWT_SECRET environment variable is not set');
-  throw new Error('JWT_SECRET environment variable is required for security');
+  logger.warn('JWT_SECRET environment variable is not set - legacy JWT authentication disabled');
 }
 
 // Token payload interface
@@ -31,25 +30,36 @@ export interface TokenPayload {
 
 /**
  * Generate JWT token for authenticated user
+ * Note: Consider using Firebase Auth tokens instead
  */
 export function generateToken(user: User): string {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is required to generate tokens - use Firebase Auth instead');
+  }
+  
   const payload: TokenPayload = {
     userId: user.id,
     email: user.email,
     role: user.role,
   };
 
-  return jwt.sign(payload, JWT_SECRET!, {
+  return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN as string,
   } as jwt.SignOptions);
 }
 
 /**
  * Verify JWT token and return payload
+ * Note: Consider using Firebase Auth token verification instead
  */
 export function verifyToken(token: string): TokenPayload | null {
+  if (!JWT_SECRET) {
+    logger.warn('JWT_SECRET not set - cannot verify legacy JWT tokens');
+    return null;
+  }
+  
   try {
-    const decoded = jwt.verify(token, JWT_SECRET!) as TokenPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     return decoded;
   } catch (error) {
     logger.warn({ err: error }, 'Token verification failed');

@@ -1,0 +1,132 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+
+    function isProjectOwner(projectId) {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/projects/$(projectId)).data.userId == request.auth.uid;
+    }
+
+    function isProjectCollaborator(projectId) {
+      return exists(/databases/$(database)/documents/projects/$(projectId)/collaborators/$(request.auth.uid));
+    }
+
+    function hasProjectAccess(projectId) {
+      return isProjectOwner(projectId) || isProjectCollaborator(projectId);
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || isAdmin();
+
+      // User sessions subcollection
+      match /sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // OAuth accounts subcollection
+      match /accounts/{accountId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Token usage subcollection
+      match /tokenUsage/{usageId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // Projects collection
+    match /projects/{projectId} {
+      allow read: if isAuthenticated() && hasProjectAccess(projectId);
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && isProjectOwner(projectId);
+
+      // Project documents subcollection
+      match /documents/{documentId} {
+        allow read: if isAuthenticated() && hasProjectAccess(projectId);
+        allow write: if isAuthenticated() && isProjectOwner(projectId);
+
+        // Document versions subcollection
+        match /versions/{versionId} {
+          allow read: if isAuthenticated() && hasProjectAccess(projectId);
+          allow create: if isAuthenticated() && hasProjectAccess(projectId);
+        }
+      }
+
+      // Project conversations subcollection
+      match /conversations/{conversationType} {
+        allow read, write: if isAuthenticated() && hasProjectAccess(projectId);
+      }
+
+      // Project collaborators subcollection
+      match /collaborators/{userId} {
+        allow read: if isAuthenticated() && hasProjectAccess(projectId);
+        allow write: if isAuthenticated() && isProjectOwner(projectId);
+      }
+
+      // Project invites subcollection
+      match /invites/{inviteId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && isProjectOwner(projectId);
+      }
+    }
+
+    // Top-level documents collection (for easy querying)
+    match /documents/{documentId} {
+      allow read: if isAuthenticated() && hasProjectAccess(resource.data.projectId);
+      allow write: if isAuthenticated() && isProjectOwner(resource.data.projectId);
+
+      // Document versions subcollection
+      match /versions/{versionId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+      }
+    }
+
+    // System prompts collection (admin only)
+    match /systemPrompts/{promptType} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+
+      // System prompt versions subcollection
+      match /versions/{versionId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin();
+      }
+    }
+
+    // Audit logs collection (admin only for reads, authenticated users can create)
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+    }
+
+    // Demo requests collection (public create, admin read/update)
+    match /demoRequests/{requestId} {
+      allow create: if true; // Public submission
+      allow read, update: if isAdmin();
+    }
+
+    // Verification tokens collection (server-side only)
+    match /verificationTokens/{token} {
+      allow read, write: if false; // Server-side only via Firebase Admin SDK
+    }
+  }
+}
