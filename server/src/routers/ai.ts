@@ -1,6 +1,6 @@
 /**
- * AI Router
- * 
+ * AI Router (Firestore)
+ *
  * tRPC router for AI-powered operations:
  * - Ask questions in wizard
  * - Generate documents (BRD, PRD, Tasks)
@@ -25,6 +25,8 @@ import {
   hashExplanation,
   type ExplanationResponse,
 } from '../lib/utils/cache.js';
+import { admin } from '../lib/firebase.js';
+import { logger } from '../lib/logger.js';
 
 export const aiRouter = router({
   /**
@@ -33,162 +35,193 @@ export const aiRouter = router({
   askQuestion: protectedProcedure
     .input(
       z.object({
-        projectId: z.string().cuid(),
+        projectId: z.string(),
         documentType: z.enum(['BRD', 'PRD']),
         userAnswer: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Verify project ownership
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.projectId },
-      });
+      try {
+        // Verify project ownership
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const projectDoc = await projectRef.get();
 
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
-        });
-      }
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
 
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to access this project',
-        });
-      }
+        const project = projectDoc.data();
 
-      // Get or create conversation
-      let conversation = await ctx.prisma.conversation.findUnique({
-        where: {
-          projectId_documentType: {
-            projectId: input.projectId,
-            documentType: input.documentType,
-          },
-        },
-      });
+        if (project?.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to access this project',
+          });
+        }
 
-      if (!conversation) {
-        conversation = await ctx.prisma.conversation.create({
-          data: {
+        // Get or create conversation using documentType as document ID
+        const conversationRef = projectRef.collection('conversations').doc(input.documentType);
+        const conversationDoc = await conversationRef.get();
+
+        let messages: Message[] = [];
+
+        if (!conversationDoc.exists) {
+          // Create new conversation
+          await conversationRef.set({
+            id: conversationRef.id,
             projectId: input.projectId,
             documentType: input.documentType,
             messages: [],
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        } else {
+          messages = (conversationDoc.data()?.messages as Message[]) || [];
+        }
+
+        // Add user answer if provided
+        if (input.userAnswer) {
+          messages.push({
+            role: 'user',
+            content: input.userAnswer,
+            timestamp: new Date().toISOString(),
+          });
+
+          await conversationRef.update({
+            messages,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        // Get system prompt
+        const promptType =
+          input.documentType === 'BRD'
+            ? project?.mode === 'PLAIN'
+              ? 'BRD_PLAIN'
+              : 'BRD_TECHNICAL'
+            : project?.mode === 'PLAIN'
+            ? 'PRD_PLAIN'
+            : 'PRD_TECHNICAL';
+
+        const systemPromptSnapshot = await ctx.db
+          .collection('systemPrompts')
+          .where('type', '==', promptType)
+          .limit(1)
+          .get();
+
+        if (systemPromptSnapshot.empty) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'System prompt not found',
+          });
+        }
+
+        const systemPromptData = systemPromptSnapshot.docs[0].data();
+
+        if (!systemPromptData.isActive) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'System prompt is inactive',
+          });
+        }
+
+        // Build context for AI
+        let contextInfo = `\n\n### Project Context\n\n**Project Title:** ${project?.title}\n**Project Description:** ${project?.description}`;
+
+        if (input.documentType === 'PRD') {
+          // Include approved BRD for PRD context
+          const brdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'BRD')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (!brdDocsSnapshot.empty) {
+            const brdDoc = brdDocsSnapshot.docs[0].data();
+            if (brdDoc?.content) {
+              contextInfo += `\n\n### Approved BRD\n\n${brdDoc.content}`;
+            }
+          }
+        }
+
+        // Build AI messages
+        const aiMessages = [
+          {
+            role: 'system' as const,
+            content: systemPromptData.prompt + contextInfo,
           },
+          ...messages.map((msg) => ({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+          })),
+          {
+            role: 'user' as const,
+            content:
+              messages.length === 0
+                ? `Start the wizard. Ask the first question to gather requirements for the ${input.documentType}. Reference the project title and description in your question.`
+                : 'Based on the previous answer, ask the next relevant question.',
+          },
+        ];
+
+        // Call AI
+        const response = await generateCompletion(aiMessages, {
+          temperature: 0.8,
+          maxTokens: 2000,
         });
-      }
 
-      // Add user answer if provided
-      if (input.userAnswer) {
-        const messages = conversation.messages as Message[];
-        messages.push({
-          role: 'user',
-          content: input.userAnswer,
-          timestamp: new Date().toISOString(),
+        const question = response.content;
+
+        // Track token usage
+        if (response.usage) {
+          await trackTokenUsage({
+            userId: ctx.user.id,
+            projectId: input.projectId,
+            operation: `ASK_QUESTION_${input.documentType}`,
+            model: response.model,
+            tokensUsed: response.usage.totalTokens,
+            inputTokens: response.usage.promptTokens,
+            outputTokens: response.usage.completionTokens,
+          });
+        }
+
+        // Save assistant message
+        const updatedMessages: Message[] = [
+          ...messages,
+          {
+            role: 'assistant',
+            content: question,
+            timestamp: new Date().toISOString(),
+          },
+        ];
+
+        await conversationRef.update({
+          messages: updatedMessages,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        conversation = await ctx.prisma.conversation.update({
-          where: { id: conversation.id },
-          data: { messages: messages as any },
-        });
-      }
+        logger.info({
+          projectId: input.projectId,
+          documentType: input.documentType,
+          questionNumber: Math.floor(updatedMessages.length / 2) + 1,
+        }, 'AI question asked');
 
-      // Get system prompt
-      const promptType =
-        input.documentType === 'BRD'
-          ? project.mode === 'PLAIN'
-            ? 'BRD_PLAIN'
-            : 'BRD_TECHNICAL'
-          : project.mode === 'PLAIN'
-          ? 'PRD_PLAIN'
-          : 'PRD_TECHNICAL';
-
-      const systemPrompt = await ctx.prisma.systemPrompt.findUnique({
-        where: { type: promptType },
-      });
-
-      if (!systemPrompt || !systemPrompt.isActive) {
+        return {
+          question,
+          questionNumber: Math.floor(updatedMessages.length / 2) + 1,
+          totalQuestions: 5,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, input }, 'Failed to ask question');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'System prompt not found or inactive',
+          message: 'Failed to generate question',
         });
       }
-
-      // Build context for AI
-      let contextInfo = `\n\n### Project Context\n\n**Project Title:** ${project.title}\n**Project Description:** ${project.description}`;
-
-      if (input.documentType === 'PRD') {
-        // Include approved BRD for PRD context
-        const brdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: input.projectId,
-            type: 'BRD',
-            status: 'APPROVED',
-          },
-        });
-        if (brdDoc?.content) {
-          contextInfo += `\n\n### Approved BRD\n\n${brdDoc.content}`;
-        }
-      }
-
-      // Build AI messages
-      const messages = conversation.messages as Message[];
-      const aiMessages = [
-        {
-          role: 'system' as const,
-          content: systemPrompt.prompt + contextInfo,
-        },
-        ...messages.map((msg) => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-        })),
-        {
-          role: 'user' as const,
-          content:
-            messages.length === 0
-              ? `Start the wizard. Ask the first question to gather requirements for the ${input.documentType}. Reference the project title and description in your question.`
-              : 'Based on the previous answer, ask the next relevant question.',
-        },
-      ];
-
-      // Call AI
-      const response = await generateCompletion(aiMessages, {
-        temperature: 0.8,
-        maxTokens: 2000, // Increased to allow detailed technical explanations with examples
-      });
-
-      const question = response.content;
-
-      // Track token usage
-      if (response.usage) {
-        await trackTokenUsage({
-          userId: ctx.user.id,
-          projectId: input.projectId,
-          operation: `ASK_QUESTION_${input.documentType}`,
-          model: response.model,
-          tokensUsed: response.usage.totalTokens,
-          inputTokens: response.usage.promptTokens,
-          outputTokens: response.usage.completionTokens,
-        });
-      }
-
-      // Save assistant message
-      const updatedMessages = [...messages, {
-        role: 'assistant',
-        content: question,
-        timestamp: new Date().toISOString(),
-      }];
-
-      await ctx.prisma.conversation.update({
-        where: { id: conversation.id },
-        data: { messages: updatedMessages as any },
-      });
-
-      return {
-        question,
-        questionNumber: Math.floor(updatedMessages.length / 2) + 1,
-        totalQuestions: 5, // AI will ask 3-5 questions
-      };
     }),
 
   /**
@@ -197,278 +230,324 @@ export const aiRouter = router({
   generateDocument: protectedProcedure
     .input(
       z.object({
-        projectId: z.string().cuid(),
+        projectId: z.string(),
         documentType: z.enum(['BRD', 'PRD', 'PROMPT_BUILD', 'TASKS']),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Verify project ownership
-      const project = await ctx.prisma.project.findUnique({
-        where: { id: input.projectId },
-      });
+      try {
+        // Verify project ownership
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const projectDoc = await projectRef.get();
 
-      if (!project) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Project not found',
-        });
-      }
-
-      if (project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to generate documents for this project',
-        });
-      }
-
-      // Get system prompt
-      let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
-      if (input.documentType === 'BRD') {
-        promptType = project.mode === 'PLAIN' ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
-      } else if (input.documentType === 'PRD') {
-        promptType = project.mode === 'PLAIN' ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
-      } else if (input.documentType === 'PROMPT_BUILD') {
-        promptType = 'PROMPT_BUILD';
-      } else {
-        promptType = 'TASKS';
-      }
-
-      const systemPrompt = await ctx.prisma.systemPrompt.findUnique({
-        where: { type: promptType },
-      });
-
-      if (!systemPrompt || !systemPrompt.isActive) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'System prompt not found or inactive',
-        });
-      }
-
-      // Generate document based on type
-      let content: string;
-      let rawContent: string;
-      let model: string;
-      let tokensUsed: number | undefined;
-      let inputTokens: number | undefined;
-      let outputTokens: number | undefined;
-
-      if (input.documentType === 'BRD') {
-        // Get conversation
-        const conversation = await ctx.prisma.conversation.findUnique({
-          where: {
-            projectId_documentType: {
-              projectId: input.projectId,
-              documentType: 'BRD',
-            },
-          },
-        });
-
-        if (!conversation) {
+        if (!projectDoc.exists) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'No conversation found for BRD generation',
+            code: 'NOT_FOUND',
+            message: 'Project not found',
           });
         }
 
-        const result = await generateBRD(
-          systemPrompt.prompt,
-          conversation.messages as Message[]
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-      } else if (input.documentType === 'PRD') {
-        // Get BRD
-        const brdDoc = await ctx.prisma.document.findFirst({
-          where: {
+        const project = projectDoc.data();
+
+        if (project?.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to generate documents for this project',
+          });
+        }
+
+        // Get system prompt
+        let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
+        if (input.documentType === 'BRD') {
+          promptType = project?.mode === 'PLAIN' ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
+        } else if (input.documentType === 'PRD') {
+          promptType = project?.mode === 'PLAIN' ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
+        } else if (input.documentType === 'PROMPT_BUILD') {
+          promptType = 'PROMPT_BUILD';
+        } else {
+          promptType = 'TASKS';
+        }
+
+        const systemPromptSnapshot = await ctx.db
+          .collection('systemPrompts')
+          .where('type', '==', promptType)
+          .limit(1)
+          .get();
+
+        if (systemPromptSnapshot.empty) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'System prompt not found',
+          });
+        }
+
+        const systemPromptData = systemPromptSnapshot.docs[0].data();
+
+        if (!systemPromptData.isActive) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'System prompt is inactive',
+          });
+        }
+
+        // Generate document based on type
+        let content: string;
+        let rawContent: string;
+        let model: string;
+        let tokensUsed: number | undefined;
+        let inputTokens: number | undefined;
+        let outputTokens: number | undefined;
+
+        if (input.documentType === 'BRD') {
+          // Get conversation from subcollection
+          const conversationDoc = await projectRef
+            .collection('conversations')
+            .doc('BRD')
+            .get();
+
+          if (!conversationDoc.exists) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'No conversation found for BRD generation',
+            });
+          }
+
+          const conversationData = conversationDoc.data();
+
+          const result = await generateBRD(
+            systemPromptData.prompt,
+            conversationData?.messages as Message[]
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+        } else if (input.documentType === 'PRD') {
+          // Get approved BRD from subcollection
+          const brdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'BRD')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (brdDocsSnapshot.empty) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'BRD must be approved before generating PRD',
+            });
+          }
+
+          const brdDoc = brdDocsSnapshot.docs[0].data();
+
+          // Get conversation from subcollection
+          const conversationDoc = await projectRef
+            .collection('conversations')
+            .doc('PRD')
+            .get();
+
+          if (!conversationDoc.exists) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'No conversation found for PRD generation',
+            });
+          }
+
+          const conversationData = conversationDoc.data();
+
+          const result = await generatePRD(
+            systemPromptData.prompt,
+            conversationData?.messages as Message[],
+            brdDoc.content
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+        } else if (input.documentType === 'PROMPT_BUILD') {
+          // PROMPT_BUILD (Plain mode only)
+          if (project?.mode !== 'PLAIN') {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Prompt Build is only available in Plain mode',
+            });
+          }
+
+          // Get approved PRD from subcollection
+          const prdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'PRD')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (prdDocsSnapshot.empty) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'PRD must be approved before generating Prompt Build',
+            });
+          }
+
+          const prdDoc = prdDocsSnapshot.docs[0].data();
+
+          // Get BRD (optional) from subcollection
+          const brdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'BRD')
+            .limit(1)
+            .get();
+
+          const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+
+          const result = await generatePromptBuild(
+            systemPromptData.prompt,
+            prdDoc.content,
+            brdDoc?.content
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+        } else {
+          // TASKS (Technical mode only)
+          if (project?.mode !== 'TECHNICAL') {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Tasks are only available in Technical mode',
+            });
+          }
+
+          // Get approved PRD from subcollection
+          const prdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'PRD')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (prdDocsSnapshot.empty) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'PRD must be approved before generating tasks',
+            });
+          }
+
+          const prdDoc = prdDocsSnapshot.docs[0].data();
+
+          // Get BRD (optional) from subcollection
+          const brdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'BRD')
+            .limit(1)
+            .get();
+
+          const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+
+          const result = await generateTasks(
+            systemPromptData.prompt,
+            prdDoc.content,
+            brdDoc?.content
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+
+          // Note: Kickoff prompt generation removed to keep task output clean
+          // Only the task list is included in the content
+        }
+
+        // Track token usage
+        if (tokensUsed) {
+          await trackTokenUsage({
+            userId: ctx.user.id,
             projectId: input.projectId,
-            type: 'BRD',
-            status: 'APPROVED',
-          },
-        });
-
-        if (!brdDoc) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'BRD must be approved before generating PRD',
+            operation: `GENERATE_${input.documentType}`,
+            model,
+            tokensUsed,
+            inputTokens,
+            outputTokens,
           });
         }
 
-        // Get conversation
-        const conversation = await ctx.prisma.conversation.findUnique({
-          where: {
-            projectId_documentType: {
-              projectId: input.projectId,
-              documentType: 'PRD',
-            },
-          },
-        });
-
-        if (!conversation) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'No conversation found for PRD generation',
-          });
-        }
-
-        const result = await generatePRD(
-          systemPrompt.prompt,
-          conversation.messages as Message[],
-          brdDoc.content
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-      } else if (input.documentType === 'PROMPT_BUILD') {
-        // PROMPT_BUILD (Plain mode only)
-        if (project.mode !== 'PLAIN') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Prompt Build is only available in Plain mode',
-          });
-        }
-
-        // Get PRD
-        const prdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: input.projectId,
-            type: 'PRD',
-            status: 'APPROVED',
-          },
-        });
-
-        if (!prdDoc) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'PRD must be approved before generating Prompt Build',
-          });
-        }
-
-        // Get BRD (optional)
-        const brdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: input.projectId,
-            type: 'BRD',
-          },
-        });
-
-        const result = await generatePromptBuild(
-          systemPrompt.prompt,
-          prdDoc.content,
-          brdDoc?.content
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-      } else {
-        // TASKS (Technical mode only)
-        if (project.mode !== 'TECHNICAL') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Tasks are only available in Technical mode',
-          });
-        }
-
-        // Get PRD
-        const prdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: input.projectId,
-            type: 'PRD',
-            status: 'APPROVED',
-          },
-        });
-
-        if (!prdDoc) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'PRD must be approved before generating tasks',
-          });
-        }
-
-        // Get BRD (optional)
-        const brdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: input.projectId,
-            type: 'BRD',
-          },
-        });
-
-        const result = await generateTasks(
-          systemPrompt.prompt,
-          prdDoc.content,
-          brdDoc?.content
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-
-        // Note: Kickoff prompt generation removed to keep task output clean
-        // Only the task list is included in the content
-      }
-
-      // Track token usage
-      if (tokensUsed) {
-        await trackTokenUsage({
-          userId: ctx.user.id,
-          projectId: input.projectId,
-          operation: `GENERATE_${input.documentType}`,
-          model,
-          tokensUsed,
-          inputTokens,
-          outputTokens,
-        });
-      }
-
-      // Create document
-      const document = await ctx.prisma.document.create({
-        data: {
+        // Create document in subcollection
+        const documentRef = projectRef.collection('documents').doc();
+        const documentData = {
+          id: documentRef.id,
           projectId: input.projectId,
           type: input.documentType,
           content,
           rawContent,
           status: 'DRAFT',
           version: 1,
-        },
-      });
+          approvedAt: null,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
 
-      // Update project phase
-      const phaseMap: Record<string, string> = {
-        BRD: 'BRD_READY',
-        PRD: 'PRD_READY',
-        TASKS: 'TASKS_READY',
-      };
-      await ctx.prisma.project.update({
-        where: { id: input.projectId },
-        data: { currentPhase: phaseMap[input.documentType] as any },
-      });
+        await documentRef.set(documentData);
 
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        // Update project phase
+        const phaseMap: Record<string, string> = {
+          BRD: 'BRD_READY',
+          PRD: 'PRD_READY',
+          TASKS: 'TASKS_READY',
+        };
+
+        if (phaseMap[input.documentType]) {
+          await projectRef.update({
+            currentPhase: phaseMap[input.documentType],
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'DOCUMENT_GENERATED',
           details: {
-            documentId: document.id,
+            documentId: documentRef.id,
             projectId: input.projectId,
             type: input.documentType,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return document;
+        logger.info({
+          documentId: documentRef.id,
+          projectId: input.projectId,
+          type: input.documentType,
+          userId: ctx.user.id,
+        }, 'Document generated');
+
+        // Get the created document with actual timestamps
+        const createdDoc = await documentRef.get();
+        const createdData = createdDoc.data();
+
+        return {
+          id: documentRef.id,
+          ...createdData,
+          createdAt: createdData?.createdAt?.toDate(),
+          updatedAt: createdData?.updatedAt?.toDate(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, input }, 'Failed to generate document');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to generate document',
+        });
+      }
     }),
 
   /**
@@ -477,269 +556,325 @@ export const aiRouter = router({
   regenerateDocument: protectedProcedure
     .input(
       z.object({
-        documentId: z.string().cuid(),
+        documentId: z.string(),
         feedback: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Get existing document
-      const existingDoc = await ctx.prisma.document.findUnique({
-        where: { id: input.documentId },
-        include: { project: true },
-      });
+      try {
+        // Find document across all projects (documents are in subcollections)
+        const projectsSnapshot = await ctx.db.collection('projects').get();
 
-      if (!existingDoc) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Document not found',
-        });
-      }
+        let documentRef: FirebaseFirestore.DocumentReference | null = null;
+        let existingDocData: any = null;
+        let projectRef: FirebaseFirestore.DocumentReference | null = null;
+        let projectData: any = null;
 
-      if (existingDoc.project.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to regenerate this document',
-        });
-      }
+        for (const projectDoc of projectsSnapshot.docs) {
+          const docSnapshot = await projectDoc.ref
+            .collection('documents')
+            .doc(input.documentId)
+            .get();
 
-      // Get system prompt
-      let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
-      if (existingDoc.type === 'BRD') {
-        promptType = existingDoc.project.mode === 'PLAIN' ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
-      } else if (existingDoc.type === 'PRD') {
-        promptType = existingDoc.project.mode === 'PLAIN' ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
-      } else if (existingDoc.type === 'PROMPT_BUILD') {
-        promptType = 'PROMPT_BUILD';
-      } else {
-        promptType = 'TASKS';
-      }
+          if (docSnapshot.exists) {
+            documentRef = docSnapshot.ref;
+            existingDocData = docSnapshot.data();
+            projectRef = projectDoc.ref;
+            projectData = projectDoc.data();
+            break;
+          }
+        }
 
-      const systemPrompt = await ctx.prisma.systemPrompt.findUnique({
-        where: { type: promptType },
-      });
-
-      if (!systemPrompt || !systemPrompt.isActive) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'System prompt not found or inactive',
-        });
-      }
-
-      // Generate new document based on type
-      let content: string;
-      let rawContent: string;
-      let model: string;
-      let tokensUsed: number | undefined;
-      let inputTokens: number | undefined;
-      let outputTokens: number | undefined;
-
-      if (existingDoc.type === 'BRD') {
-        // Get conversation
-        const conversation = await ctx.prisma.conversation.findUnique({
-          where: {
-            projectId_documentType: {
-              projectId: existingDoc.projectId,
-              documentType: 'BRD',
-            },
-          },
-        });
-
-        if (!conversation) {
+        if (!documentRef || !existingDocData || !projectRef || !projectData) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'No conversation found for BRD regeneration',
+            code: 'NOT_FOUND',
+            message: 'Document not found',
           });
         }
 
-        const result = await generateBRD(
-          systemPrompt.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete BRD document directly based on the conversation history provided.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
-          conversation.messages as Message[]
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-      } else if (existingDoc.type === 'PRD') {
-        // Get BRD
-        const brdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: existingDoc.projectId,
-            type: 'BRD',
-            status: 'APPROVED',
-          },
-        });
-
-        if (!brdDoc) {
+        // Verify ownership
+        if (projectData.userId !== ctx.user.id) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'BRD must be approved before regenerating PRD',
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to regenerate this document',
           });
         }
 
-        // Get conversation
-        const conversation = await ctx.prisma.conversation.findUnique({
-          where: {
-            projectId_documentType: {
-              projectId: existingDoc.projectId,
-              documentType: 'PRD',
-            },
-          },
-        });
+        // Get system prompt
+        let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
+        if (existingDocData.type === 'BRD') {
+          promptType = projectData.mode === 'PLAIN' ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
+        } else if (existingDocData.type === 'PRD') {
+          promptType = projectData.mode === 'PLAIN' ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
+        } else if (existingDocData.type === 'PROMPT_BUILD') {
+          promptType = 'PROMPT_BUILD';
+        } else {
+          promptType = 'TASKS';
+        }
 
-        if (!conversation) {
+        const systemPromptSnapshot = await ctx.db
+          .collection('systemPrompts')
+          .where('type', '==', promptType)
+          .limit(1)
+          .get();
+
+        if (systemPromptSnapshot.empty) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'No conversation found for PRD regeneration',
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'System prompt not found',
           });
         }
 
-        const result = await generatePRD(
-          systemPrompt.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete PRD document directly based on the conversation history and approved BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
-          conversation.messages as Message[],
-          brdDoc.content
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-      } else if (existingDoc.type === 'PROMPT_BUILD') {
-        // Get PRD
-        const prdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: existingDoc.projectId,
-            type: 'PRD',
-            status: 'APPROVED',
-          },
-        });
+        const systemPromptData = systemPromptSnapshot.docs[0].data();
 
-        if (!prdDoc) {
+        if (!systemPromptData.isActive) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'PRD must be approved before regenerating Prompt Build',
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'System prompt is inactive',
           });
         }
 
-        // Get BRD (optional)
-        const brdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: existingDoc.projectId,
-            type: 'BRD',
-          },
-        });
+        // Generate new document based on type
+        let content: string;
+        let rawContent: string;
+        let model: string;
+        let tokensUsed: number | undefined;
+        let inputTokens: number | undefined;
+        let outputTokens: number | undefined;
 
-        const result = await generatePromptBuild(
-          systemPrompt.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete vibe coding prompt directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
-          prdDoc.content,
-          brdDoc?.content
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-      } else {
-        // TASKS
-        // Get PRD
-        const prdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: existingDoc.projectId,
-            type: 'PRD',
-            status: 'APPROVED',
-          },
-        });
+        if (existingDocData.type === 'BRD') {
+          // Get conversation from subcollection
+          const conversationDoc = await projectRef
+            .collection('conversations')
+            .doc('BRD')
+            .get();
 
-        if (!prdDoc) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'PRD must be approved before regenerating tasks',
+          if (!conversationDoc.exists) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'No conversation found for BRD regeneration',
+            });
+          }
+
+          const conversationData = conversationDoc.data();
+
+          const result = await generateBRD(
+            systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete BRD document directly based on the conversation history provided.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
+            conversationData?.messages as Message[]
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+        } else if (existingDocData.type === 'PRD') {
+          // Get approved BRD from subcollection
+          const brdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'BRD')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (brdDocsSnapshot.empty) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'BRD must be approved before regenerating PRD',
+            });
+          }
+
+          const brdDoc = brdDocsSnapshot.docs[0].data();
+
+          // Get conversation from subcollection
+          const conversationDoc = await projectRef
+            .collection('conversations')
+            .doc('PRD')
+            .get();
+
+          if (!conversationDoc.exists) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'No conversation found for PRD regeneration',
+            });
+          }
+
+          const conversationData = conversationDoc.data();
+
+          const result = await generatePRD(
+            systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete PRD document directly based on the conversation history and approved BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
+            conversationData?.messages as Message[],
+            brdDoc.content
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+        } else if (existingDocData.type === 'PROMPT_BUILD') {
+          // Get approved PRD from subcollection
+          const prdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'PRD')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (prdDocsSnapshot.empty) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'PRD must be approved before regenerating Prompt Build',
+            });
+          }
+
+          const prdDoc = prdDocsSnapshot.docs[0].data();
+
+          // Get BRD (optional) from subcollection
+          const brdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'BRD')
+            .limit(1)
+            .get();
+
+          const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+
+          const result = await generatePromptBuild(
+            systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete vibe coding prompt directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
+            prdDoc.content,
+            brdDoc?.content
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+        } else {
+          // TASKS
+          // Get approved PRD from subcollection
+          const prdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'PRD')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (prdDocsSnapshot.empty) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'PRD must be approved before regenerating tasks',
+            });
+          }
+
+          const prdDoc = prdDocsSnapshot.docs[0].data();
+
+          // Get BRD (optional) from subcollection
+          const brdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'BRD')
+            .limit(1)
+            .get();
+
+          const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+
+          const result = await generateTasks(
+            systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete task list directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
+            prdDoc.content,
+            brdDoc?.content
+          );
+          content = result.content;
+          rawContent = result.rawContent;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+
+          // Generate kickoff prompt
+          const kickoffPrompt = generateKickoffPrompt(result.tasks, prdDoc.content.substring(0, 500));
+          content += `\n\n---\n\n${kickoffPrompt}`;
+        }
+
+        // Track token usage
+        if (tokensUsed) {
+          await trackTokenUsage({
+            userId: ctx.user.id,
+            projectId: existingDocData.projectId,
+            operation: `REGENERATE_${existingDocData.type}`,
+            model,
+            tokensUsed,
+            inputTokens,
+            outputTokens,
           });
         }
 
-        // Get BRD (optional)
-        const brdDoc = await ctx.prisma.document.findFirst({
-          where: {
-            projectId: existingDoc.projectId,
-            type: 'BRD',
-          },
-        });
-
-        const result = await generateTasks(
-          systemPrompt.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete task list directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
-          prdDoc.content,
-          brdDoc?.content
-        );
-        content = result.content;
-        rawContent = result.rawContent;
-        model = result.model;
-        tokensUsed = result.tokensUsed;
-        inputTokens = result.inputTokens;
-        outputTokens = result.outputTokens;
-
-        // Generate kickoff prompt
-        const kickoffPrompt = generateKickoffPrompt(result.tasks, prdDoc.content.substring(0, 500));
-        content += `\n\n---\n\n${kickoffPrompt}`;
-      }
-
-      // Track token usage
-      if (tokensUsed) {
-        await trackTokenUsage({
-          userId: ctx.user.id,
-          projectId: existingDoc.projectId,
-          operation: `REGENERATE_${existingDoc.type}`,
-          model,
-          tokensUsed,
-          inputTokens,
-          outputTokens,
-        });
-      }
-
-      // Save current version to history before updating
-      await ctx.prisma.documentVersion.create({
-        data: {
-          documentId: existingDoc.id,
-          version: existingDoc.version,
-          content: existingDoc.content,
-          rawContent: existingDoc.rawContent,
-          status: existingDoc.status,
-          approvedAt: existingDoc.approvedAt,
+        // Save current version to history before updating
+        const versionRef = documentRef.collection('versions').doc();
+        await versionRef.set({
+          id: versionRef.id,
+          documentId: existingDocData.id,
+          version: existingDocData.version,
+          content: existingDocData.content,
+          rawContent: existingDocData.rawContent,
+          status: existingDocData.status,
+          approvedAt: existingDocData.approvedAt,
           createdBy: ctx.user.id,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      // Update document with new content and increment version
-      const updatedDocument = await ctx.prisma.document.update({
-        where: { id: input.documentId },
-        data: {
+        // Update document with new content and increment version
+        await documentRef.update({
           content,
           rawContent,
-          version: existingDoc.version + 1,
+          version: existingDocData.version + 1,
           status: 'DRAFT',
           approvedAt: null,
-        },
-      });
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      // Create audit log
-      await ctx.prisma.auditLog.create({
-        data: {
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
           userId: ctx.user.id,
+          userName: ctx.user.name,
           action: 'DOCUMENT_REGENERATED',
           details: {
             documentId: input.documentId,
-            projectId: existingDoc.projectId,
-            type: existingDoc.type,
-            version: updatedDocument.version,
+            projectId: existingDocData.projectId,
+            type: existingDocData.type,
+            version: existingDocData.version + 1,
             feedback: input.feedback || null,
           },
           ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
-        },
-      });
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
 
-      return updatedDocument;
+        logger.info({
+          documentId: input.documentId,
+          projectId: existingDocData.projectId,
+          type: existingDocData.type,
+          version: existingDocData.version + 1,
+          userId: ctx.user.id,
+        }, 'Document regenerated');
+
+        // Get updated document
+        const updatedDoc = await documentRef.get();
+        const updatedData = updatedDoc.data();
+
+        return {
+          id: updatedDoc.id,
+          ...updatedData,
+          createdAt: updatedData?.createdAt?.toDate(),
+          updatedAt: updatedData?.updatedAt?.toDate(),
+          approvedAt: updatedData?.approvedAt?.toDate(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, input }, 'Failed to regenerate document');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to regenerate document',
+        });
+      }
     }),
 
   /**
@@ -755,103 +890,113 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log('[AI] Explaining question:', input.question);
-      
-      // Check cache first for fast response
-      const cacheKey = hashExplanation(input.question, input.projectMode);
-      const cached = explanationCache.get(cacheKey);
+      try {
+        logger.info({ question: input.question }, 'Explaining question');
 
-      if (cached) {
-        console.log('[AI] Returning cached explanation');
-        return cached as ExplanationResponse;
-      }
+        // Check cache first for fast response
+        const cacheKey = hashExplanation(input.question, input.projectMode);
+        const cached = explanationCache.get(cacheKey);
 
-      // Get explanation prompt from database
-      const systemPrompt = await ctx.prisma.systemPrompt.findFirst({
-        where: {
-          type: 'QUESTION_EXPLANATION',
-          isActive: true,
-        },
-      });
+        if (cached) {
+          logger.info('Returning cached explanation');
+          return cached as ExplanationResponse;
+        }
 
-      if (!systemPrompt) {
+        // Get explanation prompt from database
+        const systemPromptSnapshot = await ctx.db
+          .collection('systemPrompts')
+          .where('type', '==', 'QUESTION_EXPLANATION')
+          .where('isActive', '==', true)
+          .limit(1)
+          .get();
+
+        if (systemPromptSnapshot.empty) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Explanation prompt not configured',
+          });
+        }
+
+        const systemPromptData = systemPromptSnapshot.docs[0].data();
+
+        // Build AI messages with context
+        const promptWithContext = systemPromptData.prompt
+          .replace('{projectMode}', input.projectMode)
+          .replace('{documentType}', input.documentType)
+          .replace('{question}', input.question);
+
+        const messages: ChatMessage[] = [
+          {
+            role: 'system',
+            content: promptWithContext,
+          },
+          {
+            role: 'user',
+            content: `Explain this question: "${input.question}"`,
+          },
+        ];
+
+        // Call AI with cheaper/faster model for explanations
+        const response = await generateCompletion(messages, {
+          temperature: 0.5, // More deterministic for explanations
+          maxTokens: 1500, // Increased for detailed analysis
+          modelOverride: process.env.OPENROUTER_EXPLANATION_MODEL,
+        });
+
+        logger.info({ contentLength: response.content.length }, 'Raw explanation response received');
+
+        // Parse JSON response
+        let explanation: ExplanationResponse;
+        try {
+          const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            explanation = JSON.parse(jsonMatch[0]);
+
+            // Validate structure lightly (ensure answerAnalysis exists if expected)
+            if (!explanation.answerAnalysis && !explanation.prosAndCons) {
+              logger.warn('Explanation missing detailed analysis sections');
+            }
+          } else {
+            throw new Error('No JSON found in response');
+          }
+        } catch (error) {
+          // Fallback to generic explanation if parsing fails
+          logger.error({ error, content: response.content }, 'Failed to parse explanation JSON');
+          explanation = {
+            purpose: 'Understanding project requirements',
+            importance: 'This helps create accurate technical specifications',
+            tips: [
+              'Be as specific as possible in your answer',
+              'Consider both current and future needs',
+              'Think about your users\' perspective',
+              'Ask yourself: what problem does this solve?',
+            ],
+          };
+        }
+
+        // Track token usage
+        if (response.usage) {
+          await trackTokenUsage({
+            userId: ctx.user.id,
+            operation: 'EXPLAIN_QUESTION',
+            model: response.model,
+            tokensUsed: response.usage.totalTokens,
+            inputTokens: response.usage.promptTokens,
+            outputTokens: response.usage.completionTokens,
+          });
+        }
+
+        // Cache for 24 hours
+        explanationCache.set(cacheKey, explanation);
+
+        return explanation;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, input }, 'Failed to explain question');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Explanation prompt not configured',
+          message: 'Failed to generate explanation',
         });
       }
-
-      // Build AI messages with context
-      const promptWithContext = systemPrompt.prompt
-        .replace('{projectMode}', input.projectMode)
-        .replace('{documentType}', input.documentType)
-        .replace('{question}', input.question);
-
-      const messages: ChatMessage[] = [
-        {
-          role: 'system',
-          content: promptWithContext,
-        },
-        {
-          role: 'user',
-          content: `Explain this question: "${input.question}"`,
-        },
-      ];
-
-      // Call AI with cheaper/faster model for explanations
-      const response = await generateCompletion(messages, {
-        temperature: 0.5, // More deterministic for explanations
-        maxTokens: 1500, // Increased for detailed analysis
-        modelOverride: process.env.OPENROUTER_EXPLANATION_MODEL,
-      });
-
-      console.log('[AI] Raw explanation response:', response.content);
-
-      // Parse JSON response
-      let explanation: ExplanationResponse;
-      try {
-        const jsonMatch = response.content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          explanation = JSON.parse(jsonMatch[0]);
-          
-          // Validate structure lightly (ensure answerAnalysis exists if expected)
-          if (!explanation.answerAnalysis && !explanation.prosAndCons) {
-             console.warn('[AI] Explanation missing detailed analysis sections');
-          }
-        } else {
-          throw new Error('No JSON found in response');
-        }
-      } catch (error) {
-        // Fallback to generic explanation if parsing fails
-        console.error('Failed to parse explanation JSON:', error);
-        console.error('Response content was:', response.content);
-        explanation = {
-          purpose: 'Understanding project requirements',
-          importance: 'This helps create accurate technical specifications',
-          tips: [
-            'Be as specific as possible in your answer',
-            'Consider both current and future needs',
-            'Think about your users\' perspective',
-            'Ask yourself: what problem does this solve?',
-          ],
-        };
-      }
-
-      // Track token usage
-      if (response.usage) {
-        await trackTokenUsage({
-          userId: ctx.user.id,
-          operation: 'EXPLAIN_QUESTION',
-          model: response.model,
-          tokensUsed: response.usage.totalTokens,
-          inputTokens: response.usage.promptTokens,
-          outputTokens: response.usage.completionTokens,
-        });
-      }
-
-      // Cache for 24 hours
-      explanationCache.set(cacheKey, explanation);
-
-      return explanation;
     }),
 });

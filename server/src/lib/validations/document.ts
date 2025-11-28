@@ -9,20 +9,20 @@ import { z } from 'zod';
 /**
  * Document type enum
  */
-export const documentTypeSchema = z.enum(['BRD', 'PRD', 'TASKS']);
+export const documentTypeSchema = z.enum(['BRD', 'PRD', 'PROMPT_BUILD', 'TASKS']);
 
 /**
  * Get document by ID schema
  */
 export const getDocumentByIdSchema = z.object({
-  id: z.string().cuid('Invalid document ID'),
+  id: z.string().min(1, 'Invalid document ID'),
 });
 
 /**
  * Get documents by project ID schema
  */
 export const getDocumentsByProjectSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   type: documentTypeSchema.optional(),
 });
 
@@ -30,7 +30,7 @@ export const getDocumentsByProjectSchema = z.object({
  * Create document schema
  */
 export const createDocumentSchema = z.object({
-  projectId: z.string().cuid('Invalid project ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   type: documentTypeSchema,
   content: z.string().min(1, 'Content is required'),
   rawContent: z.string().min(1, 'Raw content is required'),
@@ -40,14 +40,14 @@ export const createDocumentSchema = z.object({
  * Approve document schema
  */
 export const approveDocumentSchema = z.object({
-  id: z.string().cuid('Invalid document ID'),
+  id: z.string().min(1, 'Invalid document ID'),
 });
 
 /**
  * Regenerate document schema
  */
 export const regenerateDocumentSchema = z.object({
-  id: z.string().cuid('Invalid document ID'),
+  id: z.string().min(1, 'Invalid document ID'),
   additionalContext: z
     .string()
     .min(20, 'Additional context must be at least 20 characters')
@@ -58,7 +58,7 @@ export const regenerateDocumentSchema = z.object({
  * Update document schema
  */
 export const updateDocumentSchema = z.object({
-  id: z.string().cuid('Invalid document ID'),
+  id: z.string().min(1, 'Invalid document ID'),
   content: z.string().min(1, 'Content is required'),
 });
 
@@ -66,7 +66,7 @@ export const updateDocumentSchema = z.object({
  * Export document schema
  */
 export const exportDocumentSchema = z.object({
-  id: z.string().cuid('Invalid document ID'),
+  id: z.string().min(1, 'Invalid document ID'),
   format: z.enum(['md', 'pdf']),
 });
 

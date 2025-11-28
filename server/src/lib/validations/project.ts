@@ -27,7 +27,7 @@ export const createProjectSchema = z.object({
  * Update project schema
  */
 export const updateProjectSchema = z.object({
-  id: z.string().cuid('Invalid project ID'),
+  id: z.string().min(1, 'Invalid project ID'),
   title: z
     .string()
     .min(3, 'Title must be at least 3 characters')
@@ -44,14 +44,14 @@ export const updateProjectSchema = z.object({
  * Get project by ID schema
  */
 export const getProjectByIdSchema = z.object({
-  id: z.string().cuid('Invalid project ID'),
+  id: z.string().min(1, 'Invalid project ID'),
 });
 
 /**
  * Update project phase schema
  */
 export const updateProjectPhaseSchema = z.object({
-  id: z.string().cuid('Invalid project ID'),
+  id: z.string().min(1, 'Invalid project ID'),
   phase: z.enum([
     'BRD_QUESTIONS',
     'BRD_GENERATING',

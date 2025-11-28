@@ -6,7 +6,7 @@
 
 import { trpc } from '../lib/trpc';
 
-export function useDocuments(projectId: string, type?: 'BRD' | 'PRD' | 'TASKS') {
+export function useDocuments(projectId: string, type?: 'BRD' | 'PRD' | 'PROMPT_BUILD' | 'TASKS') {
   const utils = trpc.useUtils();
 
   // Query: Get documents by project

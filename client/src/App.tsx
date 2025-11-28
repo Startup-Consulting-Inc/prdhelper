@@ -51,7 +51,7 @@ const extractErrorMessage = (error: unknown): string => {
 };
 
 function AppContent() {
-  const { user, isAuthenticated, isLoading, login, signup } = useAuth();
+  const { user, isAuthenticated, isLoading, login, signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showSignup, setShowSignup] = useState(false);
@@ -59,12 +59,31 @@ function AppContent() {
   const [signupError, setSignupError] = useState<string | null>(null);
   const [isLoginSubmitting, setIsLoginSubmitting] = useState(false);
   const [isSignupSubmitting, setIsSignupSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Define public routes that don't require authentication
   const publicRoutes = ['/', '/login', '/auth/callback', '/auth/verify-email', '/auth/verify-pending', '/privacy', '/terms', '/about', '/case-studies', '/blog', '/schedule-demo', '/contact'];
   const isPublicRoute = publicRoutes.includes(location.pathname) ||
                         location.pathname.startsWith('/docs/') ||
                         location.pathname.startsWith('/blog/');
+
+  // Google OAuth login handler
+  const handleGoogleLogin = async () => {
+    setLoginError(null);
+    setSignupError(null);
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      // Navigation handled by useEffect when isAuthenticated becomes true
+      // This prevents race condition where we navigate before auth state updates
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      setLoginError(errorMessage);
+      setSignupError(errorMessage);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   // Redirect to dashboard when authenticated
   useEffect(() => {
@@ -134,7 +153,9 @@ function AppContent() {
                   setIsSignupSubmitting(false);
                 }
               }}
+              onGoogleLogin={handleGoogleLogin}
               isLoading={isSignupSubmitting}
+              isGoogleLoading={isGoogleLoading}
               error={signupError ?? undefined}
             />
           ) : (
@@ -150,7 +171,9 @@ function AppContent() {
                   setIsLoginSubmitting(false);
                 }
               }}
+              onGoogleLogin={handleGoogleLogin}
               isLoading={isLoginSubmitting}
+              isGoogleLoading={isGoogleLoading}
               error={loginError ?? undefined}
             />
           )}

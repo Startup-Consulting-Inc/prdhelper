@@ -74,8 +74,8 @@ export const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    // Skip rate limiting for health checks
-    return req.path === '/health';
+    // Skip rate limiting for health checks and auth status checks
+    return req.path === '/health' || req.path.includes('/trpc/auth.me');
   },
   handler: (req, res) => {
     logger.warn({

@@ -14,11 +14,17 @@ import type { AppRouter } from '../../../server/src/routers/index';
 export const trpc = createTRPCReact<AppRouter>();
 
 /**
- * Get authentication token from localStorage
+ * Get Firebase ID token from localStorage
  */
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('auth_token');
+  const token = localStorage.getItem('firebaseToken');
+  console.log('[tRPC] Getting auth token:', {
+    hasToken: !!token,
+    tokenLength: token?.length,
+    tokenPreview: token?.substring(0, 20) + '...',
+  });
+  return token;
 }
 
 /**

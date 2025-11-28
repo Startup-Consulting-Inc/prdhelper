@@ -12,7 +12,14 @@ import { AuthProvider } from './contexts/AuthContext';
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 const IS_PRODUCTION = import.meta.env.PROD;
 
-if (SENTRY_DSN && IS_PRODUCTION) {
+// Validate Sentry DSN - must be a valid URL and not a placeholder
+const isValidSentryDsn = SENTRY_DSN && 
+  typeof SENTRY_DSN === 'string' &&
+  SENTRY_DSN.startsWith('https://') &&
+  !SENTRY_DSN.includes('$') && // Reject placeholder values like $VITE_SENTRY_DSN
+  SENTRY_DSN.length > 20; // Basic length check
+
+if (isValidSentryDsn && IS_PRODUCTION) {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: import.meta.env.MODE || 'production',

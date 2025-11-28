@@ -1,9 +1,9 @@
 /**
  * Database Health Check
  *
- * Verifies database connection and query performance
+ * Verifies Firestore connection and query performance
  */
-import { prisma } from '../db.js';
+import { getFirestore } from '../firebase.js';
 import { logger } from '../logger.js';
 
 export interface HealthCheckResult {
@@ -19,8 +19,9 @@ export async function checkDatabaseHealth(): Promise<HealthCheckResult> {
   const startTime = Date.now();
 
   try {
-    // Simple query to verify connection
-    await prisma.$queryRaw`SELECT 1`;
+    const db = getFirestore();
+    // Simple query to verify connection - try to read a non-existent document
+    await db.collection('_health').doc('check').get();
 
     const responseTime = Date.now() - startTime;
 

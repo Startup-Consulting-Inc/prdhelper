@@ -4,7 +4,20 @@
  * Handles project phase transitions with validation.
  */
 
-import { ProjectPhase } from '@prisma/client';
+export type ProjectPhase =
+  | 'BRD_QUESTIONS'
+  | 'BRD_GENERATING'
+  | 'BRD_READY'
+  | 'BRD_APPROVED'
+  | 'PRD_QUESTIONS'
+  | 'PRD_GENERATING'
+  | 'PRD_READY'
+  | 'PRD_APPROVED'
+  | 'PROMPT_BUILD_GENERATING'
+  | 'PROMPT_BUILD_READY'
+  | 'TASKS_GENERATING'
+  | 'TASKS_READY'
+  | 'COMPLETED';
 
 /**
  * Get next phase based on current phase and action

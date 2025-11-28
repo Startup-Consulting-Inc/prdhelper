@@ -181,16 +181,16 @@ export function DashboardPage() {
             <ProjectList
               projects={projects.map((p: Project) => ({
                 id: p.id,
-                title: p.title,
+                title: p.title || 'Untitled Project',
                 description: p.description,
-                mode: p.mode.toLowerCase() as 'plain' | 'technical',
-                status: p.status.toLowerCase() as 'active' | 'completed' | 'archived',
+                mode: (p.mode || 'PLAIN').toLowerCase() as 'plain' | 'technical',
+                status: (p.status || 'ACTIVE').toLowerCase() as 'active' | 'completed' | 'archived',
                 progress: calculateProjectProgress(
-                  { mode: p.mode },
+                  { mode: p.mode || 'PLAIN' },
                   p.documents || []
                 ),
-                createdAt: new Date(p.createdAt),
-                updatedAt: new Date(p.updatedAt),
+                createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
+                updatedAt: p.updatedAt ? new Date(p.updatedAt) : new Date(),
               }))}
               onCreateProject={handleCreateProject}
               onViewProject={handleViewProject}

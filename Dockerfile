@@ -6,22 +6,21 @@
 #
 # Key Behaviors:
 # - Builds both the server and the client.
-# - Handles native dependencies like bcryptjs.
+# - Handles native dependencies.
 # - Exposes port 3000 for the server.
+# - Uses Firebase/Firestore (no database migrations needed)
 #
 # Recent Changes:
-# - [2025-11-18] Switched from Alpine to Debian Slim for better Prisma CDN reliability.
-# - [2025-11-18] Added retry logic with exponential backoff for Prisma generate step.
+# - [2025-11-26] Migrated from Prisma/PostgreSQL to Firebase/Firestore.
+# - [2025-11-18] Switched from Alpine to Debian Slim for better reliability.
+# - [2025-11-18] Added retry logic with exponential backoff for dependency downloads.
 # - [2025-10-30] Added build tools to handle native dependencies.
-# - [2025-10-30] Resolved static file path issues by adjusting asset copy location.
 # - [2025-10-30] Initial creation of the multi-stage Dockerfile.
 
 # 1. Builder Stage: Build the client and server
-# Using Debian Slim instead of Alpine for better Prisma CDN reliability
-# Debian uses glibc (linux-openssl-3.0.x) vs Alpine's musl (linux-musl-openssl-3.0.x)
 FROM node:20-slim AS builder
 
-# Install build tools for native dependencies (Debian equivalents)
+# Install build tools for native dependencies
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -33,7 +32,6 @@ WORKDIR /app
 # Copy package.json and package-lock.json for both root and client
 COPY package*.json ./
 COPY client/package*.json ./client/
-COPY prisma ./prisma
 
 # Install all dependencies
 RUN npm install
@@ -50,34 +48,20 @@ COPY . .
 ARG VITE_SENTRY_DSN
 ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 
-# --- IMPORTANT: This block is ONLY needed for 'docker build' time ---
-# For local development: Prisma + Docker needs a DATABASE_URL at build time to generate the client.
-# These dummy credentials are only used during the build step and do NOT affect runtime configuration.
-# At runtime:
-#   - For local/dev: real ENV vars come from .env.docker (docker-compose passes them in)
-#   - For production: secrets are injected via gcloud Secret Manager (see cloudbuild.yaml)
-ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy"
-ENV DIRECT_URL="postgresql://dummy:dummy@dummy:5432/dummy"
-ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
-# ---------------------------------------------------------------
-# Retry logic with exponential backoff for CDN resilience (1s, 2s, 4s delays)
-RUN set -e; \
-    for attempt in 1 2 3; do \
-        if npx prisma generate; then \
-            break; \
-        fi; \
-        if [ "$attempt" -eq 3 ]; then \
-            echo "Prisma generate failed after ${attempt} attempts."; \
-            exit 1; \
-        fi; \
-        case "$attempt" in \
-            1) delay=1 ;; \
-            2) delay=2 ;; \
-            *) delay=4 ;; \
-        esac; \
-        echo "Prisma generate attempt ${attempt} failed, retrying in ${delay}s..."; \
-        sleep "$delay"; \
-    done
+# Firebase configuration for client build
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_STORAGE_BUCKET
+ARG VITE_FIREBASE_MESSAGING_SENDER_ID
+ARG VITE_FIREBASE_APP_ID
+
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
+ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
+ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
+ENV VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET
+ENV VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID
+ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
 
 # Build the client and server
 RUN npm run build
@@ -87,10 +71,9 @@ RUN npm prune --production
 
 
 # 2. Production Stage: Create the final image
-# Using Debian Slim for consistency with builder stage and better binary compatibility
 FROM node:20-slim AS production
 
-# Install OpenSSL for Prisma runtime
+# Install OpenSSL (for general cryptographic operations)
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -102,17 +85,18 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/client/dist ./dist/client
 
-# Copy package.json and Prisma schema
+# Copy package.json
 COPY package.json .
-COPY --from=builder /app/prisma ./prisma
+
+# Copy Firebase service account key (will be mounted as secret at runtime)
+# Note: The actual key is injected via Cloud Run secrets, not baked into the image
 
 # Set environment variables
-# DATABASE_URL will be provided at runtime, so we don't set it here
 ENV NODE_ENV=production
 ENV PORT=3000
 
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Start the server (migrations run in Cloud Build, not at startup)
+# Start the server
 CMD ["npm", "start"]
