@@ -3,9 +3,13 @@
 # Service: Clearly - Intelligent Requirements Platform
 #
 # Recent Changes:
+# - [2025-12-02] Specified service account to fix secret access permissions
 # - [2025-11-26] Migrated to Firebase/Firestore - removed Prisma migrations step
 # - [2025-11-26] Updated secrets for Firebase Authentication
 # - [2025-11-26] Added Firebase client configuration build args
+
+# Use the correct service account from this project
+serviceAccount: 'projects/clearly-478614/serviceAccounts/1019651592490-compute@developer.gserviceaccount.com'
 
 steps:
   # Step 1: Build the Docker image with Firebase configuration
