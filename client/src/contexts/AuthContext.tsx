@@ -21,6 +21,7 @@ import {
   type User as FirebaseUser,
 } from '../lib/firebase';
 import { useActivityTimeout } from '../hooks/useActivityTimeout';
+import type { TechPreferences } from '../../shared/types.js';
 
 interface User {
   id: string;
@@ -36,6 +37,7 @@ interface User {
   websiteUrl?: string | null;
   location?: string | null;
   githubUrl?: string | null;
+  techPreferences?: TechPreferences | null;
   createdAt: Date | string;
 }
 

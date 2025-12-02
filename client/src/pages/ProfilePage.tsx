@@ -14,6 +14,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../lib/trpc';
 import { Button } from '../components/ui/Button';
 import { Footer } from '../components/layout/Footer';
+import { TechPreferencesSection } from '../components/profile/TechPreferencesSection';
+import type { TechPreferences } from '../../../shared/types.js';
 
 type Tab = 'profile' | 'preferences' | 'security' | 'account';
 
@@ -39,6 +41,19 @@ export function ProfilePage() {
   const [modePreference, setModePreference] = useState<'PLAIN' | 'TECHNICAL'>(
     user?.modePreference || 'PLAIN'
   );
+  const [techPreferences, setTechPreferences] = useState<TechPreferences>({
+    frontend: user?.techPreferences?.frontend || '',
+    backend: user?.techPreferences?.backend || '',
+    database: user?.techPreferences?.database || '',
+    authentication: user?.techPreferences?.authentication || '',
+    cloudPlatform: user?.techPreferences?.cloudPlatform || '',
+    infrastructureBuild: user?.techPreferences?.infrastructureBuild || '',
+    deployment: user?.techPreferences?.deployment || '',
+    containerization: user?.techPreferences?.containerization || '',
+    secretManagement: user?.techPreferences?.secretManagement || '',
+    aiLlmModel: user?.techPreferences?.aiLlmModel || '',
+    aiAgenticFramework: user?.techPreferences?.aiAgenticFramework || '',
+  });
   const [preferencesError, setPreferencesError] = useState<string | null>(null);
   const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(null);
 
@@ -91,6 +106,13 @@ export function ProfilePage() {
     }
   };
 
+  const handleTechPreferenceChange = (
+    field: keyof TechPreferences,
+    value: string
+  ) => {
+    setTechPreferences((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handlePreferencesUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setPreferencesError(null);
@@ -100,11 +122,13 @@ export function ProfilePage() {
       const result = await updateProfileMutation.mutateAsync({
         name: user!.name,
         modePreference,
+        techPreferences,
       });
 
       updateUser({
         ...user!,
         modePreference: result.modePreference as 'PLAIN' | 'TECHNICAL',
+        techPreferences: result.techPreferences || null,
       });
 
       setPreferencesSuccess('Preferences updated successfully');
@@ -403,6 +427,11 @@ export function ProfilePage() {
                     {preferencesSuccess}
                   </div>
                 )}
+
+                <TechPreferencesSection
+                  techPreferences={techPreferences}
+                  onChange={handleTechPreferenceChange}
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">

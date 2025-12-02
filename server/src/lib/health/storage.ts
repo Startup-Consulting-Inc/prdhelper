@@ -18,6 +18,16 @@ export interface HealthCheckResult {
 export async function checkStorageHealth(): Promise<HealthCheckResult> {
   const startTime = Date.now();
 
+  // Skip GCS check in development if credentials aren't available
+  // This allows local development without GCS credentials
+  if (process.env.NODE_ENV === 'development' && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    logger.info('Skipping GCS health check in development (no credentials configured)');
+    return {
+      status: 'ok',
+      responseTime: Date.now() - startTime,
+    };
+  }
+
   try {
     const bucketName = process.env.GCS_BUCKET_NAME || 'clearly-prd-attachments';
     const bucket = storage.bucket(bucketName);

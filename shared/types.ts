@@ -44,3 +44,139 @@ export interface SignUpResponse {
   message: string;
   email: string; // Return email for displaying in verification pending page
 }
+
+// Tech Preferences Types
+export interface TechPreferences {
+  frontend?: string | null;
+  backend?: string | null;
+  database?: string | null;
+  authentication?: string | null;
+  cloudPlatform?: string | null;
+  infrastructureBuild?: string | null;
+  deployment?: string | null;
+  containerization?: string | null;
+  secretManagement?: string | null;
+  aiLlmModel?: string | null;
+  aiAgenticFramework?: string | null;
+}
+
+export const TECH_OPTIONS = {
+  frontend: [
+    'React (Vite)',
+    'React (Next.js)',
+    'React (Create React App)',
+    'Vue.js',
+    'Vue (Nuxt.js)',
+    'Angular',
+    'Svelte',
+    'SvelteKit',
+    'Solid.js',
+    'Qwik',
+  ],
+  backend: [
+    'Node.js (Express)',
+    'Node.js (Fastify)',
+    'Node.js (NestJS)',
+    'Python (FastAPI)',
+    'Python (Django)',
+    'Python (Flask)',
+    'Go (Gin)',
+    'Go (Fiber)',
+    'Ruby on Rails',
+    'Java (Spring Boot)',
+  ],
+  database: [
+    'Google Cloud Firestore',
+    'PostgreSQL',
+    'MySQL',
+    'MongoDB',
+    'Redis',
+    'Supabase',
+    'PlanetScale',
+    'AWS DynamoDB',
+    'CockroachDB',
+    'SQLite',
+  ],
+  authentication: [
+    'Firebase Authentication',
+    'Auth0',
+    'Clerk',
+    'AWS Cognito',
+    'Supabase Auth',
+    'NextAuth.js',
+    'Passport.js',
+    'OAuth 2.0 (Custom)',
+    'SAML',
+  ],
+  cloudPlatform: [
+    'Google Cloud Platform (GCP)',
+    'Amazon Web Services (AWS)',
+    'Microsoft Azure',
+    'Vercel',
+    'Netlify',
+    'Railway',
+    'Render',
+    'Fly.io',
+    'DigitalOcean',
+  ],
+  infrastructureBuild: [
+    'Terraform',
+    'AWS CloudFormation',
+    'Pulumi',
+    'AWS CDK',
+    'Google Cloud Deployment Manager',
+    'Azure Resource Manager (ARM)',
+    'Ansible',
+    'Chef',
+    'Manual Configuration',
+  ],
+  deployment: [
+    'Google Cloud Run',
+    'Google Cloud Build',
+    'Firebase Hosting',
+    'Vercel',
+    'AWS ECS/Fargate',
+    'AWS Lambda',
+    'Kubernetes',
+    'Docker Swarm',
+    'Heroku',
+    'Netlify',
+  ],
+  containerization: [
+    'Docker',
+    'Podman',
+    'Containerd',
+    'LXC/LXD',
+    'Not Using Containers',
+  ],
+  secretManagement: [
+    'Google Secret Manager',
+    'AWS Secrets Manager',
+    'Azure Key Vault',
+    'HashiCorp Vault',
+    'Doppler',
+    '1Password Secrets Automation',
+    'Environment Variables (.env)',
+  ],
+  aiLlmModel: [
+    'OpenRouter',
+    'OpenAI (GPT-4, GPT-3.5)',
+    'Anthropic Claude',
+    'Google Gemini',
+    'AWS Bedrock',
+    'Azure OpenAI',
+    'Cohere',
+    'Hugging Face',
+    'Ollama (Local)',
+  ],
+  aiAgenticFramework: [
+    'LangChain',
+    'LlamaIndex',
+    'AutoGen',
+    'CrewAI',
+    'Semantic Kernel',
+    'Haystack',
+    'Rasa',
+    'Custom Framework',
+  ],
+} as const;

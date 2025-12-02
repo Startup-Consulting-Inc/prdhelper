@@ -8,21 +8,24 @@ WORKDIR /app
 # Install dependencies for native modules
 RUN apk add --no-cache python3 make g++ git
 
-# Copy package files
+# Copy package files (root only - server doesn't need client dependencies)
 COPY package*.json ./
-COPY client/package*.json ./client/
-COPY prisma ./prisma
+COPY server/tsconfig.json ./server/tsconfig.json
 
-# Install dependencies
+# Install root dependencies (includes server dependencies)
 RUN npm install
-RUN cd client && npm install
 
-# Copy application code
-COPY . .
+# Copy shared code (needed by server for shared types)
+COPY shared ./shared
+
+# Copy root TypeScript config
+COPY tsconfig.json ./tsconfig.json
+
+# Copy server code
+COPY server ./server
 
 # Expose ports
 EXPOSE 3000
 
-# Prisma generate will run at startup with env vars available
 # Default command (can be overridden in docker-compose)
 CMD ["npm", "run", "dev:server"]

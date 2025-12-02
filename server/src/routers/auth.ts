@@ -66,6 +66,7 @@ export const authRouter = router({
           websiteUrl: null,
           location: null,
           githubUrl: null,
+          techPreferences: null,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
@@ -132,6 +133,7 @@ export const authRouter = router({
           websiteUrl: null,
           location: null,
           githubUrl: null,
+          techPreferences: null,
           emailVerified: false,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -257,30 +259,36 @@ export const authRouter = router({
    * Get current user profile
    */
   me: protectedProcedure.query(async ({ ctx }) => {
-    if (!ctx.user) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'Not authenticated',
-      });
-    }
+    try {
+      if (!ctx.user) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Not authenticated',
+        });
+      }
 
-    return {
-      id: ctx.user.id,
-      name: ctx.user.name,
-      email: ctx.user.email,
-      role: ctx.user.role,
-      modePreference: ctx.user.modePreference,
-      image: ctx.user.image,
-      bio: ctx.user.bio,
-      company: ctx.user.company,
-      jobTitle: ctx.user.jobTitle,
-      linkedInUrl: ctx.user.linkedInUrl,
-      websiteUrl: ctx.user.websiteUrl,
-      location: ctx.user.location,
-      githubUrl: ctx.user.githubUrl,
-      emailVerified: ctx.user.emailVerified,
-      createdAt: ctx.user.createdAt,
-    };
+      return {
+        id: ctx.user.id,
+        name: ctx.user.name || 'User',
+        email: ctx.user.email || '',
+        role: ctx.user.role || 'USER',
+        modePreference: ctx.user.modePreference || 'PLAIN',
+        image: ctx.user.image ?? null,
+        bio: ctx.user.bio ?? null,
+        company: ctx.user.company ?? null,
+        jobTitle: ctx.user.jobTitle ?? null,
+        linkedInUrl: ctx.user.linkedInUrl ?? null,
+        websiteUrl: ctx.user.websiteUrl ?? null,
+        location: ctx.user.location ?? null,
+        githubUrl: ctx.user.githubUrl ?? null,
+        techPreferences: ctx.user.techPreferences ?? null,
+        emailVerified: ctx.user.emailVerified ?? false,
+        createdAt: ctx.user.createdAt || new Date(),
+      };
+    } catch (error) {
+      logger.error({ error, userId: ctx.user?.id }, 'Error in auth.me endpoint');
+      throw error;
+    }
   }),
 
   /**
@@ -311,6 +319,19 @@ export const authRouter = router({
         if (input.websiteUrl !== undefined) updateData.websiteUrl = input.websiteUrl === '' ? null : input.websiteUrl;
         if (input.location !== undefined) updateData.location = input.location === '' ? null : input.location;
         if (input.githubUrl !== undefined) updateData.githubUrl = input.githubUrl === '' ? null : input.githubUrl;
+
+        // Handle tech preferences - clean empty strings
+        if (input.techPreferences !== undefined) {
+          if (input.techPreferences === null) {
+            updateData.techPreferences = null;
+          } else {
+            const cleanedPrefs: any = {};
+            Object.entries(input.techPreferences).forEach(([key, value]) => {
+              cleanedPrefs[key] = value === '' ? null : value || null;
+            });
+            updateData.techPreferences = cleanedPrefs;
+          }
+        }
 
         // Update Firestore document
         const userRef = ctx.db.collection('users').doc(ctx.user.id);
@@ -356,6 +377,7 @@ export const authRouter = router({
           websiteUrl: updatedUser?.websiteUrl || null,
           location: updatedUser?.location || null,
           githubUrl: updatedUser?.githubUrl || null,
+          techPreferences: updatedUser?.techPreferences || null,
           createdAt: ctx.user.createdAt,
         };
       } catch (error) {
@@ -550,6 +572,7 @@ export const authRouter = router({
             websiteUrl: null,
             location: null,
             githubUrl: null,
+            techPreferences: null,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           });

@@ -12,6 +12,23 @@ import { logger } from '../logger.js';
 import admin from 'firebase-admin';
 
 /**
+ * Tech preferences type
+ */
+export interface TechPreferences {
+  frontend?: string | null;
+  backend?: string | null;
+  database?: string | null;
+  authentication?: string | null;
+  cloudPlatform?: string | null;
+  infrastructureBuild?: string | null;
+  deployment?: string | null;
+  containerization?: string | null;
+  secretManagement?: string | null;
+  aiLlmModel?: string | null;
+  aiAgenticFramework?: string | null;
+}
+
+/**
  * User type from Firestore
  */
 export interface User {
@@ -29,6 +46,7 @@ export interface User {
   websiteUrl: string | null;
   location: string | null;
   githubUrl: string | null;
+  techPreferences: TechPreferences | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -92,99 +110,127 @@ export async function createContext({
       firebaseUser = await verifyIdToken(token);
 
       if (firebaseUser) {
-        // Fetch user document from Firestore
-        const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
+        try {
+          // Fetch user document from Firestore
+          const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
 
-        if (userDoc.exists) {
-          const data = userDoc.data();
+          if (userDoc.exists) {
+            const data = userDoc.data();
 
-          if (data) {
-            user = {
-              id: userDoc.id,
-              email: data.email,
-              name: data.name,
-              emailVerified: data.emailVerified ?? false,
-              image: data.image ?? null,
-              role: data.role ?? 'USER',
-              modePreference: data.modePreference ?? 'PLAIN',
-              bio: data.bio ?? null,
-              company: data.company ?? null,
-              jobTitle: data.jobTitle ?? null,
-              linkedInUrl: data.linkedInUrl ?? null,
-              websiteUrl: data.websiteUrl ?? null,
-              location: data.location ?? null,
-              githubUrl: data.githubUrl ?? null,
-              createdAt: data.createdAt?.toDate() ?? new Date(),
-              updatedAt: data.updatedAt?.toDate() ?? new Date(),
-            };
-          }
-        } else {
-          // AUTO-CREATE user document if Firebase user exists but Firestore doc doesn't
-          // This serves as a safety net for edge cases where document creation failed
-          logger.warn({
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-          }, 'User document not found in Firestore - auto-creating');
+            if (data) {
+              // Safely convert Firestore Timestamps to Date objects
+              let createdAt: Date;
+              let updatedAt: Date;
+              
+              try {
+                createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt instanceof Date ? data.createdAt : new Date());
+              } catch {
+                createdAt = new Date();
+              }
+              
+              try {
+                updatedAt = data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt instanceof Date ? data.updatedAt : new Date());
+              } catch {
+                updatedAt = new Date();
+              }
 
-          const userData = {
-            id: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            name: firebaseUser.name || firebaseUser.email?.split('@')[0] || 'User',
-            role: 'USER' as const,
-            modePreference: 'PLAIN' as const,
-            image: firebaseUser.picture || null,
-            bio: null,
-            company: null,
-            jobTitle: null,
-            linkedInUrl: null,
-            websiteUrl: null,
-            location: null,
-            githubUrl: null,
-            emailVerified: firebaseUser.email_verified ?? false,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          };
-
-          try {
-            // Create the document in Firestore
-            await db.collection('users').doc(firebaseUser.uid).set(userData);
-
-            // Set user object for context (convert timestamps to Date for type safety)
-            user = {
-              ...userData,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            };
-
-            logger.info({
+              user = {
+                id: userDoc.id,
+                email: data.email || firebaseUser.email || '',
+                name: data.name || firebaseUser.name || 'User',
+                emailVerified: data.emailVerified ?? firebaseUser.email_verified ?? false,
+                image: data.image ?? firebaseUser.picture ?? null,
+                role: (data.role === 'ADMIN' ? 'ADMIN' : 'USER') as 'USER' | 'ADMIN',
+                modePreference: (data.modePreference === 'TECHNICAL' ? 'TECHNICAL' : 'PLAIN') as 'PLAIN' | 'TECHNICAL',
+                bio: data.bio ?? null,
+                company: data.company ?? null,
+                jobTitle: data.jobTitle ?? null,
+                linkedInUrl: data.linkedInUrl ?? null,
+                websiteUrl: data.websiteUrl ?? null,
+                location: data.location ?? null,
+                githubUrl: data.githubUrl ?? null,
+                techPreferences: data.techPreferences ?? null,
+                createdAt,
+                updatedAt,
+              };
+            }
+          } else {
+            // AUTO-CREATE user document if Firebase user exists but Firestore doc doesn't
+            // This serves as a safety net for edge cases where document creation failed
+            logger.warn({
               uid: firebaseUser.uid,
               email: firebaseUser.email,
-            }, 'Auto-created user document in Firestore');
+            }, 'User document not found in Firestore - auto-creating');
 
-            // Create audit log for auto-creation
-            await db.collection('auditLogs').add({
-              userId: firebaseUser.uid,
-              userName: userData.name,
-              action: 'USER_DOCUMENT_AUTO_CREATED',
-              details: {
-                email: userData.email,
-                name: userData.name,
-                reason: 'Firebase user exists but Firestore document missing',
-              },
-              ipAddress: req.ip || req.socket.remoteAddress || null,
+            const userData = {
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: firebaseUser.name || firebaseUser.email?.split('@')[0] || 'User',
+              role: 'USER' as const,
+              modePreference: 'PLAIN' as const,
+              image: firebaseUser.picture || null,
+              bio: null,
+              company: null,
+              jobTitle: null,
+              linkedInUrl: null,
+              websiteUrl: null,
+              location: null,
+              githubUrl: null,
+              techPreferences: null,
+              emailVerified: firebaseUser.email_verified ?? false,
               createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-          } catch (error) {
-            logger.error({
-              error,
-              uid: firebaseUser.uid,
-            }, 'Failed to auto-create user document');
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            };
+
+            try {
+              // Create the document in Firestore
+              await db.collection('users').doc(firebaseUser.uid).set(userData);
+
+              // Set user object for context (convert timestamps to Date for type safety)
+              user = {
+                ...userData,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              };
+
+              logger.info({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+              }, 'Auto-created user document in Firestore');
+
+              // Create audit log for auto-creation
+              await db.collection('auditLogs').add({
+                userId: firebaseUser.uid,
+                userName: userData.name,
+                action: 'USER_DOCUMENT_AUTO_CREATED',
+                details: {
+                  email: userData.email,
+                  name: userData.name,
+                  reason: 'Firebase user exists but Firestore document missing',
+                },
+                ipAddress: req.ip || req.socket.remoteAddress || null,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              });
+            } catch (error) {
+              logger.error({
+                error,
+                uid: firebaseUser.uid,
+              }, 'Failed to auto-create user document');
+            }
           }
+        } catch (userFetchError) {
+          // Error fetching/creating user document
+          logger.error({
+            error: userFetchError,
+            uid: firebaseUser?.uid,
+            email: firebaseUser?.email,
+          }, 'Error fetching or creating user document in Firestore');
+          // Continue with null user - will result in UNAUTHORIZED
         }
       }
     } catch (error) {
       // Token verification failed, user remains null
-      logger.error({ error }, 'Firebase token verification error:');
+      logger.error({ error }, 'Firebase token verification error');
     }
   }
 
