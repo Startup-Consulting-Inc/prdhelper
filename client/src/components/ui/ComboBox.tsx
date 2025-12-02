@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X, Info } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { Tooltip } from './Tooltip';
 
 export interface ComboBoxProps {
   label?: string;
   helperText?: string;
+  tooltipContent?: string;
   value: string;
   onChange: (value: string) => void;
   options: readonly string[];
@@ -15,6 +17,7 @@ export interface ComboBoxProps {
 export function ComboBox({
   label,
   helperText,
+  tooltipContent,
   value,
   onChange,
   options,
@@ -89,7 +92,16 @@ export function ComboBox({
           htmlFor={inputId}
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
         >
-          {label}
+          {tooltipContent ? (
+            <Tooltip content={tooltipContent}>
+              <div className="flex items-center gap-1.5 cursor-help w-fit">
+                <span>{label}</span>
+                <Info className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" />
+              </div>
+            </Tooltip>
+          ) : (
+            label
+          )}
         </label>
       )}
       <div className="relative">

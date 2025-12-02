@@ -1,5 +1,10 @@
+import { useState } from 'react';
+import { HelpCircle } from 'lucide-react';
 import { ComboBox } from '@/components/ui/ComboBox';
+import { Button } from '@/components/ui/Button';
 import { TechPreferences, TECH_OPTIONS } from '@shared/types.js';
+import { TechGuideDialog } from './TechGuideDialog';
+import { TECH_GUIDANCE } from '@/data/techGuidance';
 
 interface TechPreferencesSectionProps {
   techPreferences: TechPreferences;
@@ -10,6 +15,8 @@ export function TechPreferencesSection({
   techPreferences,
   onChange,
 }: TechPreferencesSectionProps) {
+  const [guideCategory, setGuideCategory] = useState<keyof typeof TECH_GUIDANCE | null>(null);
+
   return (
     <div className="space-y-8">
       <div>
@@ -23,12 +30,24 @@ export function TechPreferencesSection({
 
       {/* Group 1: Core Stack */}
       <div>
-        <h5 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-          Core Stack
-        </h5>
+        <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+          <h5 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Core Stack
+          </h5>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setGuideCategory('frontend')}
+            className="h-8"
+          >
+            <HelpCircle className="w-4 h-4 mr-1.5" />
+            Learn More
+          </Button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ComboBox
             label="Frontend"
+            tooltipContent={TECH_GUIDANCE.frontend?.description}
             value={techPreferences.frontend || ''}
             onChange={(val) => onChange('frontend', val)}
             options={TECH_OPTIONS.frontend}
@@ -37,6 +56,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="Backend"
+            tooltipContent={TECH_GUIDANCE.backend?.description}
             value={techPreferences.backend || ''}
             onChange={(val) => onChange('backend', val)}
             options={TECH_OPTIONS.backend}
@@ -45,6 +65,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="Database"
+            tooltipContent={TECH_GUIDANCE.database?.description}
             value={techPreferences.database || ''}
             onChange={(val) => onChange('database', val)}
             options={TECH_OPTIONS.database}
@@ -53,6 +74,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="Authentication"
+            tooltipContent={TECH_GUIDANCE.authentication?.description}
             value={techPreferences.authentication || ''}
             onChange={(val) => onChange('authentication', val)}
             options={TECH_OPTIONS.authentication}
@@ -64,12 +86,24 @@ export function TechPreferencesSection({
 
       {/* Group 2: Infrastructure */}
       <div>
-        <h5 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-          Infrastructure
-        </h5>
+        <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+          <h5 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Infrastructure
+          </h5>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setGuideCategory('cloudPlatform')}
+            className="h-8"
+          >
+            <HelpCircle className="w-4 h-4 mr-1.5" />
+            Learn More
+          </Button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ComboBox
             label="Cloud Platform"
+            tooltipContent={TECH_GUIDANCE.cloudPlatform?.description}
             value={techPreferences.cloudPlatform || ''}
             onChange={(val) => onChange('cloudPlatform', val)}
             options={TECH_OPTIONS.cloudPlatform}
@@ -78,6 +112,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="Infrastructure Build"
+            tooltipContent={TECH_GUIDANCE.infrastructureBuild?.description}
             value={techPreferences.infrastructureBuild || ''}
             onChange={(val) => onChange('infrastructureBuild', val)}
             options={TECH_OPTIONS.infrastructureBuild}
@@ -86,6 +121,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="Deployment"
+            tooltipContent={TECH_GUIDANCE.deployment?.description}
             value={techPreferences.deployment || ''}
             onChange={(val) => onChange('deployment', val)}
             options={TECH_OPTIONS.deployment}
@@ -94,6 +130,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="Containerization"
+            tooltipContent={TECH_GUIDANCE.containerization?.description}
             value={techPreferences.containerization || ''}
             onChange={(val) => onChange('containerization', val)}
             options={TECH_OPTIONS.containerization}
@@ -102,6 +139,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="Secret Management"
+            tooltipContent={TECH_GUIDANCE.secretManagement?.description}
             value={techPreferences.secretManagement || ''}
             onChange={(val) => onChange('secretManagement', val)}
             options={TECH_OPTIONS.secretManagement}
@@ -113,12 +151,24 @@ export function TechPreferencesSection({
 
       {/* Group 3: AI/ML */}
       <div>
-        <h5 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-          AI/ML
-        </h5>
+        <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+          <h5 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            AI/ML
+          </h5>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setGuideCategory('aiLlmModel')}
+            className="h-8"
+          >
+            <HelpCircle className="w-4 h-4 mr-1.5" />
+            Learn More
+          </Button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ComboBox
             label="AI/LLM Model"
+            tooltipContent={TECH_GUIDANCE.aiLlmModel?.description}
             value={techPreferences.aiLlmModel || ''}
             onChange={(val) => onChange('aiLlmModel', val)}
             options={TECH_OPTIONS.aiLlmModel}
@@ -127,6 +177,7 @@ export function TechPreferencesSection({
           />
           <ComboBox
             label="AI Agentic Framework"
+            tooltipContent={TECH_GUIDANCE.aiAgenticFramework?.description}
             value={techPreferences.aiAgenticFramework || ''}
             onChange={(val) => onChange('aiAgenticFramework', val)}
             options={TECH_OPTIONS.aiAgenticFramework}
@@ -135,6 +186,13 @@ export function TechPreferencesSection({
           />
         </div>
       </div>
+
+      {/* Tech Guide Dialog */}
+      <TechGuideDialog
+        open={guideCategory !== null}
+        onOpenChange={(open) => !open && setGuideCategory(null)}
+        category={guideCategory}
+      />
     </div>
   );
 }
