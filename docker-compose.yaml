@@ -12,15 +12,11 @@ services:
       - .env
     volumes:
       - ./server:/app/server
-      - ./client:/app/client
       - ./shared:/app/shared
-      - ./prisma:/app/prisma
       - /app/node_modules
-      - /app/client/node_modules
     command: >
       sh -c "
         echo 'Starting server...' &&
-        npx prisma generate &&
         npm run dev:server
       "
 
@@ -35,6 +31,8 @@ services:
       - "5173:5173"
     env_file:
       - .env
+    environment:
+      - VITE_API_TARGET=http://server:3000
     volumes:
       - ./client:/app/client
       - ./shared:/app/shared

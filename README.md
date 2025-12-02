@@ -96,6 +96,34 @@ npm run dev:client  # Frontend on http://localhost:5173
 
 Visit `http://localhost:5173` to use the application.
 
+### Running with Docker
+
+The application can be run using Docker Compose for a containerized development environment:
+
+```bash
+# Build and start containers
+docker-compose up --build
+
+# Or run in detached mode
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+```
+
+**Docker Configuration:**
+
+- Server runs on `http://localhost:3000`
+- Client runs on `http://localhost:5173`
+- Environment variable `VITE_API_TARGET=http://server:3000` enables client-to-server communication within Docker network
+- Shared TypeScript types accessible via `@shared` path alias in client code
+- GCS health check automatically skipped in development if credentials not configured
+
+**Note:** The `.env` file is shared between containers. Make sure it's properly configured before starting Docker services.
+
 ## 🏗️ Architecture
 
 ### Technology Stack

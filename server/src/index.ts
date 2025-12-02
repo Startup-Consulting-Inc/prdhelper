@@ -356,8 +356,14 @@ app.get('/health', async (_req: Request, res: Response) => {
     // Determine overall health status
     const allHealthy = [database, storage, email].every((check) => check.status === 'ok');
     const anyDown = [database, storage, email].some((check) => check.status === 'down');
+    const anyDegraded = [database, storage, email].some((check) => check.status === 'degraded');
 
-    const overallStatus = anyDown ? 'down' : allHealthy ? 'ok' : 'degraded';
+    // In development, treat degraded services as acceptable
+    // This allows running without all external dependencies (GCS, etc.)
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const overallStatus = anyDown ? 'down' :
+                         (allHealthy || (isDevelopment && !anyDown)) ? 'ok' :
+                         'degraded';
 
     const healthData = {
       status: overallStatus,
@@ -371,7 +377,8 @@ app.get('/health', async (_req: Request, res: Response) => {
       },
     };
 
-    // Return 503 if any service is down, 200 otherwise
+    // Return 503 only if services are actually down
+    // In development, degraded services are acceptable (return 200)
     const statusCode = anyDown ? 503 : 200;
 
     logger.debug({ health: healthData }, 'Health check performed');

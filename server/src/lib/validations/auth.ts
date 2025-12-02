@@ -85,6 +85,36 @@ const githubUrlSchema = z
   .or(z.literal(''));
 
 /**
+ * Tech preferences schema
+ */
+const techPreferencesSchema = z
+  .object({
+    frontend: z.string().max(200).optional().or(z.literal('')).nullable(),
+    backend: z.string().max(200).optional().or(z.literal('')).nullable(),
+    database: z.string().max(200).optional().or(z.literal('')).nullable(),
+    authentication: z.string().max(200).optional().or(z.literal('')).nullable(),
+    cloudPlatform: z.string().max(200).optional().or(z.literal('')).nullable(),
+    infrastructureBuild: z
+      .string()
+      .max(200)
+      .optional()
+      .or(z.literal(''))
+      .nullable(),
+    deployment: z.string().max(200).optional().or(z.literal('')).nullable(),
+    containerization: z.string().max(200).optional().or(z.literal('')).nullable(),
+    secretManagement: z.string().max(200).optional().or(z.literal('')).nullable(),
+    aiLlmModel: z.string().max(200).optional().or(z.literal('')).nullable(),
+    aiAgenticFramework: z
+      .string()
+      .max(200)
+      .optional()
+      .or(z.literal(''))
+      .nullable(),
+  })
+  .optional()
+  .nullable();
+
+/**
  * Update profile schema
  */
 export const updateProfileSchema = z.object({
@@ -118,6 +148,7 @@ export const updateProfileSchema = z.object({
     .optional()
     .or(z.literal('')),
   githubUrl: githubUrlSchema,
+  techPreferences: techPreferencesSchema,
 });
 
 /**

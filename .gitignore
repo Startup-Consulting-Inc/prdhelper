@@ -41,8 +41,6 @@ playwright-report/
 storybook-static/
 *storybook.log
 
-# Prisma
-/generated/prisma
 
 # Documentation (exclude most MD files except task.md, prd.md, and README.md)
 *.md
