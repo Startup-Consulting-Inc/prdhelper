@@ -39,6 +39,7 @@ export function TechGuideDialog({
       onOpenChange={onOpenChange}
       title={`${guidance.title} Guide`}
       description={guidance.description}
+      className="max-w-6xl"
     >
       <div className="space-y-6">
         {/* Overview Section */}
