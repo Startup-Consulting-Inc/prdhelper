@@ -1,0 +1,78 @@
+# .gcloudignore for Cloud Build
+#
+# This file specifies files and directories to exclude from the Cloud Build context.
+# Unlike .dockerignore (used during Docker build), this controls what gets uploaded to Cloud Build.
+#
+# Key difference from .gitignore:
+# - We MUST include package.json and package-lock.json (they're excluded in .gitignore)
+# - We can exclude large files/directories that aren't needed for the build
+
+# Ignore node_modules (will be installed during build)
+node_modules/
+client/node_modules/
+
+# Ignore build outputs (will be generated during build)
+dist/
+client/dist/
+build/
+
+# Ignore Git files
+.git/
+.gitignore
+
+# Ignore Docker files (except the main Dockerfile)
+.dockerignore
+Dockerfile.dev
+Dockerfile.client
+
+# Ignore environment files (secrets managed by Cloud Build)
+.env
+.env.*
+!.env.example
+
+# Ignore test outputs
+playwright-report/
+test-results/
+coverage/
+storybook-static/
+
+# Ignore documentation (but not client/src/pages/public/docs which contains app pages)
+README.md
+/docs/
+*.md
+!CLAUDE.md
+
+# Ignore IDE files
+.vscode/
+.idea/
+.cursor/
+.cursor-updates
+.cursorrules
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore Terraform (infrastructure managed separately)
+terraform/
+
+# Ignore scripts (not needed for build)
+scripts/
+
+# Ignore large media files
+*.mp4
+*.mov
+
+# IMPORTANT: Explicitly include package files (overriding .gitignore's *.json)
+!package.json
+!package-lock.json
+!client/package.json
+!client/package-lock.json
+!tsconfig.json
+!client/tsconfig.json
+!.eslintrc.json
+!.prettierrc.json
