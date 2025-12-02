@@ -2,6 +2,10 @@
 # Project: clearly-478614
 # Service: Clearly - Intelligent Requirements Platform (STAGING)
 
+# Use the correct service account from this project
+serviceAccount: 'projects/clearly-478614/serviceAccounts/1019651592490-compute@developer.gserviceaccount.com'
+
+
 steps:
   # Step 1: Build the Docker image with Firebase configuration
   - name: 'gcr.io/cloud-builders/docker'
