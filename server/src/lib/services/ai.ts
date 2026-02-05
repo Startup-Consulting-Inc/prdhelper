@@ -19,6 +19,8 @@ export interface ChatMessage {
 export interface AIResponse {
   content: string;
   model: string;
+  finishReason?: string;
+  truncated?: boolean;
   usage?: {
     promptTokens: number;
     completionTokens: number;
@@ -87,10 +89,22 @@ export async function generateCompletion(
       }
 
       const content = data.choices[0].message.content as string;
+      const finishReason = data.choices[0].finish_reason as string | undefined;
+      const truncated = finishReason === 'length';
+
+      if (truncated) {
+        console.warn(
+          `AI response was truncated due to token limit. Model: ${data.model || model}, ` +
+          `Completion tokens: ${data.usage?.completion_tokens || 'unknown'}, ` +
+          `Requested max_tokens: ${maxTokens}`
+        );
+      }
 
       return {
         content,
         model: data.model || model,
+        finishReason,
+        truncated,
         usage: data.usage
           ? {
               promptTokens: data.usage.prompt_tokens,

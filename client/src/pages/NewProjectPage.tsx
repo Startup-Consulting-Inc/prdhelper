@@ -16,10 +16,12 @@ import { Button } from '../components/ui/Button';
 import { Footer } from '../components/layout/Footer';
 import { Input } from '../components/ui/Input';
 import { Textarea } from '../components/ui/Textarea';
+import { Select } from '../components/ui/Select';
 import { Alert } from '../components/ui/Alert';
 import { User, Code, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useProjects } from '../hooks/useProjects';
+import { SUPPORTED_LANGUAGES, type ProjectLanguage } from '@shared/types';
 
 const projectSchema = z.object({
   title: z
@@ -31,9 +33,18 @@ const projectSchema = z.object({
     .min(20, 'Description must be at least 20 characters')
     .max(2000, 'Description must be 2000 characters or less'),
   mode: z.enum(['plain', 'technical']),
+  language: z.enum(['en', 'ko', 'ja', 'zh', 'auto']),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
+
+const languageOptions = [
+  { value: 'auto', label: `${SUPPORTED_LANGUAGES.auto} (Recommended)` },
+  { value: 'en', label: SUPPORTED_LANGUAGES.en },
+  { value: 'ko', label: SUPPORTED_LANGUAGES.ko },
+  { value: 'ja', label: SUPPORTED_LANGUAGES.ja },
+  { value: 'zh', label: SUPPORTED_LANGUAGES.zh },
+];
 
 type Step = 1 | 2;
 
@@ -56,12 +67,14 @@ export function NewProjectPage() {
     mode: 'onChange',
     defaultValues: {
       mode: user?.modePreference === 'TECHNICAL' ? 'technical' : 'plain',
+      language: 'auto',
     },
   });
 
   const description = watch('description', '');
   const mode = watch('mode');
   const title = watch('title', '');
+  const language = watch('language', 'auto');
 
   const handleModeSelect = (selectedMode: 'plain' | 'technical') => {
     setValue('mode', selectedMode, { shouldValidate: true });
@@ -89,6 +102,7 @@ export function NewProjectPage() {
         title: data.title,
         description: data.description,
         mode: data.mode === 'technical' ? 'TECHNICAL' : 'PLAIN',
+        language: data.language,
       });
 
       if (newProject?.id) {
@@ -179,6 +193,15 @@ export function NewProjectPage() {
                   disabled={isCreating}
                   helperText="Provide as much context as possible (min. 20 characters)"
                   autoResize
+                />
+
+                <Select
+                  {...register('language')}
+                  label="Output Language"
+                  options={languageOptions}
+                  errorText={errors.language?.message}
+                  disabled={isCreating}
+                  helperText="Select the language for AI questions and generated documents"
                 />
 
                 <div className="flex justify-end pt-4">

@@ -64,6 +64,10 @@ export default defineConfig({
         target: process.env.VITE_API_TARGET || 'http://localhost:3000',
         changeOrigin: true
       }
+    },
+    fs: {
+      // Allow serving files from shared directory
+      allow: ['..']
     }
   },
   test: {

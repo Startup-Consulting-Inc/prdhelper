@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { ComboBox } from '@/components/ui/ComboBox';
-import { TechPreferences, TECH_OPTIONS } from '@shared/types.js';
+import { TechPreferences, TECH_OPTIONS } from '@shared/types';
 import { TechGuideDialog } from './TechGuideDialog';
 import { TECH_GUIDANCE } from '@/data/techGuidance';
 

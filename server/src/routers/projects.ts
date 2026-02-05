@@ -331,6 +331,7 @@ export const projectsRouter = router({
           title: input.title,
           description: input.description,
           mode: input.mode,
+          language: input.language || 'auto',
           status: 'ACTIVE',
           currentPhase: 'BRD_QUESTIONS',
           createdAt: admin.firestore.FieldValue.serverTimestamp(),

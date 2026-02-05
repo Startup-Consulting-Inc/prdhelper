@@ -15,7 +15,7 @@ import { trpc } from '../lib/trpc';
 import { Button } from '../components/ui/Button';
 import { Footer } from '../components/layout/Footer';
 import { TechPreferencesSection } from '../components/profile/TechPreferencesSection';
-import type { TechPreferences } from '../../../shared/types.js';
+import type { TechPreferences } from '@shared/types';
 
 type Tab = 'profile' | 'preferences' | 'security' | 'account';
 

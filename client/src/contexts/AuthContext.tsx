@@ -21,7 +21,7 @@ import {
   type User as FirebaseUser,
 } from '../lib/firebase';
 import { useActivityTimeout } from '../hooks/useActivityTimeout';
-import type { TechPreferences } from '../../shared/types.js';
+import type { TechPreferences } from '@shared/types';
 
 interface User {
   id: string;
