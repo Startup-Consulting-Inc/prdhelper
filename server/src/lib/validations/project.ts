@@ -21,6 +21,9 @@ export const createProjectSchema = z.object({
   mode: z.enum(['PLAIN', 'TECHNICAL'], {
     message: 'Invalid mode',
   }),
+  language: z.enum(['en', 'ko', 'ja', 'zh', 'auto'], {
+    message: 'Invalid language selection',
+  }).default('auto'),
 });
 
 /**

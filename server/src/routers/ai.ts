@@ -27,6 +27,11 @@ import {
 } from '../lib/utils/cache.js';
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
+import {
+  detectLanguage,
+  getLanguageInstruction,
+  type SupportedLanguage,
+} from '../lib/utils/languageDetector.js';
 
 export const aiRouter = router({
   /**
@@ -128,8 +133,19 @@ export const aiRouter = router({
           });
         }
 
+        // Use stored language preference, fall back to auto-detection for 'auto' or missing
+        const projectLanguage = project?.language as SupportedLanguage | 'auto' | undefined;
+        const detectedLanguage: SupportedLanguage =
+          projectLanguage && projectLanguage !== 'auto'
+            ? projectLanguage
+            : detectLanguage(`${project?.title || ''} ${project?.description || ''}`);
+        const languageInstruction = getLanguageInstruction(detectedLanguage);
+
         // Build context for AI
         let contextInfo = `\n\n### Project Context\n\n**Project Title:** ${project?.title}\n**Project Description:** ${project?.description}`;
+
+        // Add language requirement to ensure AI responds in the correct language
+        contextInfo += `\n\n### Language Requirement\n\n${languageInstruction}`;
 
         if (input.documentType === 'PRD') {
           // Include approved BRD for PRD context
@@ -290,6 +306,13 @@ export const aiRouter = router({
           });
         }
 
+        // Use stored language preference, fall back to auto-detection for 'auto' or missing
+        const projectLanguage = project?.language as SupportedLanguage | 'auto' | undefined;
+        const detectedLanguage: SupportedLanguage =
+          projectLanguage && projectLanguage !== 'auto'
+            ? projectLanguage
+            : detectLanguage(`${project?.title || ''} ${project?.description || ''}`);
+
         // Generate document based on type
         let content: string;
         let rawContent: string;
@@ -316,7 +339,8 @@ export const aiRouter = router({
 
           const result = await generateBRD(
             systemPromptData.prompt,
-            conversationData?.messages as Message[]
+            conversationData?.messages as Message[],
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;
@@ -360,7 +384,8 @@ export const aiRouter = router({
           const result = await generatePRD(
             systemPromptData.prompt,
             conversationData?.messages as Message[],
-            brdDoc.content
+            brdDoc.content,
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;
@@ -406,7 +431,8 @@ export const aiRouter = router({
           const result = await generatePromptBuild(
             systemPromptData.prompt,
             prdDoc.content,
-            brdDoc?.content
+            brdDoc?.content,
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;
@@ -452,7 +478,8 @@ export const aiRouter = router({
           const result = await generateTasks(
             systemPromptData.prompt,
             prdDoc.content,
-            brdDoc?.content
+            brdDoc?.content,
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;
@@ -634,6 +661,13 @@ export const aiRouter = router({
           });
         }
 
+        // Use stored language preference, fall back to auto-detection for 'auto' or missing
+        const projectLanguage = projectData?.language as SupportedLanguage | 'auto' | undefined;
+        const detectedLanguage: SupportedLanguage =
+          projectLanguage && projectLanguage !== 'auto'
+            ? projectLanguage
+            : detectLanguage(`${projectData?.title || ''} ${projectData?.description || ''}`);
+
         // Generate new document based on type
         let content: string;
         let rawContent: string;
@@ -660,7 +694,8 @@ export const aiRouter = router({
 
           const result = await generateBRD(
             systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete BRD document directly based on the conversation history provided.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
-            conversationData?.messages as Message[]
+            conversationData?.messages as Message[],
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;
@@ -704,7 +739,8 @@ export const aiRouter = router({
           const result = await generatePRD(
             systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete PRD document directly based on the conversation history and approved BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
             conversationData?.messages as Message[],
-            brdDoc.content
+            brdDoc.content,
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;
@@ -742,7 +778,8 @@ export const aiRouter = router({
           const result = await generatePromptBuild(
             systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete vibe coding prompt directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
             prdDoc.content,
-            brdDoc?.content
+            brdDoc?.content,
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;
@@ -781,7 +818,8 @@ export const aiRouter = router({
           const result = await generateTasks(
             systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete task list directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
             prdDoc.content,
-            brdDoc?.content
+            brdDoc?.content,
+            detectedLanguage
           );
           content = result.content;
           rawContent = result.rawContent;

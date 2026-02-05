@@ -12,6 +12,7 @@ export interface Project {
   title: string;
   description: string;
   mode: 'PLAIN' | 'TECHNICAL';
+  language?: 'en' | 'ko' | 'ja' | 'zh' | 'auto';
   status: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   currentPhase: string;
   createdAt: Date | string;

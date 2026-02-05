@@ -180,3 +180,14 @@ export const TECH_OPTIONS = {
     'Custom Framework',
   ],
 } as const;
+
+// Language Preferences Types
+export type ProjectLanguage = 'en' | 'ko' | 'ja' | 'zh' | 'auto';
+
+export const SUPPORTED_LANGUAGES = {
+  en: 'English',
+  ko: '한국어 (Korean)',
+  ja: '日本語 (Japanese)',
+  zh: '中文 (Chinese)',
+  auto: 'Auto-detect',
+} as const;
