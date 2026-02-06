@@ -3,7 +3,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Download, Trash2, MoreVertical } from 'lucide-react';
 
-type ProjectMode = 'plain' | 'technical';
+type ProjectMode = 'plain' | 'technical' | 'unified';
 type ProjectStatus = 'active' | 'completed' | 'archived';
 
 export interface ProjectHeaderProps {
@@ -37,6 +37,10 @@ const ProjectHeader = ({
     technical: {
       label: 'Technical Mode',
       color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    },
+    unified: {
+      label: 'Unified',
+      color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
     },
   };
 

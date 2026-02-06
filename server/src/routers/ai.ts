@@ -17,6 +17,7 @@ import {
   generateTasks,
   generatePromptBuild,
   generateKickoffPrompt,
+  generateToolOutput,
 } from '../lib/services/documentGenerator.js';
 import { trackTokenUsage } from '../lib/services/tokenTracker.js';
 import type { Message } from '../lib/validations/conversation.js';
@@ -102,14 +103,12 @@ export const aiRouter = router({
         }
 
         // Get system prompt
+        // UNIFIED mode uses TECHNICAL prompts (most comprehensive)
+        const isPlainMode = project?.mode === 'PLAIN';
         const promptType =
           input.documentType === 'BRD'
-            ? project?.mode === 'PLAIN'
-              ? 'BRD_PLAIN'
-              : 'BRD_TECHNICAL'
-            : project?.mode === 'PLAIN'
-            ? 'PRD_PLAIN'
-            : 'PRD_TECHNICAL';
+            ? isPlainMode ? 'BRD_PLAIN' : 'BRD_TECHNICAL'
+            : isPlainMode ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
 
         const systemPromptSnapshot = await ctx.db
           .collection('systemPrompts')
@@ -273,11 +272,13 @@ export const aiRouter = router({
         }
 
         // Get system prompt
+        // UNIFIED mode uses TECHNICAL prompts (most comprehensive)
+        const isPlain = project?.mode === 'PLAIN';
         let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
         if (input.documentType === 'BRD') {
-          promptType = project?.mode === 'PLAIN' ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
+          promptType = isPlain ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
         } else if (input.documentType === 'PRD') {
-          promptType = project?.mode === 'PLAIN' ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
+          promptType = isPlain ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
         } else if (input.documentType === 'PROMPT_BUILD') {
           promptType = 'PROMPT_BUILD';
         } else {
@@ -628,11 +629,13 @@ export const aiRouter = router({
         }
 
         // Get system prompt
+        // UNIFIED mode uses TECHNICAL prompts (most comprehensive)
+        const isPlainRegen = projectData.mode === 'PLAIN';
         let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
         if (existingDocData.type === 'BRD') {
-          promptType = projectData.mode === 'PLAIN' ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
+          promptType = isPlainRegen ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
         } else if (existingDocData.type === 'PRD') {
-          promptType = projectData.mode === 'PLAIN' ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
+          promptType = isPlainRegen ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
         } else if (existingDocData.type === 'PROMPT_BUILD') {
           promptType = 'PROMPT_BUILD';
         } else {
@@ -923,7 +926,7 @@ export const aiRouter = router({
     .input(
       z.object({
         question: z.string().min(1).max(2000),
-        projectMode: z.enum(['PLAIN', 'TECHNICAL']),
+        projectMode: z.enum(['PLAIN', 'TECHNICAL', 'UNIFIED']),
         documentType: z.enum(['BRD', 'PRD']),
       })
     )
@@ -1034,6 +1037,217 @@ export const aiRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to generate explanation',
+        });
+      }
+    }),
+
+  /**
+   * Generate tool-specific output (for unified flow)
+   * Requires approved PRD and BRD
+   */
+  generateToolOutput: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        toolType: z.enum([
+          'VIBE_V0', 'VIBE_LOVEABLE', 'VIBE_BOLT', 'VIBE_REPLIT', 'VIBE_FIREBASE_STUDIO',
+          'CLAUDE_CODE', 'CURSOR', 'OPENAI_CODEX', 'GOOGLE_ANTIGRAVITY',
+        ]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Verify project ownership
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const projectDoc = await projectRef.get();
+
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const project = projectDoc.data();
+
+        if (project?.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to generate tool output for this project',
+          });
+        }
+
+        // Get approved PRD
+        const prdDocsSnapshot = await projectRef
+          .collection('documents')
+          .where('type', '==', 'PRD')
+          .where('status', '==', 'APPROVED')
+          .limit(1)
+          .get();
+
+        if (prdDocsSnapshot.empty) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'PRD must be approved before generating tool output',
+          });
+        }
+
+        const prdDoc = prdDocsSnapshot.docs[0].data();
+
+        // Get approved BRD
+        const brdDocsSnapshot = await projectRef
+          .collection('documents')
+          .where('type', '==', 'BRD')
+          .where('status', '==', 'APPROVED')
+          .limit(1)
+          .get();
+
+        if (brdDocsSnapshot.empty) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'BRD must be approved before generating tool output',
+          });
+        }
+
+        const brdDoc = brdDocsSnapshot.docs[0].data();
+
+        // Determine the system prompt type for the tool
+        const isVibeCoding = input.toolType.startsWith('VIBE_');
+        const promptType = isVibeCoding
+          ? `TOOL_${input.toolType}`
+          : `TOOL_${input.toolType}`;
+
+        // Try to get tool-specific system prompt, fall back to generic
+        let systemPromptContent: string;
+        const systemPromptSnapshot = await ctx.db
+          .collection('systemPrompts')
+          .where('type', '==', promptType)
+          .where('isActive', '==', true)
+          .limit(1)
+          .get();
+
+        if (!systemPromptSnapshot.empty) {
+          systemPromptContent = systemPromptSnapshot.docs[0].data().prompt;
+        } else {
+          // Fall back to generic tool output prompt
+          const fallbackSnapshot = await ctx.db
+            .collection('systemPrompts')
+            .where('type', '==', isVibeCoding ? 'TOOL_VIBE_GENERIC' : 'TOOL_AI_GENERIC')
+            .where('isActive', '==', true)
+            .limit(1)
+            .get();
+
+          if (!fallbackSnapshot.empty) {
+            systemPromptContent = fallbackSnapshot.docs[0].data().prompt;
+          } else {
+            // Last resort: use a minimal system prompt
+            systemPromptContent = isVibeCoding
+              ? `You are an expert at generating optimized prompts for AI-powered development tools. Generate a comprehensive, tool-specific prompt that can be copy-pasted into the target tool to build the complete application described in the PRD and BRD.`
+              : `You are an expert at generating configuration files for AI coding tools. Generate the complete set of config files needed to set up the target tool for the project described in the PRD and BRD. Include all necessary rules, settings, and a comprehensive reference document.`;
+          }
+        }
+
+        // Use stored language preference
+        const projectLanguage = project?.language as SupportedLanguage | 'auto' | undefined;
+        const detectedLanguage: SupportedLanguage =
+          projectLanguage && projectLanguage !== 'auto'
+            ? projectLanguage
+            : detectLanguage(`${project?.title || ''} ${project?.description || ''}`);
+
+        // Update phase to generating
+        await projectRef.update({
+          currentPhase: 'TOOL_OUTPUT_GENERATING',
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Generate tool output
+        const result = await generateToolOutput(
+          systemPromptContent,
+          input.toolType,
+          prdDoc.content,
+          brdDoc.content,
+          project?.title || '',
+          detectedLanguage
+        );
+
+        // Track token usage
+        if (result.tokensUsed) {
+          await trackTokenUsage({
+            userId: ctx.user.id,
+            projectId: input.projectId,
+            operation: `GENERATE_TOOL_OUTPUT_${input.toolType}`,
+            model: result.model,
+            tokensUsed: result.tokensUsed,
+            inputTokens: result.inputTokens,
+            outputTokens: result.outputTokens,
+          });
+        }
+
+        // Create TOOL_OUTPUT document in subcollection
+        const documentRef = projectRef.collection('documents').doc();
+        const documentData = {
+          id: documentRef.id,
+          projectId: input.projectId,
+          type: 'TOOL_OUTPUT',
+          toolType: input.toolType,
+          content: result.content,
+          rawContent: result.rawContent,
+          bundle: JSON.stringify({ ...result.bundle, prdContent: prdDoc.content }),
+          status: 'APPROVED', // Tool outputs are immediately ready
+          version: 1,
+          approvedAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        await documentRef.set(documentData);
+
+        // Update project phase
+        await projectRef.update({
+          currentPhase: 'TOOL_OUTPUT_READY',
+          selectedTool: input.toolType,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Create audit log
+        await ctx.db.collection('auditLogs').add({
+          userId: ctx.user.id,
+          userName: ctx.user.name,
+          action: 'TOOL_OUTPUT_GENERATED',
+          details: {
+            documentId: documentRef.id,
+            projectId: input.projectId,
+            toolType: input.toolType,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info({
+          documentId: documentRef.id,
+          projectId: input.projectId,
+          toolType: input.toolType,
+          userId: ctx.user.id,
+        }, 'Tool output generated');
+
+        // Get the created document with actual timestamps
+        const createdDoc = await documentRef.get();
+        const createdData = createdDoc.data();
+
+        return {
+          id: documentRef.id,
+          ...createdData,
+          bundle: result.bundle,
+          createdAt: createdData?.createdAt?.toDate(),
+          updatedAt: createdData?.updatedAt?.toDate(),
+          approvedAt: createdData?.approvedAt?.toDate(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, input }, 'Failed to generate tool output');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to generate tool output',
         });
       }
     }),

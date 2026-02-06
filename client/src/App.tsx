@@ -19,6 +19,8 @@ const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
 const BRDWizardPage = lazy(() => import('./pages/BRDWizardPage'));
 const PRDWizardPage = lazy(() => import('./pages/PRDWizardPage'));
 const DocumentViewPage = lazy(() => import('./pages/DocumentViewPage'));
+const ToolSelectionPage = lazy(() => import('./pages/ToolSelectionPage'));
+const ToolOutputPage = lazy(() => import('./pages/ToolOutputPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 
 // Auth pages
@@ -206,6 +208,8 @@ function AppContent() {
         <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
         <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
         <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
+        <Route path="/projects/:projectId/tools" element={<ToolSelectionPage />} />
+        <Route path="/projects/:projectId/tool-output/:documentId" element={<ToolOutputPage />} />
         <Route path="/documents/:documentId" element={<DocumentViewPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

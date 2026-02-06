@@ -4,7 +4,7 @@ import { DropdownMenu, type DropdownMenuItem } from '../ui/DropdownMenu';
 import { cn } from '@/lib/utils/cn';
 
 type ProjectStatus = 'active' | 'completed' | 'archived';
-type ProjectMode = 'plain' | 'technical';
+type ProjectMode = 'plain' | 'technical' | 'unified';
 
 export interface ProjectCardProps {
   id: string;
@@ -44,6 +44,7 @@ const ProjectCard = ({
   const modeConfig = {
     plain: { label: 'Plain Mode', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
     technical: { label: 'Technical Mode', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' },
+    unified: { label: 'Unified', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
   };
 
   const formatDate = (date: Date) => {

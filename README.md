@@ -9,8 +9,8 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 ### Core Features
 - 🤖 **AI-Powered Wizards**: Interactive Q&A flow that adapts to your responses
 - 💡 **Contextual Tips**: Helpful tips explaining what questions mean and why they matter, with detailed explanations, pros and cons for each sample answer—no matter your technical background
-- 📄 **Document Generation**: Automatically generates BRDs, PRDs, task lists, and vibe coding prompts
-- 🎯 **Two User Modes**: Plain language for business users, technical for developers
+- 📄 **Document Generation**: Automatically generates BRDs, PRDs, and tool-specific output files
+- 🌐 **Multi-Language Support**: Generate documents in English, Korean, Japanese, or Chinese (auto-detect available)
 - 💬 **Smart Conversations**: AI remembers context and asks relevant follow-up questions
 - 📊 **Progress Tracking**: Visual progress indicators as you answer questions
 - 🌓 **Dark Mode**: Beautiful UI with dark mode support
@@ -38,10 +38,12 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - 🔍 **Version Preview**: Preview any historical version before restoring
 - ⏮️ **Version Restore**: Restore any previous version as the current document
 
-### Vibe Coding Integration (Plain Mode)
-- 🚀 **Prompt Build**: Generate copy-paste ready prompts for AI coding tools (Loveable, V0, Bolt)
-- 🎨 **Auto-Generation**: After PRD approval in Plain Mode, automatically generate vibe coding prompts
-- 📋 **Production-Ready**: Prompts designed to create complete, deployable web services
+### Output Tool Integration
+- 🛠️ **9 Supported Tools**: Generate optimized output for your preferred development tool
+- 🎨 **Vibe Coding Tools**: v0 (Vercel), Loveable, Bolt.new, Replit, Firebase Studio — copy-paste ready prompts
+- 🤖 **AI Coding Tools**: Claude Code, Cursor, OpenAI Codex, Google Antigravity — config files, rules, and reference docs
+- 🔄 **Multi-Tool Generation**: Generate output for multiple tools from the same project
+- 📦 **Download as ZIP**: AI coding tool outputs bundled as downloadable file packages
 
 ### Admin Features
 - 👤 **User Management**: Admin dashboard for managing users and permissions
@@ -182,7 +184,7 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 **Main Collections:**
 - `users` - User accounts and profiles
 - `projects` - Project documents with subcollections:
-  - `documents` - BRD, PRD, Tasks, Prompt Build documents
+  - `documents` - BRD, PRD, and Tool Output documents
   - `conversations` - AI conversation history per document type
   - `collaborators` - Team members with roles (VIEWER, EDITOR)
   - `invites` - Pending collaboration invitations
@@ -211,7 +213,6 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 ## 🎯 User Guide
 
 ### Managing Your Profile
-
 1. Click your profile icon or navigate to `/profile`
 2. Update your professional information:
    - **Name**: Your display name
@@ -222,18 +223,19 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
    - **LinkedIn**: Your LinkedIn profile URL
    - **Website**: Personal or professional website
    - **GitHub**: Your GitHub profile (for technical users)
-3. Choose your preferred mode (Plain or Technical)
-4. Change password (if not using OAuth)
-5. All fields are optional and can be updated anytime
+   - **Stack Preference**: Your preferred technologies and frameworks
+3. Change password (if not using OAuth)
+4. All fields are optional and can be updated anytime
 
 ### Creating a Project
 
 1. Sign up or log in
 2. Click "Create Project"
-3. Enter project details and choose user mode:
-   - **Plain Mode**: For business users, generates BRD → PRD → Vibe Coding Prompt
-   - **Technical Mode**: For developers, generates BRD → PRD → Technical Task List
-4. Click "Create"
+3. Enter your project title and initial idea description
+4. Select output language (English, Korean, Japanese, Chinese, or Auto-detect)
+5. Click "Create & Start BRD" — you'll be taken directly into the BRD wizard
+
+**Workflow**: Create Project → BRD Wizard → PRD Wizard → Tool Selection → Tool Output
 
 ### Generating a BRD
 
@@ -257,32 +259,33 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 4. Generate and review your PRD
 5. Approve to proceed to next step
 
-### Plain Mode: Generating Vibe Coding Prompt
+### Generating Tool Output
 
 1. Complete and approve both BRD and PRD
-2. System automatically generates a Prompt Build document
-3. This prompt is ready to copy and paste into:
-   - **Loveable**: AI web app builder
-   - **V0**: Vercel's AI design tool
-   - **Bolt**: Stackblitz's AI development tool
-4. Copy the generated prompt and use it in your preferred vibe coding tool
+2. Select your target development tool from two categories:
 
-### Technical Mode: Generating Task List
+   **Vibe Coding Tools** (copy-paste ready prompts):
+   - **v0 (Vercel)**: React + Next.js App Router + Tailwind CSS + shadcn/ui
+   - **Loveable**: React + Vite + TypeScript + Tailwind CSS + Supabase
+   - **Bolt.new**: JavaScript/TypeScript ecosystem, browser-based WebContainer
+   - **Replit**: 50+ languages, full Linux container
+   - **Firebase Studio**: Next.js + Gemini AI + Firebase services
 
-1. Complete and approve both BRD and PRD
-2. Click "Generate Tasks"
-3. AI creates a detailed technical task list with:
-   - Task IDs and titles
-   - Descriptions and acceptance criteria
-   - Priority levels (HIGH, MEDIUM, LOW)
-   - Effort estimates
-   - Dependencies between tasks
-   - Technical tags
+   **AI Coding Tools** (config files + reference documents):
+   - **Claude Code**: Generates CLAUDE.md, .claude/settings.json, and reference document
+   - **Cursor**: Generates .cursor/rules/*.mdc, AGENTS.md, and reference document
+   - **OpenAI Codex**: Generates AGENTS.md, .codex/config.toml, and reference document
+   - **Google Antigravity**: Generates .agent/ rules, skills, workflows, AGENTS.md, and reference document
+
+3. Click "Generate Output" — AI creates tool-specific files from your BRD and PRD
+4. For vibe coding tools: copy sections or the entire prompt
+5. For AI coding tools: copy individual files or download all as a ZIP bundle
+6. Generate output for additional tools anytime — each generates a separate document
 
 ### Document Management
 
 #### Regenerating Documents
-1. Open any document (BRD, PRD, Tasks, or Prompt Build)
+1. Open any document (BRD, PRD, or Tool Output)
 2. Click "Regenerate" button
 3. Optionally provide feedback for improvements (e.g., "Make it more concise", "Add security details")
 4. System saves current version to history and generates new version
@@ -400,8 +403,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 2.6.0
-**Last Updated**: December 2, 2024
+**Version**: 3.0.0
+**Last Updated**: February 5, 2026
 **Status**: ✅ Production Ready with Staging Environment
 
 For questions or issues, please open an issue on GitHub.
