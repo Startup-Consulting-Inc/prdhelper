@@ -793,16 +793,29 @@ export const projectsRouter = router({
         // Check if project is complete
         const brdDoc = documentsSnapshot.docs.find((d) => d.data().type === 'BRD');
         const prdDoc = documentsSnapshot.docs.find((d) => d.data().type === 'PRD');
-        const finalDocType = projectData.mode === 'PLAIN' ? 'PROMPT_BUILD' : 'TASKS';
-        const finalDoc = documentsSnapshot.docs.find((d) => d.data().type === finalDocType);
 
-        // Project is complete if all three required documents are approved
-        if (
-          brdDoc?.data().status === 'APPROVED' &&
-          prdDoc?.data().status === 'APPROVED' &&
-          finalDoc?.data().status === 'APPROVED'
-        ) {
-          completedProjects++;
+        if (projectData.mode === 'UNIFIED') {
+          // Unified mode: complete when BRD + PRD approved and at least one TOOL_OUTPUT exists
+          const toolOutputDoc = documentsSnapshot.docs.find((d) => d.data().type === 'TOOL_OUTPUT');
+          if (
+            brdDoc?.data().status === 'APPROVED' &&
+            prdDoc?.data().status === 'APPROVED' &&
+            toolOutputDoc
+          ) {
+            completedProjects++;
+          }
+        } else {
+          const finalDocType = projectData.mode === 'PLAIN' ? 'PROMPT_BUILD' : 'TASKS';
+          const finalDoc = documentsSnapshot.docs.find((d) => d.data().type === finalDocType);
+
+          // Project is complete if all three required documents are approved
+          if (
+            brdDoc?.data().status === 'APPROVED' &&
+            prdDoc?.data().status === 'APPROVED' &&
+            finalDoc?.data().status === 'APPROVED'
+          ) {
+            completedProjects++;
+          }
         }
       }
 

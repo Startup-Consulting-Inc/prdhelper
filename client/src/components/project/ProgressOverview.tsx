@@ -4,7 +4,7 @@ import { FileText, Layers, ListChecks, CheckCircle, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 type DocumentStatus = 'complete' | 'in-progress' | 'pending' | 'locked';
-type ProjectMode = 'plain' | 'technical';
+type ProjectMode = 'plain' | 'technical' | 'unified';
 
 export interface ProgressOverviewProps {
   mode: ProjectMode;

@@ -17,6 +17,9 @@ export type ProjectPhase =
   | 'PROMPT_BUILD_READY'
   | 'TASKS_GENERATING'
   | 'TASKS_READY'
+  | 'TOOL_SELECTION'
+  | 'TOOL_OUTPUT_GENERATING'
+  | 'TOOL_OUTPUT_READY'
   | 'COMPLETED';
 
 /**
@@ -24,8 +27,8 @@ export type ProjectPhase =
  */
 export function getNextPhase(
   currentPhase: ProjectPhase,
-  action: 'answer' | 'generate' | 'approve',
-  mode?: 'PLAIN' | 'TECHNICAL'
+  action: 'answer' | 'generate' | 'approve' | 'select_tool',
+  mode?: 'PLAIN' | 'TECHNICAL' | 'UNIFIED'
 ): ProjectPhase {
   const transitions: Record<ProjectPhase, Partial<Record<typeof action, ProjectPhase>>> = {
     BRD_QUESTIONS: {
@@ -53,7 +56,8 @@ export function getNextPhase(
     },
     PRD_APPROVED: {
       // Branch based on mode
-      generate: mode === 'PLAIN' ? 'PROMPT_BUILD_GENERATING' : 'TASKS_GENERATING',
+      generate: mode === 'PLAIN' ? 'PROMPT_BUILD_GENERATING' : mode === 'TECHNICAL' ? 'TASKS_GENERATING' : 'TOOL_OUTPUT_GENERATING',
+      select_tool: 'TOOL_SELECTION', // Unified flow: go to tool selection
     },
     PROMPT_BUILD_GENERATING: {
       generate: 'PROMPT_BUILD_READY',
@@ -69,7 +73,20 @@ export function getNextPhase(
       approve: 'COMPLETED',
       generate: 'TASKS_GENERATING', // Regenerate
     },
-    COMPLETED: {},
+    TOOL_SELECTION: {
+      generate: 'TOOL_OUTPUT_GENERATING', // User selected a tool, start generating
+    },
+    TOOL_OUTPUT_GENERATING: {
+      generate: 'TOOL_OUTPUT_READY',
+    },
+    TOOL_OUTPUT_READY: {
+      approve: 'COMPLETED',
+      select_tool: 'TOOL_SELECTION', // Go back to select another tool
+      generate: 'TOOL_OUTPUT_GENERATING', // Regenerate
+    },
+    COMPLETED: {
+      select_tool: 'TOOL_SELECTION', // Allow generating more tool outputs from completed state
+    },
   };
 
   const nextPhase = transitions[currentPhase]?.[action];
@@ -97,12 +114,15 @@ export function canTransition(
     PRD_QUESTIONS: ['PRD_GENERATING'],
     PRD_GENERATING: ['PRD_READY'],
     PRD_READY: ['PRD_APPROVED', 'PRD_GENERATING'],
-    PRD_APPROVED: ['PROMPT_BUILD_GENERATING', 'TASKS_GENERATING', 'COMPLETED'],
+    PRD_APPROVED: ['PROMPT_BUILD_GENERATING', 'TASKS_GENERATING', 'TOOL_SELECTION', 'TOOL_OUTPUT_GENERATING', 'COMPLETED'],
     PROMPT_BUILD_GENERATING: ['PROMPT_BUILD_READY'],
     PROMPT_BUILD_READY: ['COMPLETED', 'PROMPT_BUILD_GENERATING'],
     TASKS_GENERATING: ['TASKS_READY'],
     TASKS_READY: ['COMPLETED', 'TASKS_GENERATING'],
-    COMPLETED: [],
+    TOOL_SELECTION: ['TOOL_OUTPUT_GENERATING'],
+    TOOL_OUTPUT_GENERATING: ['TOOL_OUTPUT_READY'],
+    TOOL_OUTPUT_READY: ['COMPLETED', 'TOOL_SELECTION', 'TOOL_OUTPUT_GENERATING'],
+    COMPLETED: ['TOOL_SELECTION'],
   };
 
   return allowedTransitions[currentPhase]?.includes(targetPhase) ?? false;
@@ -125,6 +145,9 @@ export function getPhaseLabel(phase: ProjectPhase): string {
     PROMPT_BUILD_READY: 'Prompt Build Ready',
     TASKS_GENERATING: 'Generating Task List',
     TASKS_READY: 'Tasks Ready for Review',
+    TOOL_SELECTION: 'Select Output Tool',
+    TOOL_OUTPUT_GENERATING: 'Generating Tool Output',
+    TOOL_OUTPUT_READY: 'Tool Output Ready',
     COMPLETED: 'Project Completed',
   };
 
@@ -148,6 +171,9 @@ export function getPhaseProgress(phase: ProjectPhase): number {
     PROMPT_BUILD_READY: 90,
     TASKS_GENERATING: 85,
     TASKS_READY: 90,
+    TOOL_SELECTION: 75,
+    TOOL_OUTPUT_GENERATING: 85,
+    TOOL_OUTPUT_READY: 95,
     COMPLETED: 100,
   };
 

@@ -11,6 +11,30 @@ import {
   getLanguageInstruction,
   type SupportedLanguage,
 } from '../utils/languageDetector.js';
+// Inline types matching shared/types.ts (server can't import from shared due to rootDir constraints)
+type OutputToolType =
+  | 'VIBE_V0'
+  | 'VIBE_LOVEABLE'
+  | 'VIBE_BOLT'
+  | 'VIBE_REPLIT'
+  | 'VIBE_FIREBASE_STUDIO'
+  | 'CLAUDE_CODE'
+  | 'CURSOR'
+  | 'OPENAI_CODEX'
+  | 'GOOGLE_ANTIGRAVITY';
+
+interface ToolOutputFile {
+  path: string;
+  content: string;
+  description?: string;
+}
+
+interface ToolOutputBundle {
+  toolType: OutputToolType;
+  files: ToolOutputFile[];
+  referenceDoc?: string;
+  prdContent?: string;
+}
 
 interface Message {
   role: string;
@@ -343,5 +367,145 @@ export async function generatePromptBuild(
     truncated: response.truncated,
     warning,
   };
+}
+
+/**
+ * Generate tool-specific output from PRD and BRD
+ *
+ * For vibe coding tools: generates tool-specific prompts
+ * For AI coding tools: generates config files + reference document
+ */
+export async function generateToolOutput(
+  systemPrompt: string,
+  toolType: OutputToolType,
+  prdContent: string,
+  brdContent: string,
+  projectTitle: string,
+  language?: SupportedLanguage
+): Promise<GenerationResult & { bundle: ToolOutputBundle }> {
+  const detectedLanguage = language || detectLanguage(prdContent);
+  const languageInstruction = getLanguageInstruction(detectedLanguage);
+
+  const isVibeCoding = toolType.startsWith('VIBE_');
+
+  const userPrompt = isVibeCoding
+    ? `Based on the approved PRD and BRD, generate a comprehensive, optimized prompt specifically for ${getToolLabel(toolType)}. The prompt should be copy-paste ready and enable the tool to build a complete, production-ready application. Wrap the output in <<TOOL_OUTPUT_START>> and <<TOOL_OUTPUT_END>> markers. ${languageInstruction}`
+    : `Based on the approved PRD and BRD, generate the specific configuration files for ${getToolLabel(toolType)}. ${getToolFileExpectations(toolType)} Mark each file with <<FILE:path/to/file>> before the content and <<END_FILE>> after. Wrap the entire output in <<TOOL_OUTPUT_START>> and <<TOOL_OUTPUT_END>> markers. ${languageInstruction}`;
+
+  const messages = [
+    {
+      role: 'system' as const,
+      content: buildSystemPrompt(systemPrompt, { prd: prdContent, brd: brdContent }) + `\n\n${languageInstruction}`,
+    },
+    {
+      role: 'user' as const,
+      content: userPrompt,
+    },
+  ];
+
+  const response = await generateCompletion(messages, {
+    temperature: 0.6,
+    maxTokens: MAX_OUTPUT_TOKENS,
+  });
+
+  const rawContent = response.content;
+  let warning: string | undefined;
+
+  if (response.truncated) {
+    warning = `The ${getToolLabel(toolType)} output may be incomplete due to length constraints.`;
+    console.warn(`Tool output generation truncated for ${toolType}. Output tokens: ${response.usage?.completionTokens}`);
+  }
+
+  let toolContent = extractMarkedContent(rawContent, '<<TOOL_OUTPUT_START>>', '<<TOOL_OUTPUT_END>>');
+
+  if (!toolContent) {
+    if (response.truncated) {
+      console.warn('Tool output markers not found due to truncation. Using available content.');
+      warning = `The ${getToolLabel(toolType)} output was cut off due to length limits. Some content may be missing.`;
+    } else {
+      console.warn('Tool output markers not found in AI response. Using full content as fallback.');
+    }
+    toolContent = rawContent.trim();
+  }
+
+  // Parse files from the content for AI coding tools
+  const files: ToolOutputFile[] = [];
+  let referenceDoc: string | undefined;
+
+  if (!isVibeCoding) {
+    const fileRegex = /<<FILE:(.*?)>>([\s\S]*?)<<END_FILE>>/g;
+    let match;
+    while ((match = fileRegex.exec(toolContent)) !== null) {
+      const filePath = match[1].trim();
+      const fileContent = match[2].trim();
+      if (filePath.toLowerCase().includes('reference') || filePath.toLowerCase().includes('readme')) {
+        referenceDoc = fileContent;
+      } else {
+        files.push({ path: filePath, content: fileContent });
+      }
+    }
+
+    if (files.length === 0) {
+      referenceDoc = toolContent;
+    }
+  }
+
+  const bundle: ToolOutputBundle = {
+    toolType,
+    files,
+    referenceDoc: isVibeCoding ? undefined : (referenceDoc || toolContent),
+  };
+
+  return {
+    content: toolContent,
+    rawContent,
+    model: response.model,
+    tokensUsed: response.usage?.totalTokens,
+    inputTokens: response.usage?.promptTokens,
+    outputTokens: response.usage?.completionTokens,
+    truncated: response.truncated,
+    warning,
+    bundle,
+  };
+}
+
+function getToolFileExpectations(toolType: OutputToolType): string {
+  const expectations: Partial<Record<OutputToolType, string>> = {
+    CLAUDE_CODE: `Generate exactly these files:
+1. <<FILE:CLAUDE.md>> - A comprehensive MARKDOWN project guide for Claude Code. Include: project overview, architecture description, tech stack, development commands, coding conventions, key patterns, directory structure, and implementation notes. This MUST be a markdown file, NOT JSON.
+2. <<FILE:.claude/settings.json>> - A JSON settings file for the .claude directory with project-specific configuration including allowed tools, permissions, and project preferences.
+3. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with the full project specification, requirements, and technical details.`,
+    CURSOR: `Generate exactly these files:
+1. <<FILE:.cursor/rules/project.mdc>> - Main project rules file in MDC format with project context, coding standards, directory structure, and development patterns.
+2. <<FILE:.cursor/rules/architecture.mdc>> - Architecture rules file with system design patterns, component relationships, and data flow.
+3. <<FILE:AGENTS.md>> - Agent configuration and workflow documentation for Cursor AI agents.
+4. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+    OPENAI_CODEX: `Generate exactly these files:
+1. <<FILE:AGENTS.md>> - Agent configuration with project context, coding guidelines, workflow definitions, and implementation patterns.
+2. <<FILE:.codex/config.toml>> - TOML configuration file for Codex CLI with project settings, tool permissions, and workspace configuration.
+3. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+    GOOGLE_ANTIGRAVITY: `Generate exactly these files:
+1. <<FILE:.agent/rules.md>> - Agent rules with project context, coding standards, and decision frameworks.
+2. <<FILE:.agent/skills.md>> - Skill definitions for the agent with project-specific capabilities and domain expertise.
+3. <<FILE:.agent/workflows.md>> - Workflow definitions for common development tasks and processes.
+4. <<FILE:AGENTS.md>> - Top-level agent documentation with overview and usage instructions.
+5. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+  };
+  return expectations[toolType] || 'Output each file with clear markers: <<FILE:path/to/file>> before each file\'s content and <<END_FILE>> after. Also generate a comprehensive reference document.';
+}
+
+function getToolLabel(toolType: OutputToolType): string {
+  const labels: Record<OutputToolType, string> = {
+    VIBE_V0: 'v0 (Vercel)',
+    VIBE_LOVEABLE: 'Loveable',
+    VIBE_BOLT: 'Bolt.new',
+    VIBE_REPLIT: 'Replit',
+    VIBE_FIREBASE_STUDIO: 'Firebase Studio',
+    CLAUDE_CODE: 'Claude Code',
+    CURSOR: 'Cursor',
+    OPENAI_CODEX: 'OpenAI Codex',
+    GOOGLE_ANTIGRAVITY: 'Google Antigravity',
+  };
+  return labels[toolType] || toolType;
 }
 

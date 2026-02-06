@@ -211,7 +211,6 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 ## 🎯 User Guide
 
 ### Managing Your Profile
-
 1. Click your profile icon or navigate to `/profile`
 2. Update your professional information:
    - **Name**: Your display name
@@ -222,6 +221,7 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
    - **LinkedIn**: Your LinkedIn profile URL
    - **Website**: Personal or professional website
    - **GitHub**: Your GitHub profile (for technical users)
+   - **Stack Preference**: Your preferred technologies and frameworks
 3. Choose your preferred mode (Plain or Technical)
 4. Change password (if not using OAuth)
 5. All fields are optional and can be updated anytime

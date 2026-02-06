@@ -12,7 +12,7 @@ export interface ConversationMessageProps {
   content: string;
   timestamp?: Date | string;
   className?: string;
-  projectMode?: 'PLAIN' | 'TECHNICAL';
+  projectMode?: 'PLAIN' | 'TECHNICAL' | 'UNIFIED';
   documentType?: 'BRD' | 'PRD';
 }
 

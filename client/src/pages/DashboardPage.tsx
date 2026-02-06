@@ -183,7 +183,7 @@ export function DashboardPage() {
                 id: p.id,
                 title: p.title || 'Untitled Project',
                 description: p.description,
-                mode: (p.mode || 'PLAIN').toLowerCase() as 'plain' | 'technical',
+                mode: (p.mode || 'UNIFIED').toLowerCase() as 'plain' | 'technical' | 'unified',
                 status: (p.status || 'ACTIVE').toLowerCase() as 'active' | 'completed' | 'archived',
                 progress: calculateProjectProgress(
                   { mode: p.mode || 'PLAIN' },

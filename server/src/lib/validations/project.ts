@@ -17,10 +17,10 @@ export const createProjectSchema = z.object({
   description: z
     .string()
     .min(20, 'Description must be at least 20 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
-  mode: z.enum(['PLAIN', 'TECHNICAL'], {
+    .max(15000, 'Description must not exceed 15,000 characters'),
+  mode: z.enum(['PLAIN', 'TECHNICAL', 'UNIFIED'], {
     message: 'Invalid mode',
-  }),
+  }).default('UNIFIED'),
   language: z.enum(['en', 'ko', 'ja', 'zh', 'auto'], {
     message: 'Invalid language selection',
   }).default('auto'),
@@ -39,7 +39,7 @@ export const updateProjectSchema = z.object({
   description: z
     .string()
     .min(20, 'Description must be at least 20 characters')
-    .max(2000, 'Description must not exceed 2000 characters')
+    .max(15000, 'Description must not exceed 15,000 characters')
     .optional(),
 });
 
@@ -66,6 +66,9 @@ export const updateProjectPhaseSchema = z.object({
     'PRD_APPROVED',
     'TASKS_GENERATING',
     'TASKS_READY',
+    'TOOL_SELECTION',
+    'TOOL_OUTPUT_GENERATING',
+    'TOOL_OUTPUT_READY',
     'COMPLETED',
   ]),
 });
@@ -75,7 +78,7 @@ export const updateProjectPhaseSchema = z.object({
  */
 export const getAllProjectsSchema = z.object({
   status: z.enum(['ACTIVE', 'COMPLETED', 'ARCHIVED']).optional(),
-  mode: z.enum(['PLAIN', 'TECHNICAL']).optional(),
+  mode: z.enum(['PLAIN', 'TECHNICAL', 'UNIFIED']).optional(),
   limit: z.number().min(1).max(100).default(50).optional(),
   offset: z.number().min(0).default(0).optional(),
 });

@@ -6,7 +6,7 @@ import { Input } from '../ui/Input';
 import { Layers, Search, Plus } from 'lucide-react';
 
 type ProjectStatus = 'active' | 'completed' | 'archived';
-type ProjectMode = 'plain' | 'technical';
+type ProjectMode = 'plain' | 'technical' | 'unified';
 type SortOption = 'newest' | 'oldest' | 'name' | 'progress';
 
 export interface Project {

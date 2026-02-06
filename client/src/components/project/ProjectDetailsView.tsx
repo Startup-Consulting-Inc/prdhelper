@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { ArrowLeft, FileText, Code, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -19,6 +19,7 @@ import { useProject } from '../../hooks/useProjects';
 import { useDocuments } from '../../hooks/useDocuments';
 import { trpc } from '../../lib/trpc';
 import { calculateProjectProgress } from '../../lib/utils/projectProgress';
+import { OUTPUT_TOOLS } from '@shared/types';
 
 interface ProjectDetailsViewProps {
   projectId: string;
@@ -61,9 +62,12 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const prdDoc = documents?.find((d) => d.type === 'PRD');
   const promptBuildDoc = documents?.find((d) => d.type === 'PROMPT_BUILD');
   const tasksDoc = documents?.find((d) => d.type === 'TASKS');
+  const toolOutputDocs = documents?.filter((d) => d.type === 'TOOL_OUTPUT') || [];
+
+  const isUnified = project.mode === 'UNIFIED';
 
   // Calculate progress using shared utility
-  const allDocs = [brdDoc, prdDoc, promptBuildDoc, tasksDoc]
+  const allDocs = [brdDoc, prdDoc, promptBuildDoc, tasksDoc, ...toolOutputDocs]
     .filter((doc) => doc !== undefined)
     .map((doc) => ({
       type: doc.type,
@@ -72,8 +76,16 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const progressPercent = calculateProjectProgress({ mode: project.mode }, allDocs);
 
   // Calculate completed steps from documents
-  const totalSteps = 3; // BRD, PRD, and final document
-  const completedSteps = allDocs.filter((doc) => doc.status === 'APPROVED').length;
+  const totalSteps = 3; // BRD, PRD, and final document/tool output
+  let completedSteps = 0;
+  if (brdDoc?.status === 'APPROVED') completedSteps++;
+  if (prdDoc?.status === 'APPROVED') completedSteps++;
+  if (isUnified) {
+    if (toolOutputDocs.length > 0) completedSteps++;
+  } else {
+    const finalDoc = project.mode === 'PLAIN' ? promptBuildDoc : tasksDoc;
+    if (finalDoc?.status === 'APPROVED') completedSteps++;
+  }
 
   // Handler for generating tasks
   const handleGenerateTasks = async () => {
@@ -147,6 +159,27 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         handler: () => navigate(`/documents/${prdDoc.id}`)
       };
     }
+    // UNIFIED mode: after PRD approved, go to tool selection
+    if (isUnified) {
+      if (toolOutputDocs.length === 0) {
+        return {
+          phase: 'Choose Output Tool',
+          subtitle: 'TOOL SELECTION',
+          action: 'Select Tool & Generate',
+          icon: Wrench,
+          handler: () => navigate(`/projects/${projectId}/tools`)
+        };
+      }
+      return {
+        phase: 'Tool Output Ready',
+        subtitle: 'TOOL OUTPUT',
+        action: 'Generate for Another Tool',
+        icon: Wrench,
+        handler: () => navigate(`/projects/${projectId}/tools`)
+      };
+    }
+
+    // Legacy PLAIN mode
     if (project.mode === 'PLAIN' && !promptBuildDoc) {
       return {
         phase: 'Generate Prompt Build',
@@ -165,6 +198,8 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         handler: () => navigate(`/documents/${promptBuildDoc.id}`)
       };
     }
+
+    // Legacy TECHNICAL mode
     if (project.mode === 'TECHNICAL' && !tasksDoc) {
       return {
         phase: 'Generate Tasks',
@@ -518,6 +553,83 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                 </Card>
               )}
 
+              {/* Tool Selection Card (UNIFIED Mode) */}
+              {isUnified && (
+                <Card
+                  className={
+                    prdDoc?.status === 'APPROVED'
+                      ? 'border-primary-200 dark:border-primary-800'
+                      : 'opacity-50'
+                  }
+                >
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                        <Wrench className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                        Tool Output
+                      </h3>
+                    </div>
+
+                    {toolOutputDocs.length > 0 ? (
+                      <>
+                        <Badge variant="success" className="mb-3">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          {toolOutputDocs.length} Generated
+                        </Badge>
+                        <div className="space-y-1.5 mb-3">
+                          {toolOutputDocs.map((d: any) => {
+                            const tool = OUTPUT_TOOLS.find((t) => t.id === d.toolType);
+                            return (
+                              <button
+                                key={d.id}
+                                onClick={() => navigate(`/projects/${projectId}/tool-output/${d.id}`)}
+                                className="w-full text-left px-3 py-2 text-sm rounded-md bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors flex items-center gap-2"
+                              >
+                                <Wrench className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                                {tool?.label || d.toolType}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => navigate(`/projects/${projectId}/tools`)}
+                        >
+                          Generate More
+                        </Button>
+                      </>
+                    ) : prdDoc?.status === 'APPROVED' ? (
+                      <>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          Choose your development tool
+                        </p>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => navigate(`/projects/${projectId}/tools`)}
+                        >
+                          Select Tool
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-500 dark:text-gray-600 mb-4">
+                          Requires PRD approval
+                        </p>
+                        <Button variant="outline" size="sm" className="w-full" disabled>
+                          Locked
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </Card>
+              )}
+
               {/* Tasks Card (Technical Mode Only) */}
               {project.mode === 'TECHNICAL' && (
                 <Card
@@ -640,7 +752,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                   Mode
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                  {project.mode === 'TECHNICAL' ? 'Technical Mode' : 'Plain Mode'}
+                  {project.mode === 'UNIFIED' ? 'Unified' : project.mode === 'TECHNICAL' ? 'Technical (Legacy)' : 'Plain (Legacy)'}
                 </dd>
               </div>
               <div>
