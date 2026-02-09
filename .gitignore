@@ -47,6 +47,7 @@ storybook-static/
 !agent-helpers/tasks/task.md
 !docs/prd.md
 !README.md
+!docs/bug-reports/*.md
 
 # Cursor specific files
 .cursor-updates

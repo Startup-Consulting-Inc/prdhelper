@@ -5,6 +5,7 @@
  */
 
 import { trpc } from '../lib/trpc';
+import { useAuth } from '../contexts/AuthContext';
 
 // Type definitions
 export interface Project {
@@ -38,14 +39,19 @@ export function useProjects(filters?: {
   mode?: 'PLAIN' | 'TECHNICAL';
 }) {
   const utils = trpc.useUtils();
+  const { isAuthenticated } = useAuth();
 
-  // Query: Get all projects
+  // Query: Get all projects (only when authenticated)
   const {
     data,
     isLoading,
     error,
     refetch,
-  } = trpc.projects.getAll.useQuery(filters || {});
+  } = trpc.projects.getAll.useQuery(filters || {}, {
+    enabled: isAuthenticated,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+  });
 
   // Mutation: Create project
   const createProject = trpc.projects.create.useMutation({
@@ -103,13 +109,16 @@ export function useProjects(filters?: {
 
 export function useProject(projectId: string) {
   const utils = trpc.useUtils();
+  const { isAuthenticated } = useAuth();
 
-  // Query: Get project by ID
+  // Query: Get project by ID (only when authenticated)
   const {
     data: project,
     isLoading,
     error,
-  } = trpc.projects.getById.useQuery({ id: projectId });
+  } = trpc.projects.getById.useQuery({ id: projectId }, {
+    enabled: isAuthenticated && !!projectId,
+  });
 
   // Mutation: Update phase
   const updatePhase = trpc.projects.updatePhase.useMutation({
@@ -129,7 +138,13 @@ export function useProject(projectId: string) {
 }
 
 export function useProjectStats() {
-  const { data, isLoading, error } = trpc.projects.getStats.useQuery();
+  const { isAuthenticated } = useAuth();
+
+  const { data, isLoading, error } = trpc.projects.getStats.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+  });
 
   return {
     stats: data,
@@ -137,4 +152,3 @@ export function useProjectStats() {
     error,
   };
 }
-

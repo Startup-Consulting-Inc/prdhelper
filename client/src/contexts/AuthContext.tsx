@@ -62,6 +62,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
   const [user, setUser] = useState<User | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,6 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (currentUser) {
       setUser(currentUser as User);
       setIsLoading(false);
+      // Invalidate project caches so they refetch with valid auth
+      utils.projects.invalidate();
     } else if (!isLoadingUser && !firebaseUser) {
       // Only set user to null if we're not loading AND there's no Firebase user
       setUser(null);
@@ -277,11 +280,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(updatedUser);
   }, []);
 
+  // Session expiration warning - notify user before auto-logout
+  const handleSessionWarning = useCallback(() => {
+    console.warn('[AuthContext] Session expiring soon due to inactivity');
+    // Show a browser-level alert so it's visible even during wizard flows
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('session-expiring', {
+        detail: { minutesLeft: 5 },
+      }));
+    }
+  }, []);
+
   // Activity timeout - automatically logout after 1 hour of inactivity
+  // Warning fires 5 minutes before the actual logout
   useActivityTimeout(
     logout,
     60 * 60 * 1000, // 1 hour in milliseconds
-    !!user && !!firebaseUser // Only track when user is authenticated
+    !!user && !!firebaseUser, // Only track when user is authenticated
+    handleSessionWarning,
+    5 * 60 * 1000 // Warn 5 minutes before timeout
   );
 
   const value: AuthContextType = {

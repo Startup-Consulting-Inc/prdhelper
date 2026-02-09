@@ -115,7 +115,12 @@ export function PRDWizardPage() {
       // Navigate to project detail to see generated document
       navigate(`/projects/${projectId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate document');
+      const message = err instanceof Error ? err.message : 'Failed to generate document';
+      setError(message.includes('timed out')
+        ? 'PRD generation timed out. The AI service may be busy — please try again.'
+        : message
+      );
+    } finally {
       setIsGenerating(false);
     }
   };

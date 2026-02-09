@@ -246,6 +246,9 @@ export function startTokenRefresh(): void {
     clearInterval(tokenRefreshInterval);
   }
 
+  let refreshFailureCount = 0;
+  const MAX_REFRESH_FAILURES = 3;
+
   // Refresh token every 50 minutes (3000000ms)
   // Tokens expire after 1 hour, so 50 minutes provides a safety margin
   tokenRefreshInterval = setInterval(async () => {
@@ -255,10 +258,16 @@ export function startTokenRefresh(): void {
         const newToken = await currentUser.getIdToken(true); // Force refresh
         localStorage.setItem('firebaseToken', newToken);
         console.log('Firebase token refreshed automatically');
+        refreshFailureCount = 0; // Reset on success
       } catch (error) {
-        console.error('Automatic token refresh failed:', error);
-        // If refresh fails, sign out user to prevent unauthorized state
-        await signOut();
+        refreshFailureCount++;
+        console.error(`Automatic token refresh failed (attempt ${refreshFailureCount}/${MAX_REFRESH_FAILURES}):`, error);
+        // Only sign out after multiple consecutive failures to avoid
+        // logging out users due to transient network issues
+        if (refreshFailureCount >= MAX_REFRESH_FAILURES) {
+          console.error('Token refresh failed too many times, signing out');
+          await signOut();
+        }
       }
     }
   }, 50 * 60 * 1000); // 50 minutes in milliseconds
