@@ -28,6 +28,9 @@ export interface AIResponse {
   };
 }
 
+// Timeout for AI API calls (3 minutes - document generation can be slow)
+const AI_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
+
 /**
  * Generate completion from OpenRouter API
  */
@@ -59,21 +62,30 @@ export async function generateCompletion(
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const response = await fetch(OPENROUTER_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-          'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
-          'X-Title': 'PRD Helper',
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature,
-          max_tokens: maxTokens,
-        }),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
+
+      let response: Response;
+      try {
+        response = await fetch(OPENROUTER_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+            'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
+            'X-Title': 'PRD Helper',
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature,
+            max_tokens: maxTokens,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -115,7 +127,10 @@ export async function generateCompletion(
       };
     } catch (error) {
       lastError = error as Error;
-      console.error(`AI API attempt ${attempt + 1} failed:`, error);
+      if (lastError.name === 'AbortError') {
+        lastError = new Error(`AI API request timed out after ${AI_REQUEST_TIMEOUT_MS / 1000}s`);
+      }
+      console.error(`AI API attempt ${attempt + 1} failed:`, lastError.message);
 
       // Wait before retrying (exponential backoff)
       if (attempt < retries - 1) {
