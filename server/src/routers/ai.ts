@@ -570,10 +570,11 @@ export const aiRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        logger.error({ error, input }, 'Failed to generate document');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error({ error, errorMessage, input }, 'Failed to generate document');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to generate document',
+          message: `Failed to generate document: ${errorMessage}`,
         });
       }
     }),
@@ -910,10 +911,11 @@ export const aiRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        logger.error({ error, input }, 'Failed to regenerate document');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error({ error, errorMessage, input }, 'Failed to regenerate document');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to regenerate document',
+          message: `Failed to regenerate document: ${errorMessage}`,
         });
       }
     }),
