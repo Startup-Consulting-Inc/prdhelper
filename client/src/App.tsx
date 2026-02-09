@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
 import { AuthLayout } from './components/auth/AuthLayout';
+import { SessionExpirationWarning } from './components/auth/SessionExpirationWarning';
 import { Spinner } from './components/ui/Spinner';
 import './App.css';
 
@@ -194,6 +195,8 @@ function AppContent() {
 
   // Authenticated - show app with routing
   return (
+    <>
+    <SessionExpirationWarning />
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -215,6 +218,7 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Suspense>
+    </>
   );
 }
 

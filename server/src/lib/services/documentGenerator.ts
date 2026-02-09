@@ -82,7 +82,7 @@ export async function generateBRD(
     },
     {
       role: 'user' as const,
-      content: `Based on our conversation, please generate a comprehensive Business Requirements Document. Remember to wrap it in <<BRD_START>> and <<BRD_END>> markers. ${languageInstruction}`,
+      content: `Based on our conversation, please generate a comprehensive Business Requirements Document. Today's date is ${new Date().toISOString().split('T')[0]}. Use this date for the document header. Remember to wrap it in <<BRD_START>> and <<BRD_END>> markers. ${languageInstruction}`,
     },
   ];
 
@@ -154,7 +154,7 @@ export async function generatePRD(
     },
     {
       role: 'user' as const,
-      content: `Based on the approved BRD and our conversation, please generate a comprehensive Product Requirements Document. Remember to wrap it in <<PRD_START>> and <<PRD_END>> markers. ${languageInstruction}`,
+      content: `Based on the approved BRD and our conversation, please generate a comprehensive Product Requirements Document. Today's date is ${new Date().toISOString().split('T')[0]}. Use this date for the document header. Remember to wrap it in <<PRD_START>> and <<PRD_END>> markers. ${languageInstruction}`,
     },
   ];
 
