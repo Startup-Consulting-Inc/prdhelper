@@ -24,6 +24,7 @@ import {
 } from '../lib/validations/document.js';
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
+import { saveDocumentContent, resolveDocumentContent, isGCSReference } from '../lib/storage.js';
 
 /**
  * Verify project access for document operations
@@ -119,13 +120,21 @@ export const documentsRouter = router({
 
         const documentsSnapshot = await query.get();
 
-        const documents = documentsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate(),
-          updatedAt: doc.data().updatedAt?.toDate(),
-          approvedAt: doc.data().approvedAt?.toDate(),
-        }));
+        const documents = await Promise.all(
+          documentsSnapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              content: data.content && isGCSReference(data.content)
+                ? await resolveDocumentContent(data.content)
+                : data.content,
+              createdAt: data.createdAt?.toDate(),
+              updatedAt: data.updatedAt?.toDate(),
+              approvedAt: data.approvedAt?.toDate(),
+            };
+          })
+        );
 
         return documents;
       } catch (error) {
@@ -184,9 +193,15 @@ export const documentsRouter = router({
           ctx.user.role
         );
 
+        // Resolve content from GCS if stored externally
+        const resolvedContent = documentData.content && isGCSReference(documentData.content)
+          ? await resolveDocumentContent(documentData.content)
+          : documentData.content;
+
         return {
           id: documentId,
           ...documentData,
+          content: resolvedContent,
           createdAt: documentData.createdAt?.toDate(),
           updatedAt: documentData.updatedAt?.toDate(),
           approvedAt: documentData.approvedAt?.toDate(),
@@ -228,12 +243,13 @@ export const documentsRouter = router({
         // Create document in subcollection
         const projectRef = ctx.db.collection('projects').doc(input.projectId);
         const documentRef = projectRef.collection('documents').doc();
+        const storedContent = await saveDocumentContent(input.projectId, documentRef.id, input.content);
 
         const documentData = {
           id: documentRef.id,
           projectId: input.projectId,
           type: input.type,
-          content: input.content,
+          content: storedContent,
           status: 'DRAFT',
           version: 1,
           approvedAt: null,
@@ -433,8 +449,9 @@ export const documentsRouter = router({
         });
 
         // Update document with incremented version and reset to DRAFT
+        const storedContent = await saveDocumentContent(documentData.projectId, documentData.id, input.content);
         await documentRef.update({
-          content: input.content,
+          content: storedContent,
           version: documentData.version + 1,
           status: 'DRAFT',
           approvedAt: null,
@@ -522,6 +539,9 @@ export const documentsRouter = router({
         );
 
         // Format document with metadata
+        const resolvedContent = documentData.content && isGCSReference(documentData.content)
+          ? await resolveDocumentContent(documentData.content)
+          : documentData.content;
         const createdAt = documentData.createdAt?.toDate() || new Date();
         const metadata = {
           title: `${documentData.type} - ${projectData.title}`,
@@ -537,7 +557,7 @@ version: ${metadata.version}
 status: ${metadata.status}
 ---
 
-${documentData.content}`;
+${resolvedContent}`;
 
         return {
           content: formattedContent,
@@ -608,9 +628,14 @@ ${documentData.content}`;
             const userDoc = await ctx.db.collection('users').doc(versionData.createdBy).get();
             const userData = userDoc.exists ? userDoc.data() : null;
 
+            const resolvedVersionContent = versionData.content && isGCSReference(versionData.content)
+              ? await resolveDocumentContent(versionData.content)
+              : versionData.content;
+
             return {
               id: versionDoc.id,
               ...versionData,
+              content: resolvedVersionContent,
               createdAt: versionData.createdAt?.toDate(),
               approvedAt: versionData.approvedAt?.toDate(),
               user: userData ? {
