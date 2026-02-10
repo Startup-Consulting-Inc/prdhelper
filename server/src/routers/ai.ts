@@ -321,6 +321,8 @@ export const aiRouter = router({
         let tokensUsed: number | undefined;
         let inputTokens: number | undefined;
         let outputTokens: number | undefined;
+        let truncated: boolean | undefined;
+        let warning: string | undefined;
 
         if (input.documentType === 'BRD') {
           // Get conversation from subcollection
@@ -349,6 +351,8 @@ export const aiRouter = router({
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
         } else if (input.documentType === 'PRD') {
           // Get approved BRD from subcollection
           const brdDocsSnapshot = await projectRef
@@ -394,6 +398,8 @@ export const aiRouter = router({
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
         } else if (input.documentType === 'PROMPT_BUILD') {
           // PROMPT_BUILD (Plain mode only)
           if (project?.mode !== 'PLAIN') {
@@ -441,6 +447,8 @@ export const aiRouter = router({
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
         } else {
           // TASKS (Technical mode only)
           if (project?.mode !== 'TECHNICAL') {
@@ -488,6 +496,8 @@ export const aiRouter = router({
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
 
           // Note: Kickoff prompt generation removed to keep task output clean
           // Only the task list is included in the content
@@ -506,6 +516,16 @@ export const aiRouter = router({
           });
         }
 
+        // Log truncation warning
+        if (truncated) {
+          logger.warn({
+            projectId: input.projectId,
+            documentType: input.documentType,
+            outputTokens,
+            warning,
+          }, 'Document generation was truncated');
+        }
+
         // Create document in subcollection
         const documentRef = projectRef.collection('documents').doc();
         const documentData = {
@@ -516,6 +536,8 @@ export const aiRouter = router({
           rawContent,
           status: 'DRAFT',
           version: 1,
+          truncated: truncated || false,
+          warning: warning || null,
           approvedAt: null,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),

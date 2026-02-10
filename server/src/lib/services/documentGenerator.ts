@@ -54,8 +54,8 @@ interface GenerationResult {
 
 // Maximum output tokens for Gemini 2.5 Flash model
 // Note: The model supports up to 65,536 output tokens
-// Using 32K to allow for comprehensive documents while leaving headroom
-const MAX_OUTPUT_TOKENS = 32000;
+// Using 64K to generate comprehensive documents without truncation
+const MAX_OUTPUT_TOKENS = 64000;
 
 /**
  * Generate BRD from conversation

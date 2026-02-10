@@ -395,6 +395,13 @@ export function DocumentViewPage() {
 
       {/* Document Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {(doc as any).truncated && (
+          <Alert variant="warning" className="mb-4">
+            This document may be incomplete due to AI output length limits.
+            {(doc as any).warning && ` ${(doc as any).warning}`}
+            {' '}Try regenerating the document for a complete version.
+          </Alert>
+        )}
         <Card>
           {isEditing ? (
             <div className="p-4">
