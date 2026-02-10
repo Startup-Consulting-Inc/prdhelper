@@ -24,6 +24,7 @@ export interface ProjectListProps {
   projects: Project[];
   onCreateProject?: () => void;
   onViewProject?: (id: string) => void;
+  onEditProject?: (id: string, currentTitle: string) => void;
   onArchiveProject?: (id: string) => void;
   onDeleteProject?: (id: string) => void;
   isLoading?: boolean;
@@ -34,6 +35,7 @@ const ProjectList = ({
   projects,
   onCreateProject,
   onViewProject,
+  onEditProject,
   onArchiveProject,
   onDeleteProject,
   isLoading = false,
@@ -172,6 +174,7 @@ const ProjectList = ({
               key={project.id}
               {...project}
               onView={onViewProject}
+              onEdit={onEditProject}
               onArchive={onArchiveProject}
               onDelete={onDeleteProject}
             />

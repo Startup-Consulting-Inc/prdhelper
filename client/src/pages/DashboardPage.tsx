@@ -4,6 +4,7 @@
  * Main dashboard showing user stats, projects, and quick actions.
  */
 
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Footer } from '../components/layout/Footer';
@@ -21,8 +22,11 @@ export function DashboardPage() {
     isLoading: isLoadingProjects,
     deleteProjectAsync,
     archiveProjectAsync,
+    updateProjectAsync,
   } = useProjects();
   const { stats, isLoading: isLoadingStats } = useProjectStats();
+  const [editingProject, setEditingProject] = useState<{ id: string; title: string } | null>(null);
+  const [editTitle, setEditTitle] = useState('');
 
   const handleCreateProject = () => {
     navigate('/projects/new');
@@ -53,6 +57,23 @@ export function DashboardPage() {
       await archiveProjectAsync({ id });
     } catch (error) {
       alert('Failed to archive project: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleEditProject = (id: string, currentTitle: string) => {
+    setEditingProject({ id, title: currentTitle });
+    setEditTitle(currentTitle);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingProject || !editTitle.trim()) return;
+
+    try {
+      await updateProjectAsync({ id: editingProject.id, title: editTitle.trim() });
+      setEditingProject(null);
+      setEditTitle('');
+    } catch (error) {
+      alert('Failed to rename project: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -194,6 +215,7 @@ export function DashboardPage() {
               }))}
               onCreateProject={handleCreateProject}
               onViewProject={handleViewProject}
+              onEditProject={handleEditProject}
               onArchiveProject={handleArchiveProject}
               onDeleteProject={handleDeleteProject}
               isLoading={isLoadingProjects}
@@ -202,6 +224,48 @@ export function DashboardPage() {
         </main>
         <Footer />
       </div>
+
+      {/* Rename Project Modal */}
+      {editingProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-950 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Rename Project
+              </h2>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEdit();
+                  if (e.key === 'Escape') { setEditingProject(null); setEditTitle(''); }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                placeholder="Project name"
+                autoFocus
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 pb-6">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setEditingProject(null); setEditTitle(''); }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveEdit}
+                disabled={!editTitle.trim() || editTitle.trim() === editingProject.title}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
