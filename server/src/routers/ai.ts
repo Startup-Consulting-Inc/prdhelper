@@ -316,7 +316,6 @@ export const aiRouter = router({
 
         // Generate document based on type
         let content: string;
-        let rawContent: string;
         let model: string;
         let tokensUsed: number | undefined;
         let inputTokens: number | undefined;
@@ -346,7 +345,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -393,7 +392,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -442,7 +441,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -491,7 +490,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -533,7 +532,6 @@ export const aiRouter = router({
           projectId: input.projectId,
           type: input.documentType,
           content,
-          rawContent,
           status: 'DRAFT',
           version: 1,
           truncated: truncated || false,
@@ -696,7 +694,6 @@ export const aiRouter = router({
 
         // Generate new document based on type
         let content: string;
-        let rawContent: string;
         let model: string;
         let tokensUsed: number | undefined;
         let inputTokens: number | undefined;
@@ -724,7 +721,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -769,7 +766,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -808,7 +805,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -848,7 +845,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -879,7 +876,6 @@ export const aiRouter = router({
           documentId: existingDocData.id,
           version: existingDocData.version,
           content: existingDocData.content,
-          rawContent: existingDocData.rawContent,
           status: existingDocData.status,
           approvedAt: existingDocData.approvedAt,
           createdBy: ctx.user.id,
@@ -889,7 +885,6 @@ export const aiRouter = router({
         // Update document with new content and increment version
         await documentRef.update({
           content,
-          rawContent,
           version: existingDocData.version + 1,
           status: 'DRAFT',
           approvedAt: null,
@@ -1215,7 +1210,6 @@ export const aiRouter = router({
           type: 'TOOL_OUTPUT',
           toolType: input.toolType,
           content: result.content,
-          rawContent: result.rawContent,
           bundle: JSON.stringify({ ...result.bundle, prdContent: prdDoc.content }),
           status: 'APPROVED', // Tool outputs are immediately ready
           version: 1,

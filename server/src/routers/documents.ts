@@ -234,7 +234,6 @@ export const documentsRouter = router({
           projectId: input.projectId,
           type: input.type,
           content: input.content,
-          rawContent: input.rawContent,
           status: 'DRAFT',
           version: 1,
           approvedAt: null,
@@ -427,7 +426,6 @@ export const documentsRouter = router({
         await documentRef.collection('versions').add({
           version: documentData.version,
           content: documentData.content,
-          rawContent: documentData.rawContent,
           status: documentData.status,
           approvedAt: documentData.approvedAt || null,
           createdBy: ctx.user.id,
@@ -437,7 +435,6 @@ export const documentsRouter = router({
         // Update document with incremented version and reset to DRAFT
         await documentRef.update({
           content: input.content,
-          rawContent: input.content, // For manual edits, content and rawContent are the same
           version: documentData.version + 1,
           status: 'DRAFT',
           approvedAt: null,
@@ -799,7 +796,6 @@ ${documentData.content}`;
         await documentRef.collection('versions').add({
           version: documentData.version,
           content: documentData.content,
-          rawContent: documentData.rawContent,
           status: documentData.status,
           approvedAt: documentData.approvedAt || null,
           createdBy: ctx.user.id,
@@ -809,7 +805,6 @@ ${documentData.content}`;
         // Restore the old version as current with incremented version number
         await documentRef.update({
           content: versionData.content,
-          rawContent: versionData.rawContent,
           version: documentData.version + 1,
           status: 'DRAFT',
           approvedAt: null,

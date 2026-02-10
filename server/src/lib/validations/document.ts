@@ -33,7 +33,7 @@ export const createDocumentSchema = z.object({
   projectId: z.string().min(1, 'Invalid project ID'),
   type: documentTypeSchema,
   content: z.string().min(1, 'Content is required'),
-  rawContent: z.string().min(1, 'Raw content is required'),
+  rawContent: z.string().optional(),
 });
 
 /**
