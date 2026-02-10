@@ -28,6 +28,7 @@ import {
 } from '../lib/utils/cache.js';
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
+import { saveDocumentContent, resolveDocumentContent, isGCSReference } from '../lib/storage.js';
 import {
   detectLanguage,
   getLanguageInstruction,
@@ -158,7 +159,8 @@ export const aiRouter = router({
           if (!brdDocsSnapshot.empty) {
             const brdDoc = brdDocsSnapshot.docs[0].data();
             if (brdDoc?.content) {
-              contextInfo += `\n\n### Approved BRD\n\n${brdDoc.content}`;
+              const resolvedBrdContent = isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc.content;
+              contextInfo += `\n\n### Approved BRD\n\n${resolvedBrdContent}`;
             }
           }
         }
@@ -316,11 +318,12 @@ export const aiRouter = router({
 
         // Generate document based on type
         let content: string;
-        let rawContent: string;
         let model: string;
         let tokensUsed: number | undefined;
         let inputTokens: number | undefined;
         let outputTokens: number | undefined;
+        let truncated: boolean | undefined;
+        let warning: string | undefined;
 
         if (input.documentType === 'BRD') {
           // Get conversation from subcollection
@@ -344,11 +347,13 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
         } else if (input.documentType === 'PRD') {
           // Get approved BRD from subcollection
           const brdDocsSnapshot = await projectRef
@@ -366,6 +371,7 @@ export const aiRouter = router({
           }
 
           const brdDoc = brdDocsSnapshot.docs[0].data();
+          const brdContent = isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc.content;
 
           // Get conversation from subcollection
           const conversationDoc = await projectRef
@@ -385,15 +391,17 @@ export const aiRouter = router({
           const result = await generatePRD(
             systemPromptData.prompt,
             conversationData?.messages as Message[],
-            brdDoc.content,
+            brdContent,
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
         } else if (input.documentType === 'PROMPT_BUILD') {
           // PROMPT_BUILD (Plain mode only)
           if (project?.mode !== 'PLAIN') {
@@ -419,6 +427,7 @@ export const aiRouter = router({
           }
 
           const prdDoc = prdDocsSnapshot.docs[0].data();
+          const prdContent = isGCSReference(prdDoc.content) ? await resolveDocumentContent(prdDoc.content) : prdDoc.content;
 
           // Get BRD (optional) from subcollection
           const brdDocsSnapshot = await projectRef
@@ -428,19 +437,22 @@ export const aiRouter = router({
             .get();
 
           const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+          const brdContent = brdDoc?.content && isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc?.content;
 
           const result = await generatePromptBuild(
             systemPromptData.prompt,
-            prdDoc.content,
-            brdDoc?.content,
+            prdContent,
+            brdContent,
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
         } else {
           // TASKS (Technical mode only)
           if (project?.mode !== 'TECHNICAL') {
@@ -466,6 +478,7 @@ export const aiRouter = router({
           }
 
           const prdDoc = prdDocsSnapshot.docs[0].data();
+          const prdContent = isGCSReference(prdDoc.content) ? await resolveDocumentContent(prdDoc.content) : prdDoc.content;
 
           // Get BRD (optional) from subcollection
           const brdDocsSnapshot = await projectRef
@@ -475,19 +488,22 @@ export const aiRouter = router({
             .get();
 
           const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+          const brdContent = brdDoc?.content && isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc?.content;
 
           const result = await generateTasks(
             systemPromptData.prompt,
-            prdDoc.content,
-            brdDoc?.content,
+            prdContent,
+            brdContent,
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
 
           // Note: Kickoff prompt generation removed to keep task output clean
           // Only the task list is included in the content
@@ -506,16 +522,28 @@ export const aiRouter = router({
           });
         }
 
+        // Log truncation warning
+        if (truncated) {
+          logger.warn({
+            projectId: input.projectId,
+            documentType: input.documentType,
+            outputTokens,
+            warning,
+          }, 'Document generation was truncated');
+        }
+
         // Create document in subcollection
         const documentRef = projectRef.collection('documents').doc();
+        const storedContent = await saveDocumentContent(input.projectId, documentRef.id, content);
         const documentData = {
           id: documentRef.id,
           projectId: input.projectId,
           type: input.documentType,
-          content,
-          rawContent,
+          content: storedContent,
           status: 'DRAFT',
           version: 1,
+          truncated: truncated || false,
+          warning: warning || null,
           approvedAt: null,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -570,10 +598,11 @@ export const aiRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        logger.error({ error, input }, 'Failed to generate document');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error({ error, errorMessage, input }, 'Failed to generate document');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to generate document',
+          message: `Failed to generate document: ${errorMessage}`,
         });
       }
     }),
@@ -673,7 +702,6 @@ export const aiRouter = router({
 
         // Generate new document based on type
         let content: string;
-        let rawContent: string;
         let model: string;
         let tokensUsed: number | undefined;
         let inputTokens: number | undefined;
@@ -701,7 +729,7 @@ export const aiRouter = router({
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -723,6 +751,7 @@ export const aiRouter = router({
           }
 
           const brdDoc = brdDocsSnapshot.docs[0].data();
+          const brdContent = isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc.content;
 
           // Get conversation from subcollection
           const conversationDoc = await projectRef
@@ -742,11 +771,11 @@ export const aiRouter = router({
           const result = await generatePRD(
             systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete PRD document directly based on the conversation history and approved BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
             conversationData?.messages as Message[],
-            brdDoc.content,
+            brdContent,
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -768,6 +797,7 @@ export const aiRouter = router({
           }
 
           const prdDoc = prdDocsSnapshot.docs[0].data();
+          const prdContent = isGCSReference(prdDoc.content) ? await resolveDocumentContent(prdDoc.content) : prdDoc.content;
 
           // Get BRD (optional) from subcollection
           const brdDocsSnapshot = await projectRef
@@ -777,15 +807,16 @@ export const aiRouter = router({
             .get();
 
           const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+          const brdContent = brdDoc?.content && isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc?.content;
 
           const result = await generatePromptBuild(
             systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete vibe coding prompt directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
-            prdDoc.content,
-            brdDoc?.content,
+            prdContent,
+            brdContent,
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
@@ -808,6 +839,7 @@ export const aiRouter = router({
           }
 
           const prdDoc = prdDocsSnapshot.docs[0].data();
+          const prdContent = isGCSReference(prdDoc.content) ? await resolveDocumentContent(prdDoc.content) : prdDoc.content;
 
           // Get BRD (optional) from subcollection
           const brdDocsSnapshot = await projectRef
@@ -817,22 +849,23 @@ export const aiRouter = router({
             .get();
 
           const brdDoc = brdDocsSnapshot.empty ? null : brdDocsSnapshot.docs[0].data();
+          const brdContent = brdDoc?.content && isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc?.content;
 
           const result = await generateTasks(
             systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete task list directly based on the approved PRD and BRD.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
-            prdDoc.content,
-            brdDoc?.content,
+            prdContent,
+            brdContent,
             detectedLanguage
           );
           content = result.content;
-          rawContent = result.rawContent;
+
           model = result.model;
           tokensUsed = result.tokensUsed;
           inputTokens = result.inputTokens;
           outputTokens = result.outputTokens;
 
           // Generate kickoff prompt
-          const kickoffPrompt = generateKickoffPrompt(result.tasks, prdDoc.content.substring(0, 500));
+          const kickoffPrompt = generateKickoffPrompt(result.tasks, prdContent.substring(0, 500));
           content += `\n\n---\n\n${kickoffPrompt}`;
         }
 
@@ -856,7 +889,6 @@ export const aiRouter = router({
           documentId: existingDocData.id,
           version: existingDocData.version,
           content: existingDocData.content,
-          rawContent: existingDocData.rawContent,
           status: existingDocData.status,
           approvedAt: existingDocData.approvedAt,
           createdBy: ctx.user.id,
@@ -864,9 +896,9 @@ export const aiRouter = router({
         });
 
         // Update document with new content and increment version
+        const storedContent = await saveDocumentContent(existingDocData.projectId, existingDocData.id, content);
         await documentRef.update({
-          content,
-          rawContent,
+          content: storedContent,
           version: existingDocData.version + 1,
           status: 'DRAFT',
           approvedAt: null,
@@ -910,10 +942,11 @@ export const aiRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        logger.error({ error, input }, 'Failed to regenerate document');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error({ error, errorMessage, input }, 'Failed to regenerate document');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to regenerate document',
+          message: `Failed to regenerate document: ${errorMessage}`,
         });
       }
     }),
@@ -1093,6 +1126,7 @@ export const aiRouter = router({
         }
 
         const prdDoc = prdDocsSnapshot.docs[0].data();
+        const prdContent = isGCSReference(prdDoc.content) ? await resolveDocumentContent(prdDoc.content) : prdDoc.content;
 
         // Get approved BRD
         const brdDocsSnapshot = await projectRef
@@ -1110,6 +1144,7 @@ export const aiRouter = router({
         }
 
         const brdDoc = brdDocsSnapshot.docs[0].data();
+        const brdContent = isGCSReference(brdDoc.content) ? await resolveDocumentContent(brdDoc.content) : brdDoc.content;
 
         // Determine the system prompt type for the tool
         const isVibeCoding = input.toolType.startsWith('VIBE_');
@@ -1164,8 +1199,8 @@ export const aiRouter = router({
         const result = await generateToolOutput(
           systemPromptContent,
           input.toolType,
-          prdDoc.content,
-          brdDoc.content,
+          prdContent,
+          brdContent,
           project?.title || '',
           detectedLanguage
         );
@@ -1185,14 +1220,14 @@ export const aiRouter = router({
 
         // Create TOOL_OUTPUT document in subcollection
         const documentRef = projectRef.collection('documents').doc();
+        const storedToolContent = await saveDocumentContent(input.projectId, documentRef.id, result.content);
         const documentData = {
           id: documentRef.id,
           projectId: input.projectId,
           type: 'TOOL_OUTPUT',
           toolType: input.toolType,
-          content: result.content,
-          rawContent: result.rawContent,
-          bundle: JSON.stringify({ ...result.bundle, prdContent: prdDoc.content }),
+          content: storedToolContent,
+          bundle: JSON.stringify({ ...result.bundle, prdContent: prdContent }),
           status: 'APPROVED', // Tool outputs are immediately ready
           version: 1,
           approvedAt: admin.firestore.FieldValue.serverTimestamp(),

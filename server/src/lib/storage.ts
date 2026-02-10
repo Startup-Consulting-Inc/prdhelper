@@ -144,3 +144,61 @@ export async function checkBucketAccess(): Promise<boolean> {
     return false;
   }
 }
+
+// --- Document content storage (for content exceeding Firestore field limits) ---
+
+const GCS_REF_PREFIX = '__GCS_REF__:';
+const FIRESTORE_CONTENT_LIMIT = 900_000; // 900KB safety margin (Firestore field limit ~1,048,487 bytes)
+
+/**
+ * Check if content exceeds Firestore's field size limit
+ */
+export function contentExceedsFirestoreLimit(content: string): boolean {
+  return Buffer.byteLength(content, 'utf-8') > FIRESTORE_CONTENT_LIMIT;
+}
+
+/**
+ * Check if a stored content value is a GCS reference
+ */
+export function isGCSReference(content: string): boolean {
+  return content.startsWith(GCS_REF_PREFIX);
+}
+
+/**
+ * Save document content, uploading to GCS if it exceeds Firestore limits.
+ * Returns the string to store in Firestore (either the content itself or a GCS reference).
+ */
+export async function saveDocumentContent(
+  projectId: string,
+  documentId: string,
+  content: string
+): Promise<string> {
+  if (!contentExceedsFirestoreLimit(content)) {
+    return content;
+  }
+
+  const gcsPath = `documents/${projectId}/${documentId}/content.md`;
+  const blob = bucket.file(gcsPath);
+
+  await blob.save(content, {
+    contentType: 'text/markdown; charset=utf-8',
+    resumable: false,
+  });
+
+  return `${GCS_REF_PREFIX}${gcsPath}`;
+}
+
+/**
+ * Resolve document content. If the content is a GCS reference, fetch from GCS.
+ * Otherwise return the content as-is.
+ */
+export async function resolveDocumentContent(content: string): Promise<string> {
+  if (!isGCSReference(content)) {
+    return content;
+  }
+
+  const gcsPath = content.slice(GCS_REF_PREFIX.length);
+  const blob = bucket.file(gcsPath);
+  const [data] = await blob.download();
+  return data.toString('utf-8');
+}
