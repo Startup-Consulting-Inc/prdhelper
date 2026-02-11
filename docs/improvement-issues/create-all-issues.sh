@@ -10,6 +10,22 @@ echo "Creating 20 improvement issues for Clearly..."
 echo ""
 
 # ============================================================
+# CREATE LABELS (skip errors if they already exist)
+# ============================================================
+echo "Setting up labels..."
+gh label create "critical"    --repo "$REPO" --color "B60205" --description "Critical priority" 2>/dev/null || true
+gh label create "performance" --repo "$REPO" --color "E4E669" --description "Performance improvement" 2>/dev/null || true
+gh label create "backend"     --repo "$REPO" --color "0E8A16" --description "Server-side change" 2>/dev/null || true
+gh label create "frontend"    --repo "$REPO" --color "1D76DB" --description "Client-side change" 2>/dev/null || true
+gh label create "ux"          --repo "$REPO" --color "C5DEF5" --description "User experience" 2>/dev/null || true
+gh label create "security"    --repo "$REPO" --color "D93F0B" --description "Security related" 2>/dev/null || true
+gh label create "tech-debt"   --repo "$REPO" --color "FBCA04" --description "Technical debt" 2>/dev/null || true
+gh label create "testing"     --repo "$REPO" --color "BFD4F2" --description "Testing related" 2>/dev/null || true
+gh label create "dx"          --repo "$REPO" --color "D4C5F9" --description "Developer experience" 2>/dev/null || true
+echo "Labels ready."
+echo ""
+
+# ============================================================
 # CRITICAL PRIORITY
 # ============================================================
 
