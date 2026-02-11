@@ -213,7 +213,7 @@ function AppContent() {
         <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
         <Route path="/projects/:projectId/tools" element={<ToolSelectionPage />} />
         <Route path="/projects/:projectId/tool-output/:documentId" element={<ToolOutputPage />} />
-        <Route path="/documents/:documentId" element={<DocumentViewPage />} />
+        <Route path="/projects/:projectId/documents/:documentId" element={<DocumentViewPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

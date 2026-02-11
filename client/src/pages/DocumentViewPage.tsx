@@ -21,9 +21,9 @@ import { trpc } from '../lib/trpc';
 import { exportToPDF, generatePDFFilename } from '../lib/utils/pdfExport';
 
 export function DocumentViewPage() {
-  const { documentId } = useParams<{ documentId: string }>();
+  const { projectId, documentId } = useParams<{ projectId: string; documentId: string }>();
   const navigate = useNavigate();
-  const { document: doc, isLoading } = useDocument(documentId!);
+  const { document: doc, isLoading } = useDocument(documentId!, projectId);
   const { project } = useProject(doc?.projectId || '');
   const { user } = useAuth();
   const utils = trpc.useUtils();

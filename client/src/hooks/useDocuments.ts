@@ -37,9 +37,10 @@ export function useDocuments(projectId: string, type?: 'BRD' | 'PRD' | 'PROMPT_B
   };
 }
 
-export function useDocument(documentId: string) {
+export function useDocument(documentId: string, projectId?: string) {
   const { data: document, isLoading, error } = trpc.documents.getById.useQuery({
     id: documentId,
+    ...(projectId && { projectId }),
   });
 
   return {
