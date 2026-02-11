@@ -614,40 +614,35 @@ export const aiRouter = router({
     .input(
       z.object({
         documentId: z.string(),
+        projectId: z.string(),
         feedback: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // Find document across all projects (documents are in subcollections)
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const projectDoc = await projectRef.get();
 
-        let documentRef: FirebaseFirestore.DocumentReference | null = null;
-        let existingDocData: any = null;
-        let projectRef: FirebaseFirestore.DocumentReference | null = null;
-        let projectData: any = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref
-            .collection('documents')
-            .doc(input.documentId)
-            .get();
-
-          if (docSnapshot.exists) {
-            documentRef = docSnapshot.ref;
-            existingDocData = docSnapshot.data();
-            projectRef = projectDoc.ref;
-            projectData = projectDoc.data();
-            break;
-          }
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
         }
 
-        if (!documentRef || !existingDocData || !projectRef || !projectData) {
+        const projectData = projectDoc.data();
+        const documentRef = projectRef.collection('documents').doc(input.documentId);
+        const docSnapshot = await documentRef.get();
+
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
+
+        const existingDocData = docSnapshot.data();
 
         // Verify ownership
         if (projectData.userId !== ctx.user.id) {

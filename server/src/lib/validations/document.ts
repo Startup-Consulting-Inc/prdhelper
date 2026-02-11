@@ -41,6 +41,7 @@ export const createDocumentSchema = z.object({
  */
 export const approveDocumentSchema = z.object({
   id: z.string().min(1, 'Invalid document ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
 });
 
 /**
@@ -59,6 +60,7 @@ export const regenerateDocumentSchema = z.object({
  */
 export const updateDocumentSchema = z.object({
   id: z.string().min(1, 'Invalid document ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   content: z.string().min(1, 'Content is required'),
 });
 
@@ -67,6 +69,7 @@ export const updateDocumentSchema = z.object({
  */
 export const exportDocumentSchema = z.object({
   id: z.string().min(1, 'Invalid document ID'),
+  projectId: z.string().min(1, 'Invalid project ID'),
   format: z.enum(['md', 'pdf']),
 });
 

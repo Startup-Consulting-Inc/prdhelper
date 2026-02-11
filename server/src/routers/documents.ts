@@ -156,31 +156,39 @@ export const documentsRouter = router({
     .input(getDocumentByIdSchema)
     .query(async ({ ctx, input }) => {
       try {
-        // Find document across all projects
-        // Note: This requires knowing the projectId or searching all projects
-        // For efficiency, we could require projectId in input, but for compatibility we'll search
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Find document using collectionGroup query (O(1) instead of scanning all projects)
+        const docsSnapshot = await ctx.db
+          .collectionGroup('documents')
+          .where('id', '==', input.id)
+          .limit(1)
+          .get();
 
-        let documentData: any = null;
-        let projectData: any = null;
-        let projectDocId: string | null = null;
-        let documentId: string = input.id;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref.collection('documents').doc(input.id).get();
-
-          if (docSnapshot.exists) {
-            documentData = docSnapshot.data();
-            projectData = projectDoc.data();
-            projectDocId = projectDoc.id;
-            break;
-          }
-        }
-
-        if (!documentData || !projectData || !projectDocId) {
+        if (docsSnapshot.empty) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
+          });
+        }
+
+        const docSnap = docsSnapshot.docs[0];
+        const documentData = docSnap.data();
+        const documentId: string = input.id;
+        const projectDocId = docSnap.ref.parent.parent?.id;
+
+        if (!projectDocId) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Document not found',
+          });
+        }
+
+        const projectDoc = await ctx.db.collection('projects').doc(projectDocId).get();
+        const projectData = projectDoc.data();
+
+        if (!projectData) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
           });
         }
 
@@ -299,36 +307,33 @@ export const documentsRouter = router({
     .input(approveDocumentSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // Find document
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const projectDoc = await projectRef.get();
 
-        let documentRef: FirebaseFirestore.DocumentReference | null = null;
-        let documentData: any = null;
-        let projectRef: FirebaseFirestore.DocumentReference | null = null;
-        let projectData: any = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref.collection('documents').doc(input.id).get();
-
-          if (docSnapshot.exists) {
-            documentRef = docSnapshot.ref;
-            documentData = docSnapshot.data();
-            projectRef = projectDoc.ref;
-            projectData = projectDoc.data();
-            break;
-          }
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
         }
 
-        if (!documentRef || !documentData || !projectRef || !projectData) {
+        const projectData = projectDoc.data();
+        const documentRef = projectRef.collection('documents').doc(input.id);
+        const docSnapshot = await documentRef.get();
+
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
 
+        const documentData = docSnapshot.data();
+
         // Verify project access (owner or collaborator with EDITOR role or higher)
         await verifyProjectAccess(
-          documentData.projectId,
+          input.projectId,
           ctx.user.id,
           'EDITOR',
           ctx.db,
@@ -404,34 +409,23 @@ export const documentsRouter = router({
     .input(updateDocumentSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // Find document
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const documentRef = projectRef.collection('documents').doc(input.id);
+        const docSnapshot = await documentRef.get();
 
-        let documentRef: FirebaseFirestore.DocumentReference | null = null;
-        let documentData: any = null;
-        let projectData: any = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref.collection('documents').doc(input.id).get();
-
-          if (docSnapshot.exists) {
-            documentRef = docSnapshot.ref;
-            documentData = docSnapshot.data();
-            projectData = projectDoc.data();
-            break;
-          }
-        }
-
-        if (!documentRef || !documentData || !projectData) {
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
 
+        const documentData = docSnapshot.data();
+
         // Verify project access (owner or collaborator with EDITOR role or higher)
         await verifyProjectAccess(
-          documentData.projectId,
+          input.projectId,
           ctx.user.id,
           'EDITOR',
           ctx.db,
@@ -506,32 +500,32 @@ export const documentsRouter = router({
     .input(exportDocumentSchema)
     .query(async ({ ctx, input }) => {
       try {
-        // Find document
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const projectDoc = await projectRef.get();
 
-        let documentData: any = null;
-        let projectData: any = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref.collection('documents').doc(input.id).get();
-
-          if (docSnapshot.exists) {
-            documentData = docSnapshot.data();
-            projectData = projectDoc.data();
-            break;
-          }
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
         }
 
-        if (!documentData || !projectData) {
+        const projectData = projectDoc.data();
+        const docSnapshot = await projectRef.collection('documents').doc(input.id).get();
+
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
 
+        const documentData = docSnapshot.data();
+
         // Verify project access (owner or collaborator with VIEWER role or higher)
         await verifyProjectAccess(
-          documentData.projectId,
+          input.projectId,
           ctx.user.id,
           'VIEWER',
           ctx.db,
@@ -580,35 +574,26 @@ ${resolvedContent}`;
    * Get version history for a document
    */
   getVersionHistory: protectedProcedure
-    .input(z.object({ documentId: z.string() }))
+    .input(z.object({ documentId: z.string(), projectId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
-        // Find document
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const documentRef = projectRef.collection('documents').doc(input.documentId);
+        const docSnapshot = await documentRef.get();
 
-        let documentRef: FirebaseFirestore.DocumentReference | null = null;
-        let documentData: any = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref.collection('documents').doc(input.documentId).get();
-
-          if (docSnapshot.exists) {
-            documentRef = docSnapshot.ref;
-            documentData = docSnapshot.data();
-            break;
-          }
-        }
-
-        if (!documentRef || !documentData) {
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
 
+        const documentData = docSnapshot.data();
+
         // Verify project access (owner or collaborator with VIEWER role or higher)
         await verifyProjectAccess(
-          documentData.projectId,
+          input.projectId,
           ctx.user.id,
           'VIEWER',
           ctx.db,
@@ -664,35 +649,33 @@ ${resolvedContent}`;
    * Get specific version content
    */
   getVersion: protectedProcedure
-    .input(z.object({ versionId: z.string(), documentId: z.string() }))
+    .input(z.object({ versionId: z.string(), documentId: z.string(), projectId: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
-        // Find document and version
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectDocId = input.projectId;
+        const projectRef = ctx.db.collection('projects').doc(projectDocId);
+        const projectDoc = await projectRef.get();
 
-        let documentRef: FirebaseFirestore.DocumentReference | null = null;
-        let documentData: any = null;
-        let projectData: any = null;
-        let projectDocId: string | null = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref.collection('documents').doc(input.documentId).get();
-
-          if (docSnapshot.exists) {
-            documentRef = docSnapshot.ref;
-            documentData = docSnapshot.data();
-            projectData = projectDoc.data();
-            projectDocId = projectDoc.id;
-            break;
-          }
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
         }
 
-        if (!documentRef || !documentData || !projectData || !projectDocId) {
+        const projectData = projectDoc.data();
+        const documentRef = projectRef.collection('documents').doc(input.documentId);
+        const docSnapshot = await documentRef.get();
+
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
+
+        const documentData = docSnapshot.data();
 
         // Get version
         const versionDoc = await documentRef.collection('versions').doc(input.versionId).get();
@@ -764,31 +747,22 @@ ${resolvedContent}`;
    * Restore a previous version
    */
   restoreVersion: protectedProcedure
-    .input(z.object({ versionId: z.string(), documentId: z.string() }))
+    .input(z.object({ versionId: z.string(), documentId: z.string(), projectId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        // Find document and version
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const documentRef = projectRef.collection('documents').doc(input.documentId);
+        const docSnapshot = await documentRef.get();
 
-        let documentRef: FirebaseFirestore.DocumentReference | null = null;
-        let documentData: any = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref.collection('documents').doc(input.documentId).get();
-
-          if (docSnapshot.exists) {
-            documentRef = docSnapshot.ref;
-            documentData = docSnapshot.data();
-            break;
-          }
-        }
-
-        if (!documentRef || !documentData) {
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
+
+        const documentData = docSnapshot.data();
 
         // Get version
         const versionDoc = await documentRef.collection('versions').doc(input.versionId).get();

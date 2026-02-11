@@ -138,7 +138,7 @@ export function ToolOutputPage() {
 
   const { data: document, isLoading } = trpc.documents.getById.useQuery(
     { id: documentId! },
-    { enabled: !!documentId }
+    { enabled: !!documentId && !!projectId }
   );
 
   if (isLoading) {

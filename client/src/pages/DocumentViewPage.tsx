@@ -55,6 +55,7 @@ export function DocumentViewPage() {
     try {
       await approveDocumentMutation.mutateAsync({
         id: doc.id,
+        projectId: doc.projectId,
       });
 
       // Invalidate queries to refresh data
@@ -83,6 +84,7 @@ export function DocumentViewPage() {
 
       await regenerateDocumentMutation.mutateAsync({
         documentId: doc.id,
+        projectId: doc.projectId,
         feedback: feedback || undefined,
       });
 
@@ -181,6 +183,7 @@ export function DocumentViewPage() {
 
       await updateDocumentMutation.mutateAsync({
         id: doc.id,
+        projectId: doc.projectId,
         content: editContent,
       });
 
@@ -425,6 +428,7 @@ export function DocumentViewPage() {
       {showVersionHistory && (
         <VersionHistory
           documentId={doc.id}
+          projectId={doc.projectId}
           onClose={() => setShowVersionHistory(false)}
           onRestore={() => {
             setShowVersionHistory(false);
