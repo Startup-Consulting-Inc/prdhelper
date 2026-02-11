@@ -16,6 +16,7 @@ export const documentTypeSchema = z.enum(['BRD', 'PRD', 'PROMPT_BUILD', 'TASKS',
  */
 export const getDocumentByIdSchema = z.object({
   id: z.string().min(1, 'Invalid document ID'),
+  projectId: z.string().min(1).optional(),
 });
 
 /**

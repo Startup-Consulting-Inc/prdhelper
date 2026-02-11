@@ -137,7 +137,7 @@ export function ToolOutputPage() {
   const [parseError, setParseError] = useState<string | null>(null);
 
   const { data: document, isLoading } = trpc.documents.getById.useQuery(
-    { id: documentId! },
+    { id: documentId!, projectId: projectId! },
     { enabled: !!documentId && !!projectId }
   );
 

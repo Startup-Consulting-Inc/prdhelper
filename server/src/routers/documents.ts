@@ -156,30 +156,50 @@ export const documentsRouter = router({
     .input(getDocumentByIdSchema)
     .query(async ({ ctx, input }) => {
       try {
-        // Find document using collectionGroup query (O(1) instead of scanning all projects)
-        const docsSnapshot = await ctx.db
-          .collectionGroup('documents')
-          .where('id', '==', input.id)
-          .limit(1)
-          .get();
+        let documentData: FirebaseFirestore.DocumentData;
+        let projectDocId: string;
 
-        if (docsSnapshot.empty) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Document not found',
-          });
-        }
+        if (input.projectId) {
+          // Direct lookup when projectId is provided (O(1))
+          const projectRef = ctx.db.collection('projects').doc(input.projectId);
+          const docSnapshot = await projectRef.collection('documents').doc(input.id).get();
 
-        const docSnap = docsSnapshot.docs[0];
-        const documentData = docSnap.data();
-        const documentId: string = input.id;
-        const projectDocId = docSnap.ref.parent.parent?.id;
+          if (!docSnapshot.exists) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Document not found',
+            });
+          }
 
-        if (!projectDocId) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Document not found',
-          });
+          documentData = docSnapshot.data()!;
+          projectDocId = input.projectId;
+        } else {
+          // Fallback: collectionGroup query (requires Firestore index on documents/id)
+          const docsSnapshot = await ctx.db
+            .collectionGroup('documents')
+            .where('id', '==', input.id)
+            .limit(1)
+            .get();
+
+          if (docsSnapshot.empty) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Document not found',
+            });
+          }
+
+          const docSnap = docsSnapshot.docs[0];
+          documentData = docSnap.data();
+          const parentId = docSnap.ref.parent.parent?.id;
+
+          if (!parentId) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Document not found',
+            });
+          }
+
+          projectDocId = parentId;
         }
 
         const projectDoc = await ctx.db.collection('projects').doc(projectDocId).get();
@@ -207,7 +227,7 @@ export const documentsRouter = router({
           : documentData.content;
 
         return {
-          id: documentId,
+          id: input.id,
           ...documentData,
           content: resolvedContent,
           createdAt: documentData.createdAt?.toDate(),
