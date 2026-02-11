@@ -138,7 +138,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'BRD QUESTIONS',
         action: 'Review & Approve BRD',
         icon: FileText,
-        handler: () => navigate(`/documents/${brdDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${brdDoc.id}`)
       };
     }
     if (!prdDoc) {
@@ -156,7 +156,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'PRD QUESTIONS',
         action: 'Review & Approve PRD',
         icon: FileText,
-        handler: () => navigate(`/documents/${prdDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${prdDoc.id}`)
       };
     }
     // UNIFIED mode: after PRD approved, go to tool selection
@@ -195,7 +195,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'VIBE CODING PROMPT',
         action: 'Review & Copy Prompt',
         icon: FileText,
-        handler: () => navigate(`/documents/${promptBuildDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${promptBuildDoc.id}`)
       };
     }
 
@@ -215,7 +215,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'TECHNICAL TASKS',
         action: 'Review & Approve Tasks',
         icon: Code,
-        handler: () => navigate(`/documents/${tasksDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${tasksDoc.id}`)
       };
     }
     return {
@@ -362,7 +362,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/documents/${brdDoc.id}`)}
+                        onClick={() => navigate(`/projects/${projectId}/documents/${brdDoc.id}`)}
                       >
                         View Document
                       </Button>
@@ -430,7 +430,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/documents/${prdDoc.id}`)}
+                        onClick={() => navigate(`/projects/${projectId}/documents/${prdDoc.id}`)}
                       >
                         View Document
                       </Button>
@@ -508,7 +508,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                           variant="outline"
                           size="sm"
                           className="w-full"
-                          onClick={() => navigate(`/documents/${promptBuildDoc.id}`)}
+                          onClick={() => navigate(`/projects/${projectId}/documents/${promptBuildDoc.id}`)}
                         >
                           View & Copy
                         </Button>
@@ -676,7 +676,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                           variant="outline"
                           size="sm"
                           className="w-full"
-                          onClick={() => navigate(`/documents/${tasksDoc.id}`)}
+                          onClick={() => navigate(`/projects/${projectId}/documents/${tasksDoc.id}`)}
                         >
                           View Tasks
                         </Button>

@@ -21,9 +21,9 @@ import { trpc } from '../lib/trpc';
 import { exportToPDF, generatePDFFilename } from '../lib/utils/pdfExport';
 
 export function DocumentViewPage() {
-  const { documentId } = useParams<{ documentId: string }>();
+  const { projectId, documentId } = useParams<{ projectId: string; documentId: string }>();
   const navigate = useNavigate();
-  const { document: doc, isLoading } = useDocument(documentId!);
+  const { document: doc, isLoading } = useDocument(documentId!, projectId);
   const { project } = useProject(doc?.projectId || '');
   const { user } = useAuth();
   const utils = trpc.useUtils();
@@ -55,6 +55,7 @@ export function DocumentViewPage() {
     try {
       await approveDocumentMutation.mutateAsync({
         id: doc.id,
+        projectId: doc.projectId,
       });
 
       // Invalidate queries to refresh data
@@ -83,6 +84,7 @@ export function DocumentViewPage() {
 
       await regenerateDocumentMutation.mutateAsync({
         documentId: doc.id,
+        projectId: doc.projectId,
         feedback: feedback || undefined,
       });
 
@@ -181,6 +183,7 @@ export function DocumentViewPage() {
 
       await updateDocumentMutation.mutateAsync({
         id: doc.id,
+        projectId: doc.projectId,
         content: editContent,
       });
 
@@ -395,6 +398,13 @@ export function DocumentViewPage() {
 
       {/* Document Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {(doc as any).truncated && (
+          <Alert variant="warning" className="mb-4">
+            This document may be incomplete due to AI output length limits.
+            {(doc as any).warning && ` ${(doc as any).warning}`}
+            {' '}Try regenerating the document for a complete version.
+          </Alert>
+        )}
         <Card>
           {isEditing ? (
             <div className="p-4">
@@ -418,6 +428,7 @@ export function DocumentViewPage() {
       {showVersionHistory && (
         <VersionHistory
           documentId={doc.id}
+          projectId={doc.projectId}
           onClose={() => setShowVersionHistory(false)}
           onRestore={() => {
             setShowVersionHistory(false);

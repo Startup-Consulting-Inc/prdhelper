@@ -110,8 +110,8 @@ export function DocumentManagementTable() {
     }
   };
 
-  const handleView = (documentId: string) => {
-    navigate(`/documents/${documentId}`);
+  const handleView = (projectId: string, documentId: string) => {
+    navigate(`/projects/${projectId}/documents/${documentId}`);
   };
 
   const getTypeVariant = (type: DocumentType) => {
@@ -205,7 +205,7 @@ export function DocumentManagementTable() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleView(document.id)}
+            onClick={() => handleView(document.project.id, document.id)}
           >
             <Eye className="h-4 w-4 mr-1" />
             View

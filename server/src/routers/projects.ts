@@ -106,42 +106,42 @@ export const projectsRouter = router({
 
         const ownedSnapshot = await ownedQuery.orderBy('updatedAt', 'desc').get();
 
-        // Then, find projects where user is a collaborator
-        const allProjectsSnapshot = await ctx.db.collection('projects').get();
-        const sharedProjectIds: string[] = [];
+        // Find projects where user is a collaborator using collectionGroup query (O(1) instead of O(N))
+        const sharedCollabs = await ctx.db
+          .collectionGroup('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
 
-        for (const projectDoc of allProjectsSnapshot.docs) {
-          const collaboratorsSnapshot = await projectDoc.ref
-            .collection('collaborators')
-            .where('userId', '==', ctx.user.id)
-            .get();
+        const sharedProjectRefs = sharedCollabs.docs
+          .map((d) => d.ref.parent.parent)
+          .filter(Boolean) as FirebaseFirestore.DocumentReference[];
 
-          if (!collaboratorsSnapshot.empty) {
-            const projectData = projectDoc.data();
-            // Apply filters
-            const matchesStatus = !status || projectData.status === status;
-            const matchesMode = !mode || projectData.mode === mode;
+        const sharedProjectDocs = await Promise.all(
+          sharedProjectRefs.map((ref) => ref.get())
+        );
 
-            if (matchesStatus && matchesMode) {
-              sharedProjectIds.push(projectDoc.id);
-            }
-          }
-        }
+        // Filter shared projects by status/mode and exclude non-existent
+        const filteredSharedDocs = sharedProjectDocs.filter((doc) => {
+          if (!doc.exists) return false;
+          const data = doc.data();
+          if (!data) return false;
+          const matchesStatus = !status || data.status === status;
+          const matchesMode = !mode || data.mode === mode;
+          return matchesStatus && matchesMode;
+        });
 
         // Combine owned and shared projects
         const allProjectDocs = [
           ...ownedSnapshot.docs,
-          ...sharedProjectIds.map((id) => {
-            return allProjectsSnapshot.docs.find((doc) => doc.id === id);
-          }).filter(Boolean) as FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
+          ...filteredSharedDocs,
         ];
 
         // Remove duplicates and sort by updatedAt
         const uniqueProjectDocs = Array.from(
           new Map(allProjectDocs.map((doc) => [doc.id, doc])).values()
         ).sort((a, b) => {
-          const aTime = a.data().updatedAt?.toMillis() || 0;
-          const bTime = b.data().updatedAt?.toMillis() || 0;
+          const aTime = a.data()!.updatedAt?.toMillis() || 0;
+          const bTime = b.data()!.updatedAt?.toMillis() || 0;
           return bTime - aTime;
         });
 
@@ -153,7 +153,7 @@ export const projectsRouter = router({
         // Fetch related data for each project
         const projects = await Promise.all(
           paginatedDocs.map(async (doc) => {
-            const projectData = doc.data();
+            const projectData = doc.data()!;
 
             // Get documents subcollection
             const documentsSnapshot = await doc.ref
@@ -742,27 +742,24 @@ export const projectsRouter = router({
         .where('userId', '==', ctx.user.id)
         .get();
 
-      // Get all projects where user is collaborator
-      const allProjectsSnapshot = await ctx.db.collection('projects').get();
-      const collaboratedProjectIds: string[] = [];
+      // Get all projects where user is collaborator using collectionGroup query (O(1) instead of O(N))
+      const sharedCollabs = await ctx.db
+        .collectionGroup('collaborators')
+        .where('userId', '==', ctx.user.id)
+        .get();
 
-      for (const projectDoc of allProjectsSnapshot.docs) {
-        const collaboratorSnapshot = await projectDoc.ref
-          .collection('collaborators')
-          .where('userId', '==', ctx.user.id)
-          .get();
+      const sharedProjectRefs = sharedCollabs.docs
+        .map((d) => d.ref.parent.parent)
+        .filter(Boolean) as FirebaseFirestore.DocumentReference[];
 
-        if (!collaboratorSnapshot.empty) {
-          collaboratedProjectIds.push(projectDoc.id);
-        }
-      }
+      const sharedProjectDocs = await Promise.all(
+        sharedProjectRefs.map((ref) => ref.get())
+      );
 
       // Combine owned and collaborated projects
       const allUserProjects = [
         ...ownedProjectsSnapshot.docs,
-        ...collaboratedProjectIds.map((id) => {
-          return allProjectsSnapshot.docs.find((doc) => doc.id === id);
-        }).filter(Boolean) as FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
+        ...sharedProjectDocs.filter((doc) => doc.exists),
       ];
 
       // Remove duplicates
@@ -776,7 +773,7 @@ export const projectsRouter = router({
       let completedProjects = 0;
 
       for (const projectDoc of uniqueProjects) {
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data()!;
         const documentsSnapshot = await projectDoc.ref.collection('documents').get();
 
         totalDocuments += documentsSnapshot.size;
