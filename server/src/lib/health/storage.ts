@@ -4,6 +4,7 @@
  * Verifies access to GCS bucket
  */
 import { storage } from '../storage.js';
+import { GCS_BUCKET_NAME } from '../config.js';
 import { logger } from '../logger.js';
 
 export interface HealthCheckResult {
@@ -29,7 +30,7 @@ export async function checkStorageHealth(): Promise<HealthCheckResult> {
   }
 
   try {
-    const bucketName = process.env.GCS_BUCKET_NAME || 'clearly-prd-attachments';
+    const bucketName = GCS_BUCKET_NAME;
     const bucket = storage.bucket(bucketName);
 
     // Check if bucket exists and is accessible

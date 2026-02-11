@@ -7,6 +7,7 @@
 import { Storage } from '@google-cloud/storage';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { GCS_BUCKET_NAME } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +18,7 @@ export const storage = new Storage({
   projectId: process.env.GCP_PROJECT_ID,
 });
 
-const bucketName = process.env.GCS_BUCKET_NAME || 'prd-helper-uploads';
+const bucketName = GCS_BUCKET_NAME;
 const bucket = storage.bucket(bucketName);
 
 /**

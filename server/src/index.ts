@@ -47,6 +47,18 @@ import { checkEmailHealth } from './lib/health/email.js';
 // Load environment variables FIRST
 dotenv.config();
 
+// Validate required environment variables — fail fast on startup
+const requiredEnvVars = [
+  'OPENROUTER_API_KEY',
+  'FIREBASE_PROJECT_ID',
+  'FIRESTORE_DATABASE_ID',
+];
+const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
+if (missingVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  process.exit(1);
+}
+
 // Log startup immediately to help debug
 console.log('🚀 Starting server...');
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
