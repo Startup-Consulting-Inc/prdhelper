@@ -6,6 +6,8 @@
 
 import { initTRPC, TRPCError } from '@trpc/server';
 import type { AppContext } from './context.js';
+import { checkAndIncrement } from '../utils/aiRateLimit.js';
+import { logger } from '../logger.js';
 
 /**
  * Initialize tRPC with context
@@ -88,6 +90,57 @@ const isAdmin = t.middleware(({ ctx, next }) => {
  * Admin procedure - requires admin role
  */
 export const adminProcedure = t.procedure.use(isAdmin);
+
+type AiOperation = 'ask' | 'generate' | 'regenerate';
+
+export function createAiRateLimitMiddleware(
+  operation: AiOperation,
+  limitPerHour: number
+) {
+  return t.middleware(async ({ ctx, next }) => {
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'You must be logged in to access this resource',
+      });
+    }
+
+    try {
+      checkAndIncrement(ctx.user.id, operation, limitPerHour);
+    } catch (err) {
+      logger.warn(
+        { userId: ctx.user.id, operation, type: 'ai_rate_limit' },
+        'AI rate limit exceeded'
+      );
+      throw new TRPCError({
+        code: 'TOO_MANY_REQUESTS',
+        message: err instanceof Error ? err.message : 'Too many AI requests. Please wait.',
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        user: ctx.user,
+      },
+    });
+  });
+}
+
+/** askQuestion: 60 requests/hour per user */
+export const aiAskProcedure = protectedProcedure.use(
+  createAiRateLimitMiddleware('ask', 60)
+);
+
+/** generateDocument: 10 requests/hour per user */
+export const aiGenerateProcedure = protectedProcedure.use(
+  createAiRateLimitMiddleware('generate', 10)
+);
+
+/** regenerateDocument: 10 requests/hour per user */
+export const aiRegenerateProcedure = protectedProcedure.use(
+  createAiRateLimitMiddleware('regenerate', 10)
+);
 
 /**
  * Export type definitions for client

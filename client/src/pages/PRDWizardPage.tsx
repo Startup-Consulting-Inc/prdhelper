@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useBlocker } from 'react-router-dom';
 import { ArrowLeft, Send, Loader2, FileText, CheckCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Textarea } from '../components/ui/Textarea';
@@ -16,6 +16,7 @@ import { Progress } from '../components/ui/Progress';
 import { Spinner } from '../components/ui/Spinner';
 import { Alert } from '../components/ui/Alert';
 import { ConversationMessage } from '../components/wizard/ConversationMessage';
+import { Dialog } from '../components/ui/Dialog';
 import { useProject } from '../hooks/useProjects';
 import { useConversation, type Message } from '../hooks/useAI';
 import { trpc } from '../lib/trpc';
@@ -69,15 +70,28 @@ export function PRDWizardPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [messages.length, isGenerating]);
 
+  // React Router blocker for in-app navigation (e.g. Back button, links)
+  const shouldBlock = messages.length > 0 && !isGenerating;
+  const blocker = useBlocker(shouldBlock);
+
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim() || isSubmitting) return;
 
+    const answerText = currentAnswer.trim();
+    if (answerText.length < 10) {
+      setError('Please provide a more detailed answer (at least 10 characters)');
+      return;
+    }
+    if (answerText.length > 5000) {
+      setError('Answer is too long. Please keep it under 5000 characters.');
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
+    setCurrentAnswer('');
 
     try {
-      const answerText = currentAnswer.trim();
-      setCurrentAnswer('');
 
       // Backend handles adding both user answer and AI question to conversation
       await askQuestionMutation.mutateAsync({
@@ -192,6 +206,30 @@ export function PRDWizardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      {/* Unsaved changes confirmation dialog */}
+      {blocker.state === 'blocked' && (
+        <Dialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) blocker.reset();
+          }}
+          title="Unsaved changes"
+          description="You have unsaved progress in this wizard. Leaving now will lose your conversation. Are you sure you want to leave?"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => blocker.reset()}>
+                Stay
+              </Button>
+              <Button variant="primary" onClick={() => blocker.proceed()}>
+                Leave
+              </Button>
+            </>
+          }
+        >
+          <></>
+        </Dialog>
+      )}
+
       {/* Header */}
       <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -362,8 +400,17 @@ export function PRDWizardPage() {
                 <Send className="h-5 w-5" />
               </Button>
             </div>
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-              Press Cmd/Ctrl + Enter to send • {currentAnswer.length} characters
+            <p
+              className={`mt-2 text-xs ${
+                currentAnswer.length > 5000
+                  ? 'text-red-600 dark:text-red-400'
+                  : currentAnswer.length > 0 && currentAnswer.length < 10
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-gray-500 dark:text-gray-500'
+              }`}
+            >
+              Press Cmd/Ctrl + Enter to send • {currentAnswer.length}/5000 characters
+              {currentAnswer.length > 0 && currentAnswer.length < 10 && ' (min 10)'}
             </p>
           </div>
         </div>

@@ -9,7 +9,13 @@
 
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { router, protectedProcedure } from '../lib/trpc/trpc.js';
+import {
+  router,
+  protectedProcedure,
+  aiAskProcedure,
+  aiGenerateProcedure,
+  aiRegenerateProcedure,
+} from '../lib/trpc/trpc.js';
 import { generateCompletion, type ChatMessage } from '../lib/services/ai.js';
 import {
   generateBRD,
@@ -39,7 +45,7 @@ export const aiRouter = router({
   /**
    * Ask next question in wizard based on conversation history
    */
-  askQuestion: protectedProcedure
+  askQuestion: aiAskProcedure
     .input(
       z.object({
         projectId: z.string(),
@@ -244,7 +250,7 @@ export const aiRouter = router({
   /**
    * Generate document from conversation
    */
-  generateDocument: protectedProcedure
+  generateDocument: aiGenerateProcedure
     .input(
       z.object({
         projectId: z.string(),
@@ -610,7 +616,7 @@ export const aiRouter = router({
   /**
    * Regenerate document with optional feedback
    */
-  regenerateDocument: protectedProcedure
+  regenerateDocument: aiRegenerateProcedure
     .input(
       z.object({
         documentId: z.string(),
