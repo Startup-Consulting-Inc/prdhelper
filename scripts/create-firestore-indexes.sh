@@ -26,7 +26,7 @@ gcloud firestore indexes fields update userId \
   --project="$PROJECT_ID" \
   --database="$DATABASE_ID" \
   --collection-group="collaborators" \
-  --field-config="order=ASCENDING,index-type=collection-group" \
+  --index order=ASCENDING \
   2>&1 || echo "  (Index may already exist or is being created)"
 
 echo ""
@@ -38,7 +38,7 @@ gcloud firestore indexes fields update id \
   --project="$PROJECT_ID" \
   --database="$DATABASE_ID" \
   --collection-group="documents" \
-  --field-config="order=ASCENDING,index-type=collection-group" \
+  --index order=ASCENDING \
   2>&1 || echo "  (Index may already exist or is being created)"
 
 echo ""
