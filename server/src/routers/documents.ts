@@ -318,7 +318,7 @@ export const documentsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data()!;
         const documentRef = projectRef.collection('documents').doc(input.id);
         const docSnapshot = await documentRef.get();
 
@@ -329,7 +329,7 @@ export const documentsRouter = router({
           });
         }
 
-        const documentData = docSnapshot.data();
+        const documentData = docSnapshot.data()!;
 
         // Verify project access (owner or collaborator with EDITOR role or higher)
         await verifyProjectAccess(
@@ -421,7 +421,7 @@ export const documentsRouter = router({
           });
         }
 
-        const documentData = docSnapshot.data();
+        const documentData = docSnapshot.data()!;
 
         // Verify project access (owner or collaborator with EDITOR role or higher)
         await verifyProjectAccess(
@@ -511,7 +511,7 @@ export const documentsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data()!;
         const docSnapshot = await projectRef.collection('documents').doc(input.id).get();
 
         if (!docSnapshot.exists) {
@@ -521,7 +521,7 @@ export const documentsRouter = router({
           });
         }
 
-        const documentData = docSnapshot.data();
+        const documentData = docSnapshot.data()!;
 
         // Verify project access (owner or collaborator with VIEWER role or higher)
         await verifyProjectAccess(
@@ -589,7 +589,7 @@ ${resolvedContent}`;
           });
         }
 
-        const documentData = docSnapshot.data();
+        const documentData = docSnapshot.data()!;
 
         // Verify project access (owner or collaborator with VIEWER role or higher)
         await verifyProjectAccess(
@@ -664,7 +664,7 @@ ${resolvedContent}`;
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data()!;
         const documentRef = projectRef.collection('documents').doc(input.documentId);
         const docSnapshot = await documentRef.get();
 
@@ -675,7 +675,7 @@ ${resolvedContent}`;
           });
         }
 
-        const documentData = docSnapshot.data();
+        const documentData = docSnapshot.data()!;
 
         // Get version
         const versionDoc = await documentRef.collection('versions').doc(input.versionId).get();
@@ -762,7 +762,7 @@ ${resolvedContent}`;
           });
         }
 
-        const documentData = docSnapshot.data();
+        const documentData = docSnapshot.data()!;
 
         // Get version
         const versionDoc = await documentRef.collection('versions').doc(input.versionId).get();

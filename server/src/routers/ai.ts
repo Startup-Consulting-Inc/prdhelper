@@ -631,7 +631,7 @@ export const aiRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data()!;
         const documentRef = projectRef.collection('documents').doc(input.documentId);
         const docSnapshot = await documentRef.get();
 
@@ -642,7 +642,7 @@ export const aiRouter = router({
           });
         }
 
-        const existingDocData = docSnapshot.data();
+        const existingDocData = docSnapshot.data()!;
 
         // Verify ownership
         if (projectData.userId !== ctx.user.id) {

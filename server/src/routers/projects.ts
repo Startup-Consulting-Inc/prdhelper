@@ -140,8 +140,8 @@ export const projectsRouter = router({
         const uniqueProjectDocs = Array.from(
           new Map(allProjectDocs.map((doc) => [doc.id, doc])).values()
         ).sort((a, b) => {
-          const aTime = a.data().updatedAt?.toMillis() || 0;
-          const bTime = b.data().updatedAt?.toMillis() || 0;
+          const aTime = a.data()!.updatedAt?.toMillis() || 0;
+          const bTime = b.data()!.updatedAt?.toMillis() || 0;
           return bTime - aTime;
         });
 
@@ -153,7 +153,7 @@ export const projectsRouter = router({
         // Fetch related data for each project
         const projects = await Promise.all(
           paginatedDocs.map(async (doc) => {
-            const projectData = doc.data();
+            const projectData = doc.data()!;
 
             // Get documents subcollection
             const documentsSnapshot = await doc.ref
@@ -773,7 +773,7 @@ export const projectsRouter = router({
       let completedProjects = 0;
 
       for (const projectDoc of uniqueProjects) {
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data()!;
         const documentsSnapshot = await projectDoc.ref.collection('documents').get();
 
         totalDocuments += documentsSnapshot.size;
