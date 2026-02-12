@@ -10,6 +10,65 @@
 
 // Shared types between frontend and backend
 
+// Domain types - shared between client and server
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  mode: 'PLAIN' | 'TECHNICAL' | 'UNIFIED';
+  language?: 'en' | 'ko' | 'ja' | 'zh' | 'auto';
+  status: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  currentPhase?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  userId: string;
+  isOwner?: boolean;
+  userRole?: 'OWNER' | 'VIEWER' | 'EDITOR' | null;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  documents?: Array<{
+    id: string;
+    type: string;
+    status: string;
+    createdAt: string;
+  }>;
+}
+
+export interface Message {
+  id?: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date | string;
+}
+
+export interface Conversation {
+  id: string;
+  projectId: string;
+  documentType: 'BRD' | 'PRD' | 'TASKS';
+  messages: Message[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface Document {
+  id: string;
+  projectId: string;
+  type: string;
+  content: string;
+  status: string;
+  version?: number;
+  truncated?: boolean;
+  warning?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  approvedAt?: Date | string | null;
+  [key: string]: unknown;
+}
+
 export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;

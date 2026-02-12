@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
@@ -6,42 +6,43 @@ import { SignupForm } from './components/auth/SignupForm';
 import { AuthLayout } from './components/auth/AuthLayout';
 import { SessionExpirationWarning } from './components/auth/SessionExpirationWarning';
 import { Spinner } from './components/ui/Spinner';
+import { lazyWithRetry } from './lib/utils/lazyWithRetry';
 import './App.css';
 
-// Lazy load pages for code splitting
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
-const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage'));
-const TermsPage = lazy(() => import('./pages/public/TermsPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const NewProjectPage = lazy(() => import('./pages/NewProjectPage'));
-const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
-const BRDWizardPage = lazy(() => import('./pages/BRDWizardPage'));
-const PRDWizardPage = lazy(() => import('./pages/PRDWizardPage'));
-const DocumentViewPage = lazy(() => import('./pages/DocumentViewPage'));
-const ToolSelectionPage = lazy(() => import('./pages/ToolSelectionPage'));
-const ToolOutputPage = lazy(() => import('./pages/ToolOutputPage'));
-const AdminPage = lazy(() => import('./pages/AdminPage'));
+// Lazy load pages for code splitting (with retry on chunk load failure)
+const LandingPage = lazyWithRetry(() => import('./pages/LandingPage'));
+const AuthCallbackPage = lazyWithRetry(() => import('./pages/AuthCallbackPage'));
+const PrivacyPage = lazyWithRetry(() => import('./pages/public/PrivacyPage'));
+const TermsPage = lazyWithRetry(() => import('./pages/public/TermsPage'));
+const ProfilePage = lazyWithRetry(() => import('./pages/ProfilePage'));
+const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
+const NewProjectPage = lazyWithRetry(() => import('./pages/NewProjectPage'));
+const ProjectDetailPage = lazyWithRetry(() => import('./pages/ProjectDetailPage'));
+const BRDWizardPage = lazyWithRetry(() => import('./pages/BRDWizardPage'));
+const PRDWizardPage = lazyWithRetry(() => import('./pages/PRDWizardPage'));
+const DocumentViewPage = lazyWithRetry(() => import('./pages/DocumentViewPage'));
+const ToolSelectionPage = lazyWithRetry(() => import('./pages/ToolSelectionPage'));
+const ToolOutputPage = lazyWithRetry(() => import('./pages/ToolOutputPage'));
+const AdminPage = lazyWithRetry(() => import('./pages/AdminPage'));
 
 // Auth pages
-const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
-const EmailVerificationPendingPage = lazy(() => import('./pages/EmailVerificationPendingPage'));
+const VerifyEmailPage = lazyWithRetry(() => import('./pages/VerifyEmailPage'));
+const EmailVerificationPendingPage = lazyWithRetry(() => import('./pages/EmailVerificationPendingPage'));
 
 // Public pages
-const AboutPage = lazy(() => import('./pages/public/AboutPage'));
-const CaseStudiesPage = lazy(() => import('./pages/public/CaseStudiesPage'));
-const BlogPage = lazy(() => import('./pages/public/BlogPage'));
-const ScheduleDemoPage = lazy(() => import('./pages/public/ScheduleDemoPage'));
-const ContactUsPage = lazy(() => import('./pages/public/ContactUsPage'));
-const VibeCodingPage = lazy(() => import('./pages/public/docs/VibeCodingPage'));
-const BRDDocPage = lazy(() => import('./pages/public/docs/BRDDocPage'));
-const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDGuidePage'));
-const PRDDocPage = lazy(() => import('./pages/public/docs/PRDDocPage'));
-const PRDGuidePage = lazy(() => import('./pages/public/docs/PRDGuidePage'));
-const SoftwareProcessPage = lazy(() => import('./pages/public/docs/SoftwareProcessPage'));
-const SoftwareProcessGuidePage = lazy(() => import('./pages/public/docs/SoftwareProcessGuidePage'));
-const HowToUsePage = lazy(() => import('./pages/public/docs/HowToUsePage'));
+const AboutPage = lazyWithRetry(() => import('./pages/public/AboutPage'));
+const CaseStudiesPage = lazyWithRetry(() => import('./pages/public/CaseStudiesPage'));
+const BlogPage = lazyWithRetry(() => import('./pages/public/BlogPage'));
+const ScheduleDemoPage = lazyWithRetry(() => import('./pages/public/ScheduleDemoPage'));
+const ContactUsPage = lazyWithRetry(() => import('./pages/public/ContactUsPage'));
+const VibeCodingPage = lazyWithRetry(() => import('./pages/public/docs/VibeCodingPage'));
+const BRDDocPage = lazyWithRetry(() => import('./pages/public/docs/BRDDocPage'));
+const BRDGuidePage = lazyWithRetry(() => import('./pages/public/docs/BRDGuidePage'));
+const PRDDocPage = lazyWithRetry(() => import('./pages/public/docs/PRDDocPage'));
+const PRDGuidePage = lazyWithRetry(() => import('./pages/public/docs/PRDGuidePage'));
+const SoftwareProcessPage = lazyWithRetry(() => import('./pages/public/docs/SoftwareProcessPage'));
+const SoftwareProcessGuidePage = lazyWithRetry(() => import('./pages/public/docs/SoftwareProcessGuidePage'));
+const HowToUsePage = lazyWithRetry(() => import('./pages/public/docs/HowToUsePage'));
 
 const extractErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {

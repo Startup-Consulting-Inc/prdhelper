@@ -5,23 +5,9 @@
  */
 
 import { trpc } from '../lib/trpc';
+import type { Message, Conversation } from '@shared/types';
 
-// Type definitions
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date | string;
-}
-
-export interface Conversation {
-  id: string;
-  projectId: string;
-  documentType: 'BRD' | 'PRD' | 'TASKS';
-  messages: Message[];
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
+export type { Message, Conversation };
 
 export interface ExplanationResponse {
   purpose: string;

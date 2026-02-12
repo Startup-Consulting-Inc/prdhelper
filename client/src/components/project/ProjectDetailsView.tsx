@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench } from 'lucide-react';
+import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -19,6 +19,7 @@ import { useProject } from '../../hooks/useProjects';
 import { useDocuments } from '../../hooks/useDocuments';
 import { trpc } from '../../lib/trpc';
 import { calculateProjectProgress } from '../../lib/utils/projectProgress';
+import { exportAllAsZip } from '../../lib/utils/exportAllZip';
 import { OUTPUT_TOOLS } from '@shared/types';
 
 interface ProjectDetailsViewProps {
@@ -34,6 +35,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const generateTasksMutation = trpc.ai.generateDocument.useMutation();
   const generatePromptBuildMutation = trpc.ai.generateDocument.useMutation();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [isExportingAll, setIsExportingAll] = useState(false);
 
   if (isLoadingProject) {
     return (
@@ -308,9 +310,48 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
 
         {/* Documents */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Documents
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              Documents
+            </h2>
+            {documents && documents.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const docsToExport = [brdDoc, prdDoc, tasksDoc, promptBuildDoc]
+                    .filter((d): d is NonNullable<typeof d> => d != null)
+                    .map((d) => ({ id: d.id, type: d.type, projectId }));
+
+                  if (docsToExport.length === 0) return;
+
+                  setIsExportingAll(true);
+                  try {
+                    await exportAllAsZip({
+                      projectId,
+                      projectTitle: project.title || 'Untitled Project',
+                      documents: docsToExport,
+                      fetchDocumentContent: async (docId, projId) => {
+                        const doc = await utils.documents.getById.fetch({
+                          id: docId,
+                          projectId: projId,
+                        });
+                        return { content: doc?.content ?? '' };
+                      },
+                    });
+                  } catch (err) {
+                    alert('Failed to export: ' + (err instanceof Error ? err.message : 'Unknown error'));
+                  } finally {
+                    setIsExportingAll(false);
+                  }
+                }}
+                disabled={isExportingAll}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExportingAll ? 'Exporting...' : 'Export All'}
+              </Button>
+            )}
+          </div>
           
           {isLoadingDocuments ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

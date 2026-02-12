@@ -6,33 +6,9 @@
 
 import { trpc } from '../lib/trpc';
 import { useAuth } from '../contexts/AuthContext';
+import type { Project } from '@shared/types';
 
-// Type definitions
-export interface Project {
-  id: string;
-  title: string;
-  description: string;
-  mode: 'PLAIN' | 'TECHNICAL';
-  language?: 'en' | 'ko' | 'ja' | 'zh' | 'auto';
-  status: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
-  currentPhase: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-  userId: string;
-  isOwner?: boolean;
-  userRole?: 'OWNER' | 'VIEWER' | 'EDITOR' | null;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  documents?: Array<{
-    id: string;
-    type: string;
-    status: string;
-    createdAt: string;
-  }>;
-}
+export type { Project };
 
 export function useProjects(filters?: {
   status?: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
@@ -85,6 +61,14 @@ export function useProjects(filters?: {
     },
   });
 
+  // Mutation: Duplicate project
+  const duplicateProject = trpc.projects.duplicate.useMutation({
+    onSuccess: () => {
+      utils.projects.getAll.invalidate();
+      utils.projects.getStats.invalidate();
+    },
+  });
+
   return {
     projects: data?.projects || [],
     total: data?.total || 0,
@@ -104,6 +88,9 @@ export function useProjects(filters?: {
     deleteProject: deleteProject.mutate,
     deleteProjectAsync: deleteProject.mutateAsync,
     isDeleting: deleteProject.isPending,
+    duplicateProject: duplicateProject.mutate,
+    duplicateProjectAsync: duplicateProject.mutateAsync,
+    isDuplicating: duplicateProject.isPending,
   };
 }
 

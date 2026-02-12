@@ -559,6 +559,123 @@ export const projectsRouter = router({
    * Archive project
    * Only project owner can archive
    */
+  /**
+   * Duplicate project with conversation history (no documents)
+   * Only project owner or VIEWER+ can duplicate
+   */
+  duplicate: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const sourceRef = ctx.db.collection('projects').doc(input.id);
+        const sourceDoc = await sourceRef.get();
+
+        if (!sourceDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const sourceData = sourceDoc.data()!;
+
+        // Verify access (owner, collaborator, or admin)
+        const isOwner = sourceData.userId === ctx.user.id;
+        const collaboratorSnapshot = await sourceRef
+          .collection('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
+        const isCollaborator = !collaboratorSnapshot.empty;
+
+        if (!isOwner && !isCollaborator && ctx.user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to duplicate this project',
+          });
+        }
+
+        const newProjectRef = ctx.db.collection('projects').doc();
+
+        const newProjectData = {
+          id: newProjectRef.id,
+          userId: ctx.user.id,
+          title: `${sourceData.title || 'Untitled'} (Copy)`,
+          description: sourceData.description || '',
+          mode: sourceData.mode || 'UNIFIED',
+          language: sourceData.language || 'auto',
+          status: 'ACTIVE',
+          currentPhase: 'BRD_QUESTIONS',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        await newProjectRef.set(newProjectData);
+
+        // Copy conversation history (BRD and PRD)
+        const conversationsSnapshot = await sourceRef.collection('conversations').get();
+
+        const batch = ctx.db.batch();
+
+        for (const convDoc of conversationsSnapshot.docs) {
+          const convData = convDoc.data();
+          const docType = convDoc.id;
+
+          if (docType !== 'BRD' && docType !== 'PRD') continue;
+
+          const newConvRef = newProjectRef.collection('conversations').doc(docType);
+          batch.set(newConvRef, {
+            id: docType,
+            projectId: newProjectRef.id,
+            documentType: docType,
+            messages: convData.messages || [],
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        await batch.commit();
+
+        await ctx.db.collection('auditLogs').add({
+          userId: ctx.user.id,
+          userName: ctx.user.name,
+          action: 'PROJECT_DUPLICATED',
+          details: {
+            sourceProjectId: input.id,
+            newProjectId: newProjectRef.id,
+            title: newProjectData.title,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info({
+          sourceProjectId: input.id,
+          newProjectId: newProjectRef.id,
+          userId: ctx.user.id,
+        }, 'Project duplicated');
+
+        return {
+          id: newProjectRef.id,
+          title: newProjectData.title,
+          description: newProjectData.description,
+          mode: newProjectData.mode,
+          language: newProjectData.language,
+          status: newProjectData.status,
+          currentPhase: newProjectData.currentPhase,
+          userId: newProjectData.userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, projectId: input.id, userId: ctx.user.id }, 'Failed to duplicate project');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to duplicate project',
+        });
+      }
+    }),
+
   archive: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {

@@ -27,6 +27,7 @@ export interface ProjectListProps {
   onEditProject?: (id: string, currentTitle: string) => void;
   onArchiveProject?: (id: string) => void;
   onDeleteProject?: (id: string) => void;
+  onDuplicateProject?: (id: string) => void;
   isLoading?: boolean;
   className?: string;
 }
@@ -38,6 +39,7 @@ const ProjectList = ({
   onEditProject,
   onArchiveProject,
   onDeleteProject,
+  onDuplicateProject,
   isLoading = false,
   className,
 }: ProjectListProps) => {
@@ -177,6 +179,7 @@ const ProjectList = ({
               onEdit={onEditProject}
               onArchive={onArchiveProject}
               onDelete={onDeleteProject}
+              onDuplicate={onDuplicateProject}
             />
           ))}
         </div>

@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useLocation, useBlocker } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Send, Loader2, FileText, CheckCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Textarea } from '../components/ui/Textarea';
@@ -16,10 +16,16 @@ import { Progress } from '../components/ui/Progress';
 import { Spinner } from '../components/ui/Spinner';
 import { Alert } from '../components/ui/Alert';
 import { ConversationMessage } from '../components/wizard/ConversationMessage';
-import { Dialog } from '../components/ui/Dialog';
 import { useProject } from '../hooks/useProjects';
 import { useConversation, type Message } from '../hooks/useAI';
 import { trpc } from '../lib/trpc';
+
+const DOCUMENT_GENERATION_STEPS = [
+  'Analyzing requirements...',
+  'Building document structure...',
+  'Generating content...',
+  'Finalizing document...',
+];
 
 export function PRDWizardPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -45,7 +51,20 @@ export function PRDWizardPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
   const [questionCount, setQuestionCount] = useState(0);
+
+  // Advance generation step indicator during document generation
+  useEffect(() => {
+    if (!isGenerating) {
+      setGenerationStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setGenerationStep((prev) => Math.min(prev + 1, DOCUMENT_GENERATION_STEPS.length - 1));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -70,15 +89,22 @@ export function PRDWizardPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [messages.length, isGenerating]);
 
-  // React Router blocker for in-app navigation (e.g. Back button, links)
-  const shouldBlock = messages.length > 0 && !isGenerating;
-  const blocker = useBlocker(shouldBlock);
+  const handleBackClick = () => {
+    const hasUnsavedProgress = messages.length > 0 && !isGenerating;
+    if (hasUnsavedProgress && !window.confirm(
+      'You have unsaved progress in this wizard. Leaving now will lose your conversation. Are you sure you want to leave?'
+    )) {
+      return;
+    }
+    navigate(`/projects/${projectId}`);
+  };
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim() || isSubmitting) return;
 
     const answerText = currentAnswer.trim();
-    if (answerText.length < 10) {
+    const isExampleChoice = /^Example\s+\d+$/i.test(answerText);
+    if (answerText.length < 10 && !isExampleChoice) {
       setError('Please provide a more detailed answer (at least 10 characters)');
       return;
     }
@@ -206,30 +232,6 @@ export function PRDWizardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      {/* Unsaved changes confirmation dialog */}
-      {blocker.state === 'blocked' && (
-        <Dialog
-          open={true}
-          onOpenChange={(open) => {
-            if (!open) blocker.reset();
-          }}
-          title="Unsaved changes"
-          description="You have unsaved progress in this wizard. Leaving now will lose your conversation. Are you sure you want to leave?"
-          footer={
-            <>
-              <Button variant="outline" onClick={() => blocker.reset()}>
-                Stay
-              </Button>
-              <Button variant="primary" onClick={() => blocker.proceed()}>
-                Leave
-              </Button>
-            </>
-          }
-        >
-          <></>
-        </Dialog>
-      )}
-
       {/* Header */}
       <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -238,7 +240,7 @@ export function PRDWizardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate(`/projects/${projectId}`)}
+                onClick={handleBackClick}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -339,14 +341,30 @@ export function PRDWizardPage() {
 
               {isGenerating && (
                 <Card className="bg-purple-50 dark:bg-purple-950/50 border-purple-200 dark:border-purple-800">
-                  <div className="p-6 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 mx-auto mb-3" />
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                      Generating Your PRD...
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      This may take a minute. Please wait...
-                    </p>
+                  <div className="p-6">
+                    <div className="flex items-center gap-4">
+                      <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                          Generating Your PRD...
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {DOCUMENT_GENERATION_STEPS[generationStep]}
+                        </p>
+                        <div className="mt-4 flex gap-1.5">
+                          {DOCUMENT_GENERATION_STEPS.map((_, i) => (
+                            <div
+                              key={i}
+                              className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${
+                                i <= generationStep
+                                  ? 'bg-purple-500'
+                                  : 'bg-gray-200 dark:bg-gray-700'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </Card>
               )}
@@ -404,13 +422,13 @@ export function PRDWizardPage() {
               className={`mt-2 text-xs ${
                 currentAnswer.length > 5000
                   ? 'text-red-600 dark:text-red-400'
-                  : currentAnswer.length > 0 && currentAnswer.length < 10
+                  : currentAnswer.length > 0 && currentAnswer.length < 10 && !/^Example\s+\d+$/i.test(currentAnswer.trim())
                     ? 'text-amber-600 dark:text-amber-400'
                     : 'text-gray-500 dark:text-gray-500'
               }`}
             >
               Press Cmd/Ctrl + Enter to send • {currentAnswer.length}/5000 characters
-              {currentAnswer.length > 0 && currentAnswer.length < 10 && ' (min 10)'}
+              {currentAnswer.length > 0 && currentAnswer.length < 10 && !/^Example\s+\d+$/i.test(currentAnswer.trim()) && ' (min 10)'}
             </p>
           </div>
         </div>
