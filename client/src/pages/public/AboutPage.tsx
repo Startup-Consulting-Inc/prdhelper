@@ -5,11 +5,17 @@
  */
 
 import { PublicLayout } from '../../components/layout/PublicLayout';
+import { SEO } from '../../components/SEO';
 import { Sparkles, Target, Users, Zap } from 'lucide-react';
 
 export default function AboutPage() {
   return (
     <PublicLayout>
+      <SEO
+        title="About Clearly – AI Requirements Platform"
+        description="Clearly is an AI-powered platform helping product managers and teams create professional BRDs and PRDs in minutes. Learn about our mission and team."
+        path="/about"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">

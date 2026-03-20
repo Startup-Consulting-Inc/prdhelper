@@ -5,6 +5,8 @@
  */
 
 import { PublicLayout } from '../../../components/layout/PublicLayout';
+import { SEO } from '../../../components/SEO';
+import { Helmet } from 'react-helmet-async';
 import {
   Zap,
   FileText,
@@ -31,6 +33,44 @@ import {
 export default function BRDGuidePage() {
   return (
     <PublicLayout>
+      <SEO
+        title="How to Write a BRD – Complete Business Requirements Document Guide"
+        description="Complete Business Requirements Document guide with templates, examples, and best practices. Learn how to write a BRD that aligns stakeholders and prevents scope creep."
+        path="/docs/brd-guide"
+      />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'What is a Business Requirements Document (BRD)?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A Business Requirements Document (BRD) is a formal document that describes the business solution for a project, capturing stakeholder needs, business objectives, project scope, and success criteria. It is written before technical design begins and serves as the foundation that all subsequent project decisions are based on.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'What should be included in a BRD?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A complete BRD should include: Executive Summary, Business Objectives, Current State Analysis, Project Scope (in-scope and out-of-scope), Stakeholder List, Functional Requirements, Non-Functional Requirements, Constraints and Assumptions, Success Criteria and KPIs, Risks and Mitigation Strategies, and a Glossary. Clearly generates all of these sections automatically.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'What is the difference between a BRD and a PRD?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A BRD (Business Requirements Document) focuses on business objectives and stakeholder needs — the why. A PRD (Product Requirements Document) focuses on the product features and technical implementation — the what and how. BRDs are written first, by business analysts, and read by executives and stakeholders. PRDs are written after, by product managers, and read by developers and designers.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'How long does it take to write a BRD?',
+              acceptedAnswer: { '@type': 'Answer', text: 'Writing a BRD manually takes 2-5 days for a typical project. Using an AI generator like Clearly, a complete BRD can be generated in 15-30 minutes through guided questions — 90% faster than manual writing while producing more consistent, comprehensive results.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'Who writes a BRD?',
+              acceptedAnswer: { '@type': 'Answer', text: 'BRDs are typically written by Business Analysts (BAs), Project Managers, or Product Managers, in collaboration with business stakeholders. The author is responsible for eliciting requirements from all stakeholders and documenting them in a clear, structured format that everyone can agree on.' },
+            },
+          ],
+        })}</script>
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <header className="text-center py-12 mb-8 bg-white dark:bg-gray-800 shadow-xl rounded-xl">

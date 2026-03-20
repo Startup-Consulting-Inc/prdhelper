@@ -8,6 +8,7 @@ import { PublicLayout } from '../layout/PublicLayout';
 import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ReactNode } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 export interface BlogPostLayoutProps {
   title: string;
@@ -16,10 +17,13 @@ export interface BlogPostLayoutProps {
   readTime: string;
   category: string;
   excerpt: string;
+  slug: string;
   coverImage?: string;
   coverGradient?: string;
   children: ReactNode;
 }
+
+const BASE_URL = 'https://www.clearlyreqs.com';
 
 export function BlogPostLayout({
   title,
@@ -28,12 +32,45 @@ export function BlogPostLayout({
   readTime,
   category,
   excerpt,
+  slug,
   coverImage,
   coverGradient = 'from-primary-600 to-accent-600',
   children,
 }: BlogPostLayoutProps) {
+  const canonicalUrl = `${BASE_URL}/blog/${slug}`;
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: title,
+    description: excerpt,
+    author: {
+      '@type': 'Person',
+      name: author,
+    },
+    datePublished: date,
+    url: canonicalUrl,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Clearly',
+      url: BASE_URL,
+    },
+  };
+
   return (
     <PublicLayout>
+      <Helmet>
+        <title>{title} | Clearly</title>
+        <meta name="description" content={excerpt} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={excerpt} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={excerpt} />
+        <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+      </Helmet>
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back to Blog */}
         <Link

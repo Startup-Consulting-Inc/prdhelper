@@ -5,6 +5,7 @@
  */
 
 import { PublicLayout } from '../../../components/layout/PublicLayout';
+import { SEO } from '../../../components/SEO';
 import { Link } from 'react-router-dom';
 import {
   UserPlus,
@@ -35,6 +36,11 @@ import {
 export default function HowToUsePage() {
   return (
     <PublicLayout>
+      <SEO
+        title="How to Use Clearly – Step-by-Step Guide"
+        description="Step-by-step guide to using Clearly's AI wizard to generate your first PRD or BRD. From signup to your first completed requirements document in 30 minutes."
+        path="/docs/how-to-use"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">

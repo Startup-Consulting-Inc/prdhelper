@@ -24,6 +24,8 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PublicHeader } from '../components/layout/PublicHeader';
 import { PublicFooter } from '../components/layout/PublicFooter';
+import { SEO } from '../components/SEO';
+import { Helmet } from 'react-helmet-async';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -39,13 +41,56 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
+      <SEO
+        title="AI BRD & PRD Generator – Create Requirements Documents 10x Faster"
+        description="Generate professional BRDs and PRDs in minutes with AI. Clearly's intelligent wizard guides you from idea to complete requirements document. Free trial, no credit card required."
+        path="/"
+      />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'How long does it take to create a PRD with Clearly?',
+              acceptedAnswer: { '@type': 'Answer', text: 'Generate professional PRDs in 15-30 minutes through guided AI conversations — 90% faster than traditional methods.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'What is a BRD (Business Requirements Document)?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A Business Requirements Document (BRD) describes the business solution for a project, capturing stakeholder needs, business objectives, and project scope. It is the foundation document that guides development teams before any code is written.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'What is a PRD (Product Requirements Document)?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A Product Requirements Document (PRD) defines the features, functionality, and behavior of a product or feature. It includes user stories, acceptance criteria, and technical requirements that development teams use to build the product.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'What is the difference between a BRD and a PRD?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A BRD focuses on business objectives and stakeholder needs (the "why"), while a PRD focuses on product features and technical requirements (the "what" and "how"). BRDs are typically written first and read by executives and business analysts; PRDs are written second and read by product managers and developers.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'Does Clearly work for non-technical users?',
+              acceptedAnswer: { '@type': 'Answer', text: 'Yes. Clearly has two modes: Plain Mode for business stakeholders with accessible language and guided questions, and Technical Mode for developers and architects with detailed technical requirements and sprint-ready task lists.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'Can I use Clearly with AI coding tools like Cursor or Claude?',
+              acceptedAnswer: { '@type': 'Answer', text: 'Yes. Clearly generates AI-ready context files and prompts specifically designed for AI coding tools like Cursor, Claude, and GitHub Copilot. Better requirements lead to better AI-generated code.' },
+            },
+          ],
+        })}</script>
+      </Helmet>
       <PublicHeader />
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-            Requirements Made Clear
+            AI-Powered BRD &amp; PRD Generator for Modern Teams
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8">
             In the era of AI-driven development—whether you're using Cursor, Claude, or other AI coding tools—the quality of your specifications directly impacts your outcomes. Clear requirements = better AI-generated code.
@@ -309,6 +354,61 @@ export function LandingPage() {
                 </p>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Definitions: What is a PRD / BRD / BRD vs PRD */}
+      <section className="bg-gray-50 dark:bg-gray-900 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* What is a PRD */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                What is a PRD?
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                A <strong>Product Requirements Document (PRD)</strong> defines the features, functionality, and behavior of a product or feature. It captures user stories, acceptance criteria, and technical requirements that development teams use to build the right thing.
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                PRDs are written by product managers and read by engineers, designers, and QA. A well-written PRD reduces back-and-forth, prevents scope creep, and ensures the final product matches stakeholder expectations.
+              </p>
+            </div>
+
+            {/* What is a BRD */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                What is a BRD?
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                A <strong>Business Requirements Document (BRD)</strong> describes the business solution for a project — capturing stakeholder needs, business objectives, and project scope. It answers the "why" before any code is written.
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                BRDs are written before PRDs. They are read by executives, business analysts, and project sponsors to ensure alignment on goals and constraints before committing to a solution.
+              </p>
+            </div>
+
+            {/* BRD vs PRD */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                BRD vs PRD
+              </h2>
+              <div className="space-y-3">
+                {[
+                  { aspect: 'Focus', brd: 'Business objectives', prd: 'Product features' },
+                  { aspect: 'Audience', brd: 'Executives, BAs', prd: 'PMs, developers' },
+                  { aspect: 'Answers', brd: 'Why build it?', prd: 'What to build?' },
+                  { aspect: 'Written by', brd: 'Business analyst', prd: 'Product manager' },
+                  { aspect: 'Timing', brd: 'Before PRD', prd: 'Before development' },
+                ].map((row) => (
+                  <div key={row.aspect} className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">{row.aspect}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{row.brd}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{row.prd}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>

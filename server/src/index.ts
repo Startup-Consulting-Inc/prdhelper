@@ -21,6 +21,7 @@
  * - [2025-01-XX] Improved health checks with dependency verification
  */
 import express, { Request, Response } from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -112,6 +113,9 @@ app.set('trust proxy', 1);
 // Sentry Express integration is already configured via expressIntegration() in Sentry.init()
 // No need for separate request handler when using expressIntegration()
 
+// Compression middleware (Gzip/Brotli for all responses)
+app.use(compression());
+
 // Correlation ID middleware (must be early for logging)
 app.use(correlationIdMiddleware);
 
@@ -128,6 +132,10 @@ if (clientDistExists) {
   logger.info({ clientDistPath }, 'Serving static client files');
   app.use(express.static(clientDistPath, {
     setHeaders: (res, filePath) => {
+      // Cache immutable hashed assets for 1 year
+      if (filePath.match(/\.(js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
       // Set proper MIME types for video files
       if (filePath.endsWith('.mp4')) {
         res.setHeader('Content-Type', 'video/mp4');

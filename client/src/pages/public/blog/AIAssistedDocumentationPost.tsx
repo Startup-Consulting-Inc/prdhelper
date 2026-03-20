@@ -13,6 +13,7 @@ export default function AIAssistedDocumentationPost() {
       readTime="10 min read"
       category="Featured"
       excerpt="Discover how AI is transforming the way we create and maintain requirements documents, and what it means for the future of software development."
+      slug="ai-assisted-documentation"
       coverImage="✨"
       coverGradient="from-indigo-600 via-purple-600 to-pink-600"
     >

@@ -14,6 +14,7 @@ export default function CompleteGuideToWritingBRDsPost() {
       readTime="8 min read"
       category="Guides"
       excerpt="Everything you need to know about creating effective Business Requirements Documents."
+      slug="complete-guide-to-writing-brds"
       coverImage="BRD"
       coverGradient="from-emerald-600 via-teal-600 to-cyan-600"
     >

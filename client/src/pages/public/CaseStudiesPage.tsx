@@ -5,11 +5,17 @@
  */
 
 import { PublicLayout } from '../../components/layout/PublicLayout';
+import { SEO } from '../../components/SEO';
 import { Building2, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 
 export default function CaseStudiesPage() {
   return (
     <PublicLayout>
+      <SEO
+        title="Case Studies – How Teams Use Clearly to Write Requirements 10x Faster"
+        description="See how product teams and businesses use Clearly to create requirements documents 10x faster. Real case studies with measurable results."
+        path="/case-studies"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
