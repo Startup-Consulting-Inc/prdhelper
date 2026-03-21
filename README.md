@@ -54,6 +54,18 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - 📜 **Audit Logs**: Complete audit trail of all system actions
 - 🔒 **Role-Based Access**: User and Admin role support with permission controls
 
+### SEO & Discoverability
+- 🔍 **Per-Page Meta Tags**: Dynamic `<title>`, `<meta description>`, canonical, OG, and Twitter tags via `react-helmet-async`
+- 📋 **Structured Data (JSON-LD)**: `SoftwareApplication`, `Organization`, `WebSite` (with SearchAction), `FAQPage`, `Article`, and `BreadcrumbList` schemas
+- 🤖 **AI Bot Discovery**: `llms.txt` and `ai-llm.txt` files for Perplexity, ChatGPT Browse, and Gemini
+- 🗺️ **Sitemap**: `sitemap.xml` with 37+ indexed URLs (auto-excludes auth pages)
+- 📄 **HTML Sitemap**: Human-readable sitemap page at `/sitemap`
+- 🏷️ **Keyword Landing Pages**: `/brd-generator` and `/prd-generator` with FAQ schema
+- ⚖️ **Comparison Pages**: `/clearly-vs-chatprd`, `/clearly-vs-manual`, `/clearly-vs-confluence`
+- 📝 **Blog**: 20 articles covering the full requirements documentation topic cluster
+- ⚡ **Performance**: Gzip compression middleware + immutable cache headers for static assets
+- 🍞 **Breadcrumbs**: `Breadcrumbs` component with `BreadcrumbList` JSON-LD on deep pages
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -162,9 +174,25 @@ docker-compose down
 │   ├── firebase-service-account.json  # Firebase Admin SDK key (gitignored)
 │   └── tsconfig.json
 ├── client/              # React frontend
+│   ├── public/
+│   │   ├── sitemap.xml  # XML sitemap (37+ URLs)
+│   │   ├── llms.txt     # AI bot discovery file
+│   │   └── ai-llm.txt   # Extended AI bot discovery file
 │   ├── src/
 │   │   ├── pages/      # Page components
-│   │   ├── components/ # Reusable components
+│   │   │   └── public/
+│   │   │       ├── blog/       # 20 blog post components
+│   │   │       ├── docs/       # Documentation pages
+│   │   │       ├── BRDGeneratorPage.tsx
+│   │   │       ├── PRDGeneratorPage.tsx
+│   │   │       ├── SitemapPage.tsx
+│   │   │       ├── ClearlyVsChatPRDPage.tsx
+│   │   │       ├── ClearlyVsManualPage.tsx
+│   │   │       └── ClearlyVsConfluencePage.tsx
+│   │   ├── components/
+│   │   │   ├── SEO.tsx         # Reusable per-page SEO component
+│   │   │   ├── Breadcrumbs.tsx # Breadcrumb nav + BreadcrumbList schema
+│   │   │   └── ...
 │   │   ├── hooks/      # Custom hooks
 │   │   └── lib/        # Utilities
 │   ├── e2e/            # Playwright E2E tests
@@ -403,8 +431,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 3.0.0
-**Last Updated**: February 5, 2026
+**Version**: 3.1.0
+**Last Updated**: March 20, 2026
 **Status**: ✅ Production Ready with Staging Environment
 
 For questions or issues, please open an issue on GitHub.
