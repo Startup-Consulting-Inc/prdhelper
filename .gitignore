@@ -46,6 +46,7 @@ storybook-static/
 *.md
 !agent-helpers/tasks/task.md
 !docs/prd.md
+!docs/SEO_PROGRESS.md
 !README.md
 !docs/bug-reports/*.md
 
