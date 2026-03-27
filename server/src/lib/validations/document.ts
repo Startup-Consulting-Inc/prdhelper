@@ -9,7 +9,7 @@ import { z } from 'zod';
 /**
  * Document type enum
  */
-export const documentTypeSchema = z.enum(['BRD', 'PRD', 'PROMPT_BUILD', 'TASKS', 'TOOL_OUTPUT']);
+export const documentTypeSchema = z.enum(['PROBLEM_DEFINITION', 'BRD', 'PRD', 'PROMPT_BUILD', 'TASKS', 'TOOL_OUTPUT']);
 
 /**
  * Get document by ID schema

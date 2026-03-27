@@ -24,6 +24,7 @@ export const createProjectSchema = z.object({
   language: z.enum(['en', 'ko', 'ja', 'zh', 'auto'], {
     message: 'Invalid language selection',
   }).default('auto'),
+  skipProblemDefinition: z.boolean().optional().default(false),
 });
 
 /**
@@ -56,6 +57,10 @@ export const getProjectByIdSchema = z.object({
 export const updateProjectPhaseSchema = z.object({
   id: z.string().min(1, 'Invalid project ID'),
   phase: z.enum([
+    'PROBLEM_DEFINITION_QUESTIONS',
+    'PROBLEM_DEFINITION_GENERATING',
+    'PROBLEM_DEFINITION_READY',
+    'PROBLEM_DEFINITION_APPROVED',
     'BRD_QUESTIONS',
     'BRD_GENERATING',
     'BRD_READY',

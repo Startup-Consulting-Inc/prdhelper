@@ -20,6 +20,7 @@ export interface Project {
   language?: 'en' | 'ko' | 'ja' | 'zh' | 'auto';
   status: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   currentPhase?: string;
+  skipProblemDefinition?: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
   userId: string;
@@ -48,7 +49,7 @@ export interface Message {
 export interface Conversation {
   id: string;
   projectId: string;
-  documentType: 'BRD' | 'PRD' | 'TASKS';
+  documentType: 'PROBLEM_DEFINITION' | 'BRD' | 'PRD' | 'TASKS';
   messages: Message[];
   createdAt: Date | string;
   updatedAt: Date | string;

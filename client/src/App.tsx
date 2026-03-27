@@ -18,6 +18,7 @@ const ProfilePage = lazyWithRetry(() => import('./pages/ProfilePage'));
 const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
 const NewProjectPage = lazyWithRetry(() => import('./pages/NewProjectPage'));
 const ProjectDetailPage = lazyWithRetry(() => import('./pages/ProjectDetailPage'));
+const ProblemDefinitionWizardPage = lazyWithRetry(() => import('./pages/ProblemDefinitionWizardPage'));
 const BRDWizardPage = lazyWithRetry(() => import('./pages/BRDWizardPage'));
 const PRDWizardPage = lazyWithRetry(() => import('./pages/PRDWizardPage'));
 const DocumentViewPage = lazyWithRetry(() => import('./pages/DocumentViewPage'));
@@ -67,6 +68,7 @@ const ReduceScopeCreepPost = lazyWithRetry(() => import('./pages/public/blog/Red
 const BRDMistakesPost = lazyWithRetry(() => import('./pages/public/blog/BRDMistakesPost'));
 const AgileRequirementsPost = lazyWithRetry(() => import('./pages/public/blog/AgileRequirementsPost'));
 const SRSDocumentGuidePost = lazyWithRetry(() => import('./pages/public/blog/SRSDocumentGuidePost'));
+const DefiningTheRightProblemPost = lazyWithRetry(() => import('./pages/public/blog/DefiningTheRightProblemPost'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -240,6 +242,7 @@ function AppContent() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/projects/new" element={<NewProjectPage />} />
         <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+        <Route path="/projects/:projectId/wizard/problem-definition" element={<ProblemDefinitionWizardPage />} />
         <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
         <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
         <Route path="/projects/:projectId/tools" element={<ToolSelectionPage />} />
@@ -305,6 +308,7 @@ function App() {
         <Route path="/blog/brd-mistakes-to-avoid" element={<BRDMistakesPost />} />
         <Route path="/blog/agile-requirements-documentation" element={<AgileRequirementsPost />} />
         <Route path="/blog/how-to-write-srs-document" element={<SRSDocumentGuidePost />} />
+        <Route path="/blog/defining-the-right-problem-ai-era" element={<DefiningTheRightProblemPost />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />

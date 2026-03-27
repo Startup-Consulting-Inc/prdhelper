@@ -1,13 +1,14 @@
 /**
- * BRD Wizard Page
+ * Problem Definition Wizard Page
  *
- * AI-powered Q&A wizard for generating Business Requirements Documents.
+ * AI-powered Q&A wizard for defining the right problem before BRD.
+ * Guides users through root cause analysis using 5 Whys and JTBD frameworks.
  * Supports autoStart query param for seamless project creation flow.
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Send, Loader2, FileText, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Target, CheckCircle, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Textarea } from '../components/ui/Textarea';
 import { Card } from '../components/ui/Card';
@@ -21,13 +22,13 @@ import { useConversation, type Message } from '../hooks/useAI';
 import { trpc } from '../lib/trpc';
 
 const DOCUMENT_GENERATION_STEPS = [
-  'Analyzing requirements...',
-  'Building document structure...',
-  'Generating content...',
+  'Analyzing your responses...',
+  'Identifying root causes...',
+  'Building problem statement...',
   'Finalizing document...',
 ];
 
-export function BRDWizardPage() {
+export function ProblemDefinitionWizardPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,13 +42,13 @@ export function BRDWizardPage() {
   const { project, isLoading: isLoadingProject } = useProject(projectId!);
   const { messages, isLoading: isLoadingMessages } = useConversation(
     projectId!,
-    'BRD'
+    'PROBLEM_DEFINITION'
   );
 
   // tRPC mutations
   const askQuestionMutation = trpc.ai.askQuestion.useMutation();
   const generateDocumentMutation = trpc.ai.generateDocument.useMutation();
-  
+
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,21 +120,16 @@ export function BRDWizardPage() {
     setCurrentAnswer('');
 
     try {
-
-      // Backend handles adding both user answer and AI question to conversation
       await askQuestionMutation.mutateAsync({
         projectId: projectId!,
-        documentType: 'BRD',
+        documentType: 'PROBLEM_DEFINITION',
         userAnswer: answerText,
       });
 
-      // Invalidate to refresh messages from backend
       await utils.conversations.getByProject.invalidate({
         projectId: projectId!,
-        documentType: 'BRD',
+        documentType: 'PROBLEM_DEFINITION',
       });
-
-      // Note: User can manually generate when ready (after 3+ questions)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit answer');
     } finally {
@@ -148,14 +144,12 @@ export function BRDWizardPage() {
     try {
       await generateDocumentMutation.mutateAsync({
         projectId: projectId!,
-        documentType: 'BRD',
+        documentType: 'PROBLEM_DEFINITION',
       });
 
-      // Invalidate queries to refresh data
       await utils.documents.getByProjectId.invalidate({ projectId: projectId! });
       await utils.projects.getById.invalidate({ id: projectId! });
 
-      // Navigate to project detail to see generated document
       navigate(`/projects/${projectId}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to generate document';
@@ -175,23 +169,21 @@ export function BRDWizardPage() {
   };
 
   const handleStartWizard = async () => {
-    if (messages.length > 0) return; // Already started
+    if (messages.length > 0) return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Backend handles adding AI question to conversation
       await askQuestionMutation.mutateAsync({
         projectId: projectId!,
-        documentType: 'BRD',
-        userAnswer: undefined, // No answer yet, just starting
+        documentType: 'PROBLEM_DEFINITION',
+        userAnswer: undefined,
       });
 
-      // Invalidate to refresh messages from backend
       await utils.conversations.getByProject.invalidate({
         projectId: projectId!,
-        documentType: 'BRD',
+        documentType: 'PROBLEM_DEFINITION',
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start wizard');
@@ -232,7 +224,7 @@ export function BRDWizardPage() {
   }
 
   const progress = questionCount >= 5 ? 100 : (questionCount / 5) * 100;
-  const canGenerate = questionCount >= 3; // Minimum 3 questions answered
+  const canGenerate = questionCount >= 3;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -251,13 +243,13 @@ export function BRDWizardPage() {
               </Button>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  BRD Wizard
+                  Problem Definition
                 </h1>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{project.title}</p>
               </div>
             </div>
             <Badge variant="default">
-              <FileText className="h-3 w-3 mr-1" />
+              <Target className="h-3 w-3 mr-1" />
               {project.mode}
             </Badge>
           </div>
@@ -292,36 +284,47 @@ export function BRDWizardPage() {
             // Welcome Screen
             <Card className="max-w-2xl mx-auto">
               <div className="p-8 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4">
-                  <FileText className="h-8 w-8 text-primary-600 dark:text-primary-400" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 mb-4">
+                  <Target className="h-8 w-8 text-amber-600 dark:text-amber-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Welcome to the BRD Wizard!
+                  Define the Right Problem
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  I'll ask you a series of questions to understand your business requirements.
-                  Answer thoughtfully - your responses will shape the final document.
+                  Before building anything, let's make sure we're solving the right problem.
+                  I'll guide you from surface-level symptoms to the root cause using proven frameworks.
                 </p>
-                <div className="bg-primary-50 dark:bg-primary-950/50 rounded-lg p-4 mb-6">
+                <div className="bg-amber-50 dark:bg-amber-950/50 rounded-lg p-4 mb-6">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
                     What to expect:
                   </h3>
                   <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 text-left">
-                    <li>• 5-10 targeted questions about your project</li>
-                    <li>• Questions adapt based on your answers</li>
-                    <li>• Answer as clearly and completely as possible</li>
-                    <li>• You can generate the BRD after 3+ questions</li>
+                    <li>• 5-8 guided questions to uncover the real problem</li>
+                    <li>• Root cause analysis using the 5 Whys technique</li>
+                    <li>• Job-to-be-Done framework to focus on outcomes, not solutions</li>
+                    <li>• A validated problem statement ready for BRD</li>
                   </ul>
                 </div>
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={handleStartWizard}
-                  isLoading={isSubmitting}
-                  disabled={isSubmitting}
-                >
-                  Start Wizard
-                </Button>
+                <div className="flex flex-col items-center gap-3">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={handleStartWizard}
+                    isLoading={isSubmitting}
+                    disabled={isSubmitting}
+                  >
+                    Start Problem Definition
+                  </Button>
+                  <a
+                    href="/blog/defining-the-right-problem-ai-era"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400 hover:underline"
+                  >
+                    Read: Why Problem Definition Matters
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
               </div>
             </Card>
           ) : (
@@ -344,13 +347,13 @@ export function BRDWizardPage() {
               )}
 
               {isGenerating && (
-                <Card className="bg-primary-50 dark:bg-primary-950/50 border-primary-200 dark:border-primary-800">
+                <Card className="bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800">
                   <div className="p-6">
                     <div className="flex items-center gap-4">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                      <Loader2 className="h-8 w-8 animate-spin text-amber-600 dark:text-amber-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                          Generating Your BRD...
+                          Generating Problem Definition...
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {DOCUMENT_GENERATION_STEPS[generationStep]}
@@ -361,7 +364,7 @@ export function BRDWizardPage() {
                               key={i}
                               className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${
                                 i <= generationStep
-                                  ? 'bg-primary-500'
+                                  ? 'bg-amber-500'
                                   : 'bg-gray-200 dark:bg-gray-700'
                               }`}
                             />
@@ -388,7 +391,7 @@ export function BRDWizardPage() {
                 <div className="flex items-center gap-2 text-success-800 dark:text-success-200">
                   <CheckCircle className="h-5 w-5" />
                   <span className="text-sm font-medium">
-                    You've answered enough questions to generate your BRD!
+                    Ready to generate your Problem Definition!
                   </span>
                 </div>
                 <Button
@@ -397,7 +400,7 @@ export function BRDWizardPage() {
                   onClick={handleGenerateDocument}
                   isLoading={isGenerating}
                 >
-                  Generate BRD
+                  Generate Problem Definition
                 </Button>
               </div>
             )}
@@ -441,4 +444,4 @@ export function BRDWizardPage() {
   );
 }
 
-export default BRDWizardPage;
+export default ProblemDefinitionWizardPage;

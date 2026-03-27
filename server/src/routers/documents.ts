@@ -369,6 +369,7 @@ export const documentsRouter = router({
 
         // Update project phase to next stage
         const phaseMap: Record<string, string> = {
+          PROBLEM_DEFINITION: 'BRD_QUESTIONS',
           BRD: 'PRD_QUESTIONS',
           PRD: projectData.mode === 'TECHNICAL' ? 'TASKS_GENERATING' : 'COMPLETED',
           TASKS: 'COMPLETED',

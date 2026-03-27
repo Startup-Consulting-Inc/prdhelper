@@ -333,7 +333,8 @@ export const projectsRouter = router({
           mode: input.mode,
           language: input.language || 'auto',
           status: 'ACTIVE',
-          currentPhase: 'BRD_QUESTIONS',
+          currentPhase: input.skipProblemDefinition ? 'BRD_QUESTIONS' : 'PROBLEM_DEFINITION_QUESTIONS',
+          skipProblemDefinition: input.skipProblemDefinition ?? false,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         };
@@ -604,7 +605,8 @@ export const projectsRouter = router({
           mode: sourceData.mode || 'UNIFIED',
           language: sourceData.language || 'auto',
           status: 'ACTIVE',
-          currentPhase: 'BRD_QUESTIONS',
+          currentPhase: sourceData.skipProblemDefinition ? 'BRD_QUESTIONS' : 'PROBLEM_DEFINITION_QUESTIONS',
+          skipProblemDefinition: sourceData.skipProblemDefinition ?? false,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         };

@@ -32,6 +32,7 @@ export function PRDWizardPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasAutoStarted = useRef(false);
   const utils = trpc.useUtils();
 
   // Check if wizard should auto-start (skip welcome screen)
@@ -197,9 +198,10 @@ export function PRDWizardPage() {
     }
   };
 
-  // Auto-start wizard if autoStart query param is present
+  // Auto-start wizard if autoStart query param is present (only once)
   useEffect(() => {
-    if (autoStart && messages.length === 0 && !isLoadingMessages && !isSubmitting) {
+    if (autoStart && messages.length === 0 && !isLoadingMessages && !isSubmitting && !hasAutoStarted.current) {
+      hasAutoStarted.current = true;
       handleStartWizard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

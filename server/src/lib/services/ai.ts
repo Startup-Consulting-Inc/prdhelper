@@ -160,15 +160,24 @@ export async function generateCompletion(
 export function extractMarkedContent(
   rawContent: string,
   startMarker: string,
-  endMarker: string
+  endMarker: string,
+  allowTruncated = false
 ): string | null {
   const startIndex = rawContent.indexOf(startMarker);
   const endIndex = rawContent.indexOf(endMarker);
 
-  if (startIndex === -1 || endIndex === -1) {
-    console.warn(
-      `Markers not found: ${startMarker} or ${endMarker} in content`
-    );
+  if (startIndex === -1) {
+    console.warn(`Start marker not found: ${startMarker}`);
+    return null;
+  }
+
+  if (endIndex === -1) {
+    if (allowTruncated) {
+      // Response was truncated before the end marker — use content from start marker to end of string
+      console.warn(`End marker not found: ${endMarker} — using content up to end of truncated response`);
+      return rawContent.substring(startIndex + startMarker.length).trim();
+    }
+    console.warn(`End marker not found: ${endMarker}`);
     return null;
   }
 

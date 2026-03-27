@@ -163,6 +163,7 @@ app.use(
           "'unsafe-inline'",
           'https://apis.google.com', // Google OAuth API
           'https://www.gstatic.com', // Google static resources
+          'https://www.googletagmanager.com', // Google Tag Manager
           'blob:', // Allow blobs for workers
         ],
         workerSrc: ["'self'", 'blob:'], // Explicitly allow workers from blobs
@@ -174,6 +175,9 @@ app.use(
           'https://*.firebaseio.com', // Firebase Realtime Database
           'https://*.firebaseapp.com', // Firebase Hosting
           'https://*.sentry.io', // Sentry error tracking
+          'https://www.googletagmanager.com', // Google Tag Manager
+          'https://www.google-analytics.com', // Google Analytics
+          'https://region1.google-analytics.com', // GA4 regional endpoint
         ],
         fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         objectSrc: ["'none'"],

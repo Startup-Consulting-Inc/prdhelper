@@ -32,6 +32,7 @@ const sections = [
     icon: FileText,
     title: 'Blog',
     links: [
+      { label: 'The Most Valuable Skill in the AI Era: Defining the Right Problem', path: '/blog/defining-the-right-problem-ai-era', desc: 'Problem-first thinking when everyone can ship with AI' },
       { label: 'How to Write a BRD in 2026', path: '/blog/how-to-write-a-brd-2026', desc: 'Complete step-by-step BRD guide' },
       { label: 'PRD Template Guide', path: '/blog/prd-template-guide', desc: 'Ultimate PRD template for product managers' },
       { label: 'BRD vs PRD: Key Differences', path: '/blog/brd-vs-prd', desc: 'When to use each document type' },

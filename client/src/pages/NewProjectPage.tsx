@@ -3,7 +3,7 @@
  *
  * Single-step form for creating a new project:
  * Enter project title, description, and language
- * Automatically navigates to BRD wizard on completion
+ * Optionally skip Problem Definition if user already knows what to build.
  */
 
 import { useState } from 'react';
@@ -31,6 +31,7 @@ const projectSchema = z.object({
     .min(20, 'Description must be at least 20 characters')
     .max(15000, 'Description must be 15,000 characters or less'),
   language: z.enum(['en', 'ko', 'ja', 'zh', 'auto']),
+  skipProblemDefinition: z.boolean(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -58,11 +59,13 @@ export function NewProjectPage() {
     mode: 'onChange',
     defaultValues: {
       language: 'auto',
+      skipProblemDefinition: true,
     },
   });
 
   const description = watch('description', '');
   const title = watch('title', '');
+  const skipProblemDefinition = watch('skipProblemDefinition', false);
 
   const onSubmit = async (data: ProjectFormData) => {
     setCreateError(null);
@@ -72,10 +75,15 @@ export function NewProjectPage() {
         description: data.description,
         mode: 'UNIFIED',
         language: data.language,
+        skipProblemDefinition: data.skipProblemDefinition,
       });
 
       if (newProject?.id) {
-        navigate(`/projects/${newProject.id}/wizard/brd?autoStart=true`);
+        if (data.skipProblemDefinition) {
+          navigate(`/projects/${newProject.id}/wizard/brd?autoStart=true`);
+        } else {
+          navigate(`/projects/${newProject.id}/wizard/problem-definition?autoStart=true`);
+        }
       }
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : 'Failed to create project');
@@ -151,6 +159,28 @@ export function NewProjectPage() {
                 helperText="Select the language for AI questions and generated documents"
               />
 
+              {/* Skip Problem Definition option */}
+              <div className={`flex items-start gap-3 p-4 rounded-lg border transition-colors ${skipProblemDefinition ? 'border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/30' : 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30'}`}>
+                <input
+                  {...register('skipProblemDefinition')}
+                  type="checkbox"
+                  id="skipProblemDefinition"
+                  disabled={isCreating}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer flex-shrink-0"
+                />
+                <label htmlFor="skipProblemDefinition" className="cursor-pointer">
+                  <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    I already know what to build — skip Problem Definition
+                  </span>
+                  <span className="block text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Jump straight to the BRD wizard if you have a clear product vision and well-defined requirements.
+                  </span>
+                  <span className="block text-sm text-amber-700 dark:text-amber-400 mt-2 font-medium">
+                    💡 Not sure about the problem you're solving? Uncheck this. Problem Definition uses the 5 Whys and Jobs-to-be-Done frameworks to help you uncover root causes, avoid building the wrong thing, and write a sharper BRD — it only takes 5–8 questions.
+                  </span>
+                </label>
+              </div>
+
               <div className="flex justify-end pt-4">
                 <Button
                   type="submit"
@@ -158,7 +188,7 @@ export function NewProjectPage() {
                   isLoading={isCreating}
                   disabled={isCreating || !title || !description || !!errors.title || !!errors.description}
                 >
-                  {isCreating ? 'Creating Project...' : 'Create & Start BRD'}
+                  {isCreating ? 'Creating Project...' : 'Create Project'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -169,9 +199,19 @@ export function NewProjectPage() {
         {/* Helpful Tip */}
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <strong>What happens next:</strong> After creating your project, our AI wizard will ask you
-            questions to build your BRD and PRD. Then you'll choose your target development tool
-            (v0, Loveable, Claude Code, Cursor, etc.) to generate optimized output.
+            {skipProblemDefinition ? (
+              <>
+                <strong>What happens next:</strong> You'll go straight to the BRD wizard where our AI
+                will ask questions to build your BRD and PRD. Then you'll choose your target development
+                tool (v0, Loveable, Claude Code, Cursor, etc.) to generate optimized output.
+              </>
+            ) : (
+              <>
+                <strong>What happens next:</strong> Our AI will first help you validate and define the
+                right problem to solve, then guide you through BRD and PRD creation. Finally, you'll
+                choose your target development tool to generate optimized output.
+              </>
+            )}
           </p>
         </div>
       </main>

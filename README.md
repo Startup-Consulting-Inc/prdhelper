@@ -9,16 +9,18 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 ### Core Features
 - 🤖 **AI-Powered Wizards**: Interactive Q&A flow that adapts to your responses
 - 💡 **Contextual Tips**: Helpful tips explaining what questions mean and why they matter, with detailed explanations, pros and cons for each sample answer—no matter your technical background
-- 📄 **Document Generation**: Automatically generates BRDs, PRDs, and tool-specific output files
+- 📄 **Document Generation**: Problem Definition (optional), BRDs, PRDs, and tool-specific output files
+- 🎯 **Problem Definition Wizard**: Optional first step that uses 5 Whys and Jobs-to-be-Done–style prompts (about 5–8 questions) so the BRD builds on a validated problem; skippable at project creation if you already have a clear scope
 - 🌐 **Multi-Language Support**: Generate documents in English, Korean, Japanese, or Chinese (auto-detect available)
 - 💬 **Smart Conversations**: AI remembers context and asks relevant follow-up questions
-- 📊 **Progress Tracking**: Visual progress indicators as you answer questions
+- 📊 **Progress Tracking**: Visual progress indicators in wizards and during long-running document generation
 - 🌓 **Dark Mode**: Beautiful UI with dark mode support
 - ♿ **Accessible**: WCAG compliant with keyboard navigation
-- 🧪 **Well-Tested**: Comprehensive unit and E2E test coverage
+- 🧪 **Testing**: Vitest for unit tests; Playwright E2E in the client package (run `cd client && npm run test:ci` for unit + E2E)
 - 🔐 **OAuth Authentication**: Secure Google OAuth login with account chooser support
 - 📎 **File Upload**: Attach screenshots and videos to contact form inquiries
 - 👤 **Professional Profiles**: Comprehensive user profiles with bio, company, job title, LinkedIn, website, location, and GitHub integration
+- 📋 **Duplicate Project**: Copy an existing project (documents and Q&A context) to explore alternatives safely
 
 ### Team Collaboration
 - 👥 **Real-time Collaboration**: Invite team members to collaborate on projects with viewer or editor permissions, making it easy to align stakeholders and iterate together on your requirements
@@ -33,6 +35,7 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 
 ### Document Management
 - 🔄 **Document Regeneration**: Regenerate any document with optional feedback for improvements
+- 📦 **Bulk export**: Download all AI-coding-tool output bundles for a project as a single ZIP
 - 📝 **Version History**: View and restore previous versions of all documents
 - 💾 **Version Control**: Automatic versioning with metadata (creator, timestamp, status)
 - 🔍 **Version Preview**: Preview any historical version before restoring
@@ -58,11 +61,11 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - 🔍 **Per-Page Meta Tags**: Dynamic `<title>`, `<meta description>`, canonical, OG, and Twitter tags via `react-helmet-async`
 - 📋 **Structured Data (JSON-LD)**: `SoftwareApplication`, `Organization`, `WebSite` (with SearchAction), `FAQPage`, `Article`, and `BreadcrumbList` schemas
 - 🤖 **AI Bot Discovery**: `llms.txt` and `ai-llm.txt` files for Perplexity, ChatGPT Browse, and Gemini
-- 🗺️ **Sitemap**: `sitemap.xml` with 37+ indexed URLs (auto-excludes auth pages)
+- 🗺️ **Sitemap**: `sitemap.xml` with 38+ indexed URLs (auto-excludes auth pages)
 - 📄 **HTML Sitemap**: Human-readable sitemap page at `/sitemap`
 - 🏷️ **Keyword Landing Pages**: `/brd-generator` and `/prd-generator` with FAQ schema
 - ⚖️ **Comparison Pages**: `/clearly-vs-chatprd`, `/clearly-vs-manual`, `/clearly-vs-confluence`
-- 📝 **Blog**: 20 articles covering the full requirements documentation topic cluster
+- 📝 **Blog**: 21 articles covering requirements documentation, including *Defining the right problem before your BRD*
 - ⚡ **Performance**: Gzip compression middleware + immutable cache headers for static assets
 - 🍞 **Breadcrumbs**: `Breadcrumbs` component with `BreadcrumbList` JSON-LD on deep pages
 
@@ -175,13 +178,13 @@ docker-compose down
 │   └── tsconfig.json
 ├── client/              # React frontend
 │   ├── public/
-│   │   ├── sitemap.xml  # XML sitemap (37+ URLs)
+│   │   ├── sitemap.xml  # XML sitemap (38+ URLs)
 │   │   ├── llms.txt     # AI bot discovery file
 │   │   └── ai-llm.txt   # Extended AI bot discovery file
 │   ├── src/
-│   │   ├── pages/      # Page components
+│   │   ├── pages/      # Page components (incl. ProblemDefinitionWizardPage.tsx)
 │   │   │   └── public/
-│   │   │       ├── blog/       # 20 blog post components
+│   │   │       ├── blog/       # Blog post components
 │   │   │       ├── docs/       # Documentation pages
 │   │   │       ├── BRDGeneratorPage.tsx
 │   │   │       ├── PRDGeneratorPage.tsx
@@ -198,9 +201,8 @@ docker-compose down
 │   ├── e2e/            # Playwright E2E tests
 │   └── tsconfig.json
 ├── scripts/            # Deployment and utility scripts
-├── terraform/           # Infrastructure as Code (gitignored)
 ├── shared/             # Shared TypeScript types
-└── docs/               # Documentation
+└── docs/               # Documentation (e.g. product plans and internal guides)
 ```
 
 ## 🗄️ Database
@@ -212,7 +214,7 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 **Main Collections:**
 - `users` - User accounts and profiles
 - `projects` - Project documents with subcollections:
-  - `documents` - BRD, PRD, and Tool Output documents
+  - `documents` - Problem Definition, BRD, PRD, and Tool Output documents
   - `conversations` - AI conversation history per document type
   - `collaborators` - Team members with roles (VIEWER, EDITOR)
   - `invites` - Pending collaboration invitations
@@ -261,22 +263,40 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 2. Click "Create Project"
 3. Enter your project title and initial idea description
 4. Select output language (English, Korean, Japanese, Chinese, or Auto-detect)
-5. Click "Create & Start BRD" — you'll be taken directly into the BRD wizard
+5. Choose whether to run **Problem Definition** first:
+   - **Unchecked (recommended when discovery is needed)** — after **Create Project**, you go to the Problem Definition wizard, then BRD → PRD → tools.
+   - **Checked: “I already know what to build — skip Problem Definition”** — you go straight to the BRD wizard (this is the default on the form).
+6. Click **Create Project**
 
-**Workflow**: Create Project → BRD Wizard → PRD Wizard → Tool Selection → Tool Output
+**Typical workflow (with Problem Definition):** Create Project → Problem Definition Wizard → BRD Wizard → PRD Wizard → Tool Selection → Tool Output
+
+**Typical workflow (skipped):** Create Project → BRD Wizard → PRD Wizard → Tool Selection → Tool Output
+
+### Duplicating a project
+
+From project actions, use **Duplicate project** to copy the project, its documents, and conversation context so you can iterate without changing the original.
+
+### Generating a Problem Definition
+
+1. Create a project with **Problem Definition** enabled (leave “skip Problem Definition” unchecked), or open a project that hasn’t started BRD yet and choose **Start Problem Definition** from the project overview.
+2. Complete the guided Q&A (help icons work the same as in other wizards).
+3. Click **Generate Problem Definition**, review the draft, regenerate if needed, then **approve** to unlock the BRD wizard.
+
+If you skipped Problem Definition at creation, you can still start it later from the project page when the workflow prompts for it.
 
 ### Generating a BRD
 
 1. Navigate to your project
-2. Click "Start BRD Wizard"
-3. Answer the AI's questions (minimum 3 questions)
+2. If your project uses Problem Definition, complete and approve that document first
+3. Click "Start BRD Wizard"
+4. Answer the AI's questions (minimum count is validated before you can generate)
    - Click the help icon (?) next to any question to see:
      - What the question is about and why it matters
      - Tips for providing a good answer
      - Pros and cons comparison for different options
      - Common examples and use cases
-4. Click "Generate BRD"
-5. Review, regenerate (optional), or approve your document
+5. Click "Generate BRD"
+6. Review, regenerate (optional), or approve your document
 
 ### Generating a PRD
 
@@ -307,13 +327,13 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 
 3. Click "Generate Output" — AI creates tool-specific files from your BRD and PRD
 4. For vibe coding tools: copy sections or the entire prompt
-5. For AI coding tools: copy individual files or download all as a ZIP bundle
+5. For AI coding tools: copy individual files, download one tool’s bundle as ZIP, or use **Export all** to download every tool-output bundle for the project in one ZIP
 6. Generate output for additional tools anytime — each generates a separate document
 
 ### Document Management
 
 #### Regenerating Documents
-1. Open any document (BRD, PRD, or Tool Output)
+1. Open any document (Problem Definition, BRD, PRD, or Tool Output)
 2. Click "Regenerate" button
 3. Optionally provide feedback for improvements (e.g., "Make it more concise", "Add security details")
 4. System saves current version to history and generates new version
@@ -402,7 +422,7 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Run tests (`npm run test:ci`)
+4. Run tests from the client app (unit + E2E): `cd client && npm run test:ci` (root also has `npm test` for Vitest)
 5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
@@ -431,8 +451,8 @@ This project is licensed under the MIT License.
 
 ---
 
-**Version**: 3.1.0
-**Last Updated**: March 20, 2026
-**Status**: ✅ Production Ready with Staging Environment
+**Last Updated**: March 25, 2026
 
 For questions or issues, please open an issue on GitHub.
+
+**Product note:** The original design notes for the Problem Definition phase are in [docs/problem-definition-workflow-plan.md](docs/problem-definition-workflow-plan.md); behavior in the app may have evolved beyond that document.

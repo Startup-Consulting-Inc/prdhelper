@@ -50,6 +50,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 21,
+      slug: 'defining-the-right-problem-ai-era',
+      title: 'The Most Valuable Skill in the AI Era: Defining the Right Problem',
+      excerpt:
+        'When everyone can build with AI, the advantage is no longer technical—it is the clarity to identify a problem worth solving. Includes 5 Whys, job-to-done framing, problem statement formula, and good vs bad examples.',
+      author: 'Jaehee Song',
+      date: '2026-03-25',
+      readTime: '14 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 1,
       slug: 'how-to-write-a-brd-2026',
       title: 'How to Write a BRD in 2026: The Complete Step-by-Step Guide',

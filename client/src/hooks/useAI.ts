@@ -25,7 +25,7 @@ export interface ExplanationResponse {
   }[];
 }
 
-export function useWizard(projectId: string, documentType: 'BRD' | 'PRD') {
+export function useWizard(projectId: string, documentType: 'PROBLEM_DEFINITION' | 'BRD' | 'PRD') {
   const utils = trpc.useUtils();
 
   // Mutation: Ask next question
@@ -55,7 +55,7 @@ export function useWizard(projectId: string, documentType: 'BRD' | 'PRD') {
   };
 }
 
-export function useConversation(projectId: string, documentType: 'BRD' | 'PRD' | 'TASKS') {
+export function useConversation(projectId: string, documentType: 'PROBLEM_DEFINITION' | 'BRD' | 'PRD' | 'TASKS') {
   const utils = trpc.useUtils();
 
   // Query: Get conversation

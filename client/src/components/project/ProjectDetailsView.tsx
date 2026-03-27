@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench, Download } from 'lucide-react';
+import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench, Download, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -60,6 +60,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   }
 
   // Get document status
+  const problemDefDoc = documents?.find((d) => d.type === 'PROBLEM_DEFINITION');
   const brdDoc = documents?.find((d) => d.type === 'BRD');
   const prdDoc = documents?.find((d) => d.type === 'PRD');
   const promptBuildDoc = documents?.find((d) => d.type === 'PROMPT_BUILD');
@@ -69,7 +70,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const isUnified = project.mode === 'UNIFIED';
 
   // Calculate progress using shared utility
-  const allDocs = [brdDoc, prdDoc, promptBuildDoc, tasksDoc, ...toolOutputDocs]
+  const allDocs = [problemDefDoc, brdDoc, prdDoc, promptBuildDoc, tasksDoc, ...toolOutputDocs]
     .filter((doc) => doc !== undefined)
     .map((doc) => ({
       type: doc.type,
@@ -77,9 +78,11 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
     }));
   const progressPercent = calculateProjectProgress({ mode: project.mode }, allDocs);
 
-  // Calculate completed steps from documents
-  const totalSteps = 3; // BRD, PRD, and final document/tool output
+  // hasProblemDef is false when: user explicitly skipped PD, OR old project has BRD but no PD doc
+  const hasProblemDef = !!problemDefDoc || (!brdDoc && !project.skipProblemDefinition);
+  const totalSteps = hasProblemDef ? 4 : 3;
   let completedSteps = 0;
+  if (problemDefDoc?.status === 'APPROVED') completedSteps++;
   if (brdDoc?.status === 'APPROVED') completedSteps++;
   if (prdDoc?.status === 'APPROVED') completedSteps++;
   if (isUnified) {
@@ -125,6 +128,33 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
 
   // Determine current phase and next action
   const getPhaseInfo = () => {
+    if (!brdDoc && !problemDefDoc) {
+      if (project.skipProblemDefinition) {
+        return {
+          phase: 'Start BRD',
+          subtitle: 'BRD WIZARD',
+          action: 'Start BRD Wizard',
+          icon: FileText,
+          handler: () => navigate(`/projects/${projectId}/wizard/brd?autoStart=true`)
+        };
+      }
+      return {
+        phase: 'Define Problem',
+        subtitle: 'PROBLEM DEFINITION',
+        action: 'Start Problem Definition',
+        icon: Target,
+        handler: () => navigate(`/projects/${projectId}/wizard/problem-definition?autoStart=true`)
+      };
+    }
+    if (!brdDoc && problemDefDoc && problemDefDoc.status === 'DRAFT') {
+      return {
+        phase: 'Review Problem Definition',
+        subtitle: 'PROBLEM DEFINITION',
+        action: 'Review & Approve Problem Definition',
+        icon: Target,
+        handler: () => navigate(`/projects/${projectId}/documents/${problemDefDoc.id}`)
+      };
+    }
     if (!brdDoc) {
       return {
         phase: 'Start BRD',
