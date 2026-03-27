@@ -20,11 +20,19 @@ import { useProject } from '../hooks/useProjects';
 import { useConversation, type Message } from '../hooks/useAI';
 import { trpc } from '../lib/trpc';
 
+const DOCUMENT_GENERATION_STEPS = [
+  'Analyzing requirements...',
+  'Building document structure...',
+  'Generating content...',
+  'Finalizing document...',
+];
+
 export function BRDWizardPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasAutoStarted = useRef(false);
   const utils = trpc.useUtils();
 
   // Check if wizard should auto-start (skip welcome screen)
@@ -44,7 +52,20 @@ export function BRDWizardPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
   const [questionCount, setQuestionCount] = useState(0);
+
+  // Advance generation step indicator during document generation
+  useEffect(() => {
+    if (!isGenerating) {
+      setGenerationStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setGenerationStep((prev) => Math.min(prev + 1, DOCUMENT_GENERATION_STEPS.length - 1));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -69,15 +90,35 @@ export function BRDWizardPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [messages.length, isGenerating]);
 
+  const handleBackClick = () => {
+    const hasUnsavedProgress = messages.length > 0 && !isGenerating;
+    if (hasUnsavedProgress && !window.confirm(
+      'You have unsaved progress in this wizard. Leaving now will lose your conversation. Are you sure you want to leave?'
+    )) {
+      return;
+    }
+    navigate(`/projects/${projectId}`);
+  };
+
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim() || isSubmitting) return;
 
+    const answerText = currentAnswer.trim();
+    const isExampleChoice = /^Example\s+\d+$/i.test(answerText);
+    if (answerText.length < 10 && !isExampleChoice) {
+      setError('Please provide a more detailed answer (at least 10 characters)');
+      return;
+    }
+    if (answerText.length > 5000) {
+      setError('Answer is too long. Please keep it under 5000 characters.');
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
+    setCurrentAnswer('');
 
     try {
-      const answerText = currentAnswer.trim();
-      setCurrentAnswer('');
 
       // Backend handles adding both user answer and AI question to conversation
       await askQuestionMutation.mutateAsync({
@@ -159,9 +200,10 @@ export function BRDWizardPage() {
     }
   };
 
-  // Auto-start wizard if autoStart query param is present
+  // Auto-start wizard if autoStart query param is present (only once)
   useEffect(() => {
-    if (autoStart && messages.length === 0 && !isLoadingMessages && !isSubmitting) {
+    if (autoStart && messages.length === 0 && !isLoadingMessages && !isSubmitting && !hasAutoStarted.current) {
+      hasAutoStarted.current = true;
       handleStartWizard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -202,7 +244,7 @@ export function BRDWizardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate(`/projects/${projectId}`)}
+                onClick={handleBackClick}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -303,14 +345,30 @@ export function BRDWizardPage() {
 
               {isGenerating && (
                 <Card className="bg-primary-50 dark:bg-primary-950/50 border-primary-200 dark:border-primary-800">
-                  <div className="p-6 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400 mx-auto mb-3" />
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                      Generating Your BRD...
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      This may take a minute. Please wait...
-                    </p>
+                  <div className="p-6">
+                    <div className="flex items-center gap-4">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                          Generating Your BRD...
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {DOCUMENT_GENERATION_STEPS[generationStep]}
+                        </p>
+                        <div className="mt-4 flex gap-1.5">
+                          {DOCUMENT_GENERATION_STEPS.map((_, i) => (
+                            <div
+                              key={i}
+                              className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${
+                                i <= generationStep
+                                  ? 'bg-primary-500'
+                                  : 'bg-gray-200 dark:bg-gray-700'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </Card>
               )}
@@ -364,8 +422,17 @@ export function BRDWizardPage() {
                 <Send className="h-5 w-5" />
               </Button>
             </div>
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-              Press Cmd/Ctrl + Enter to send • {currentAnswer.length} characters
+            <p
+              className={`mt-2 text-xs ${
+                currentAnswer.length > 5000
+                  ? 'text-red-600 dark:text-red-400'
+                  : currentAnswer.length > 0 && currentAnswer.length < 10 && !/^Example\s+\d+$/i.test(currentAnswer.trim())
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-gray-500 dark:text-gray-500'
+              }`}
+            >
+              Press Cmd/Ctrl + Enter to send • {currentAnswer.length}/5000 characters
+              {currentAnswer.length > 0 && currentAnswer.length < 10 && !/^Example\s+\d+$/i.test(currentAnswer.trim()) && ' (min 10)'}
             </p>
           </div>
         </div>

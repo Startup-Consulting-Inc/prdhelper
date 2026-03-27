@@ -14,6 +14,7 @@ export default function WhyEveryAIProjectNeedsPRDPost() {
       readTime="5 min read"
       category="Best Practices"
       excerpt="Learn why clear requirements are more important than ever in the age of AI-assisted development."
+      slug="why-every-ai-project-needs-prd"
       coverImage="AI"
       coverGradient="from-purple-600 via-blue-600 to-cyan-600"
     >

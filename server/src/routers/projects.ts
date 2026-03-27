@@ -106,42 +106,42 @@ export const projectsRouter = router({
 
         const ownedSnapshot = await ownedQuery.orderBy('updatedAt', 'desc').get();
 
-        // Then, find projects where user is a collaborator
-        const allProjectsSnapshot = await ctx.db.collection('projects').get();
-        const sharedProjectIds: string[] = [];
+        // Find projects where user is a collaborator using collectionGroup query (O(1) instead of O(N))
+        const sharedCollabs = await ctx.db
+          .collectionGroup('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
 
-        for (const projectDoc of allProjectsSnapshot.docs) {
-          const collaboratorsSnapshot = await projectDoc.ref
-            .collection('collaborators')
-            .where('userId', '==', ctx.user.id)
-            .get();
+        const sharedProjectRefs = sharedCollabs.docs
+          .map((d) => d.ref.parent.parent)
+          .filter(Boolean) as FirebaseFirestore.DocumentReference[];
 
-          if (!collaboratorsSnapshot.empty) {
-            const projectData = projectDoc.data();
-            // Apply filters
-            const matchesStatus = !status || projectData.status === status;
-            const matchesMode = !mode || projectData.mode === mode;
+        const sharedProjectDocs = await Promise.all(
+          sharedProjectRefs.map((ref) => ref.get())
+        );
 
-            if (matchesStatus && matchesMode) {
-              sharedProjectIds.push(projectDoc.id);
-            }
-          }
-        }
+        // Filter shared projects by status/mode and exclude non-existent
+        const filteredSharedDocs = sharedProjectDocs.filter((doc) => {
+          if (!doc.exists) return false;
+          const data = doc.data();
+          if (!data) return false;
+          const matchesStatus = !status || data.status === status;
+          const matchesMode = !mode || data.mode === mode;
+          return matchesStatus && matchesMode;
+        });
 
         // Combine owned and shared projects
         const allProjectDocs = [
           ...ownedSnapshot.docs,
-          ...sharedProjectIds.map((id) => {
-            return allProjectsSnapshot.docs.find((doc) => doc.id === id);
-          }).filter(Boolean) as FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
+          ...filteredSharedDocs,
         ];
 
         // Remove duplicates and sort by updatedAt
         const uniqueProjectDocs = Array.from(
           new Map(allProjectDocs.map((doc) => [doc.id, doc])).values()
         ).sort((a, b) => {
-          const aTime = a.data().updatedAt?.toMillis() || 0;
-          const bTime = b.data().updatedAt?.toMillis() || 0;
+          const aTime = a.data()!.updatedAt?.toMillis() || 0;
+          const bTime = b.data()!.updatedAt?.toMillis() || 0;
           return bTime - aTime;
         });
 
@@ -153,7 +153,7 @@ export const projectsRouter = router({
         // Fetch related data for each project
         const projects = await Promise.all(
           paginatedDocs.map(async (doc) => {
-            const projectData = doc.data();
+            const projectData = doc.data()!;
 
             // Get documents subcollection
             const documentsSnapshot = await doc.ref
@@ -333,7 +333,8 @@ export const projectsRouter = router({
           mode: input.mode,
           language: input.language || 'auto',
           status: 'ACTIVE',
-          currentPhase: 'BRD_QUESTIONS',
+          currentPhase: input.skipProblemDefinition ? 'BRD_QUESTIONS' : 'PROBLEM_DEFINITION_QUESTIONS',
+          skipProblemDefinition: input.skipProblemDefinition ?? false,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         };
@@ -559,6 +560,124 @@ export const projectsRouter = router({
    * Archive project
    * Only project owner can archive
    */
+  /**
+   * Duplicate project with conversation history (no documents)
+   * Only project owner or VIEWER+ can duplicate
+   */
+  duplicate: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const sourceRef = ctx.db.collection('projects').doc(input.id);
+        const sourceDoc = await sourceRef.get();
+
+        if (!sourceDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
+        }
+
+        const sourceData = sourceDoc.data()!;
+
+        // Verify access (owner, collaborator, or admin)
+        const isOwner = sourceData.userId === ctx.user.id;
+        const collaboratorSnapshot = await sourceRef
+          .collection('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
+        const isCollaborator = !collaboratorSnapshot.empty;
+
+        if (!isOwner && !isCollaborator && ctx.user.role !== 'ADMIN') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to duplicate this project',
+          });
+        }
+
+        const newProjectRef = ctx.db.collection('projects').doc();
+
+        const newProjectData = {
+          id: newProjectRef.id,
+          userId: ctx.user.id,
+          title: `${sourceData.title || 'Untitled'} (Copy)`,
+          description: sourceData.description || '',
+          mode: sourceData.mode || 'UNIFIED',
+          language: sourceData.language || 'auto',
+          status: 'ACTIVE',
+          currentPhase: sourceData.skipProblemDefinition ? 'BRD_QUESTIONS' : 'PROBLEM_DEFINITION_QUESTIONS',
+          skipProblemDefinition: sourceData.skipProblemDefinition ?? false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        await newProjectRef.set(newProjectData);
+
+        // Copy conversation history (BRD and PRD)
+        const conversationsSnapshot = await sourceRef.collection('conversations').get();
+
+        const batch = ctx.db.batch();
+
+        for (const convDoc of conversationsSnapshot.docs) {
+          const convData = convDoc.data();
+          const docType = convDoc.id;
+
+          if (docType !== 'BRD' && docType !== 'PRD') continue;
+
+          const newConvRef = newProjectRef.collection('conversations').doc(docType);
+          batch.set(newConvRef, {
+            id: docType,
+            projectId: newProjectRef.id,
+            documentType: docType,
+            messages: convData.messages || [],
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        await batch.commit();
+
+        await ctx.db.collection('auditLogs').add({
+          userId: ctx.user.id,
+          userName: ctx.user.name,
+          action: 'PROJECT_DUPLICATED',
+          details: {
+            sourceProjectId: input.id,
+            newProjectId: newProjectRef.id,
+            title: newProjectData.title,
+          },
+          ipAddress: ctx.req.ip || ctx.req.socket.remoteAddress || null,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        logger.info({
+          sourceProjectId: input.id,
+          newProjectId: newProjectRef.id,
+          userId: ctx.user.id,
+        }, 'Project duplicated');
+
+        return {
+          id: newProjectRef.id,
+          title: newProjectData.title,
+          description: newProjectData.description,
+          mode: newProjectData.mode,
+          language: newProjectData.language,
+          status: newProjectData.status,
+          currentPhase: newProjectData.currentPhase,
+          userId: newProjectData.userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, projectId: input.id, userId: ctx.user.id }, 'Failed to duplicate project');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to duplicate project',
+        });
+      }
+    }),
+
   archive: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -742,27 +861,24 @@ export const projectsRouter = router({
         .where('userId', '==', ctx.user.id)
         .get();
 
-      // Get all projects where user is collaborator
-      const allProjectsSnapshot = await ctx.db.collection('projects').get();
-      const collaboratedProjectIds: string[] = [];
+      // Get all projects where user is collaborator using collectionGroup query (O(1) instead of O(N))
+      const sharedCollabs = await ctx.db
+        .collectionGroup('collaborators')
+        .where('userId', '==', ctx.user.id)
+        .get();
 
-      for (const projectDoc of allProjectsSnapshot.docs) {
-        const collaboratorSnapshot = await projectDoc.ref
-          .collection('collaborators')
-          .where('userId', '==', ctx.user.id)
-          .get();
+      const sharedProjectRefs = sharedCollabs.docs
+        .map((d) => d.ref.parent.parent)
+        .filter(Boolean) as FirebaseFirestore.DocumentReference[];
 
-        if (!collaboratorSnapshot.empty) {
-          collaboratedProjectIds.push(projectDoc.id);
-        }
-      }
+      const sharedProjectDocs = await Promise.all(
+        sharedProjectRefs.map((ref) => ref.get())
+      );
 
       // Combine owned and collaborated projects
       const allUserProjects = [
         ...ownedProjectsSnapshot.docs,
-        ...collaboratedProjectIds.map((id) => {
-          return allProjectsSnapshot.docs.find((doc) => doc.id === id);
-        }).filter(Boolean) as FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
+        ...sharedProjectDocs.filter((doc) => doc.exists),
       ];
 
       // Remove duplicates
@@ -776,7 +892,7 @@ export const projectsRouter = router({
       let completedProjects = 0;
 
       for (const projectDoc of uniqueProjects) {
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data()!;
         const documentsSnapshot = await projectDoc.ref.collection('documents').get();
 
         totalDocuments += documentsSnapshot.size;

@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
@@ -6,42 +6,75 @@ import { SignupForm } from './components/auth/SignupForm';
 import { AuthLayout } from './components/auth/AuthLayout';
 import { SessionExpirationWarning } from './components/auth/SessionExpirationWarning';
 import { Spinner } from './components/ui/Spinner';
+import { lazyWithRetry } from './lib/utils/lazyWithRetry';
 import './App.css';
 
-// Lazy load pages for code splitting
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
-const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage'));
-const TermsPage = lazy(() => import('./pages/public/TermsPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const NewProjectPage = lazy(() => import('./pages/NewProjectPage'));
-const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
-const BRDWizardPage = lazy(() => import('./pages/BRDWizardPage'));
-const PRDWizardPage = lazy(() => import('./pages/PRDWizardPage'));
-const DocumentViewPage = lazy(() => import('./pages/DocumentViewPage'));
-const ToolSelectionPage = lazy(() => import('./pages/ToolSelectionPage'));
-const ToolOutputPage = lazy(() => import('./pages/ToolOutputPage'));
-const AdminPage = lazy(() => import('./pages/AdminPage'));
+// Lazy load pages for code splitting (with retry on chunk load failure)
+const LandingPage = lazyWithRetry(() => import('./pages/LandingPage'));
+const AuthCallbackPage = lazyWithRetry(() => import('./pages/AuthCallbackPage'));
+const PrivacyPage = lazyWithRetry(() => import('./pages/public/PrivacyPage'));
+const TermsPage = lazyWithRetry(() => import('./pages/public/TermsPage'));
+const ProfilePage = lazyWithRetry(() => import('./pages/ProfilePage'));
+const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
+const NewProjectPage = lazyWithRetry(() => import('./pages/NewProjectPage'));
+const ProjectDetailPage = lazyWithRetry(() => import('./pages/ProjectDetailPage'));
+const ProblemDefinitionWizardPage = lazyWithRetry(() => import('./pages/ProblemDefinitionWizardPage'));
+const BRDWizardPage = lazyWithRetry(() => import('./pages/BRDWizardPage'));
+const PRDWizardPage = lazyWithRetry(() => import('./pages/PRDWizardPage'));
+const DocumentViewPage = lazyWithRetry(() => import('./pages/DocumentViewPage'));
+const ToolSelectionPage = lazyWithRetry(() => import('./pages/ToolSelectionPage'));
+const ToolOutputPage = lazyWithRetry(() => import('./pages/ToolOutputPage'));
+const AdminPage = lazyWithRetry(() => import('./pages/AdminPage'));
 
 // Auth pages
-const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
-const EmailVerificationPendingPage = lazy(() => import('./pages/EmailVerificationPendingPage'));
+const VerifyEmailPage = lazyWithRetry(() => import('./pages/VerifyEmailPage'));
+const EmailVerificationPendingPage = lazyWithRetry(() => import('./pages/EmailVerificationPendingPage'));
 
 // Public pages
-const AboutPage = lazy(() => import('./pages/public/AboutPage'));
-const CaseStudiesPage = lazy(() => import('./pages/public/CaseStudiesPage'));
-const BlogPage = lazy(() => import('./pages/public/BlogPage'));
-const ScheduleDemoPage = lazy(() => import('./pages/public/ScheduleDemoPage'));
-const ContactUsPage = lazy(() => import('./pages/public/ContactUsPage'));
-const VibeCodingPage = lazy(() => import('./pages/public/docs/VibeCodingPage'));
-const BRDDocPage = lazy(() => import('./pages/public/docs/BRDDocPage'));
-const BRDGuidePage = lazy(() => import('./pages/public/docs/BRDGuidePage'));
-const PRDDocPage = lazy(() => import('./pages/public/docs/PRDDocPage'));
-const PRDGuidePage = lazy(() => import('./pages/public/docs/PRDGuidePage'));
-const SoftwareProcessPage = lazy(() => import('./pages/public/docs/SoftwareProcessPage'));
-const SoftwareProcessGuidePage = lazy(() => import('./pages/public/docs/SoftwareProcessGuidePage'));
-const HowToUsePage = lazy(() => import('./pages/public/docs/HowToUsePage'));
+const AboutPage = lazyWithRetry(() => import('./pages/public/AboutPage'));
+const CaseStudiesPage = lazyWithRetry(() => import('./pages/public/CaseStudiesPage'));
+const BlogPage = lazyWithRetry(() => import('./pages/public/BlogPage'));
+const ScheduleDemoPage = lazyWithRetry(() => import('./pages/public/ScheduleDemoPage'));
+const ContactUsPage = lazyWithRetry(() => import('./pages/public/ContactUsPage'));
+const VibeCodingPage = lazyWithRetry(() => import('./pages/public/docs/VibeCodingPage'));
+const BRDDocPage = lazyWithRetry(() => import('./pages/public/docs/BRDDocPage'));
+const BRDGuidePage = lazyWithRetry(() => import('./pages/public/docs/BRDGuidePage'));
+const PRDDocPage = lazyWithRetry(() => import('./pages/public/docs/PRDDocPage'));
+const PRDGuidePage = lazyWithRetry(() => import('./pages/public/docs/PRDGuidePage'));
+const SoftwareProcessPage = lazyWithRetry(() => import('./pages/public/docs/SoftwareProcessPage'));
+const SoftwareProcessGuidePage = lazyWithRetry(() => import('./pages/public/docs/SoftwareProcessGuidePage'));
+const HowToUsePage = lazyWithRetry(() => import('./pages/public/docs/HowToUsePage'));
+const BRDGeneratorPage = lazyWithRetry(() => import('./pages/public/BRDGeneratorPage'));
+const PRDGeneratorPage = lazyWithRetry(() => import('./pages/public/PRDGeneratorPage'));
+
+// Blog posts
+const WhyEveryAIProjectNeedsPRDPost = lazyWithRetry(() => import('./pages/public/blog/WhyEveryAIProjectNeedsPRDPost'));
+const CompleteGuideToWritingBRDsPost = lazyWithRetry(() => import('./pages/public/blog/CompleteGuideToWritingBRDsPost'));
+const AIAssistedDocumentationPost = lazyWithRetry(() => import('./pages/public/blog/AIAssistedDocumentationPost'));
+const TranslateUserNeedsPost = lazyWithRetry(() => import('./pages/public/blog/TranslateUserNeedsPost'));
+const HowToWriteABRD2026Post = lazyWithRetry(() => import('./pages/public/blog/HowToWriteABRD2026Post'));
+const PRDTemplateGuidePost = lazyWithRetry(() => import('./pages/public/blog/PRDTemplateGuidePost'));
+const BRDvsPRDPost = lazyWithRetry(() => import('./pages/public/blog/BRDvsPRDPost'));
+const AIRequirementsGatheringPost = lazyWithRetry(() => import('./pages/public/blog/AIRequirementsGatheringPost'));
+const UserStoriesVsRequirementsPost = lazyWithRetry(() => import('./pages/public/blog/UserStoriesVsRequirementsPost'));
+const AcceptanceCriteriaExamplesPost = lazyWithRetry(() => import('./pages/public/blog/AcceptanceCriteriaExamplesPost'));
+const RequirementsManagementTools2026Post = lazyWithRetry(() => import('./pages/public/blog/RequirementsManagementTools2026Post'));
+const HowToWriteUserStoriesPost = lazyWithRetry(() => import('./pages/public/blog/HowToWriteUserStoriesPost'));
+const FunctionalVsNonFunctionalPost = lazyWithRetry(() => import('./pages/public/blog/FunctionalVsNonFunctionalPost'));
+const AICodingToolsRequirementsPost = lazyWithRetry(() => import('./pages/public/blog/AICodingToolsRequirementsPost'));
+const BRDTemplatesByIndustryPost = lazyWithRetry(() => import('./pages/public/blog/BRDTemplatesByIndustryPost'));
+const RequirementsElicitationPost = lazyWithRetry(() => import('./pages/public/blog/RequirementsElicitationPost'));
+const ReduceScopeCreepPost = lazyWithRetry(() => import('./pages/public/blog/ReduceScopeCreepPost'));
+const BRDMistakesPost = lazyWithRetry(() => import('./pages/public/blog/BRDMistakesPost'));
+const AgileRequirementsPost = lazyWithRetry(() => import('./pages/public/blog/AgileRequirementsPost'));
+const SRSDocumentGuidePost = lazyWithRetry(() => import('./pages/public/blog/SRSDocumentGuidePost'));
+const DefiningTheRightProblemPost = lazyWithRetry(() => import('./pages/public/blog/DefiningTheRightProblemPost'));
+
+// Comparison & utility pages
+const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
+const ClearlyVsChatPRDPage = lazyWithRetry(() => import('./pages/public/ClearlyVsChatPRDPage'));
+const ClearlyVsManualPage = lazyWithRetry(() => import('./pages/public/ClearlyVsManualPage'));
+const ClearlyVsConfluencePage = lazyWithRetry(() => import('./pages/public/ClearlyVsConfluencePage'));
 
 const extractErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -65,7 +98,7 @@ function AppContent() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Define public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/auth/callback', '/auth/verify-email', '/auth/verify-pending', '/privacy', '/terms', '/about', '/case-studies', '/blog', '/schedule-demo', '/contact'];
+  const publicRoutes = ['/', '/login', '/auth/callback', '/auth/verify-email', '/auth/verify-pending', '/privacy', '/terms', '/about', '/case-studies', '/blog', '/schedule-demo', '/contact', '/brd-generator', '/prd-generator', '/sitemap', '/clearly-vs-chatprd', '/clearly-vs-manual', '/clearly-vs-confluence'];
   const isPublicRoute = publicRoutes.includes(location.pathname) ||
                         location.pathname.startsWith('/docs/') ||
                         location.pathname.startsWith('/blog/');
@@ -209,11 +242,12 @@ function AppContent() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/projects/new" element={<NewProjectPage />} />
         <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+        <Route path="/projects/:projectId/wizard/problem-definition" element={<ProblemDefinitionWizardPage />} />
         <Route path="/projects/:projectId/wizard/brd" element={<BRDWizardPage />} />
         <Route path="/projects/:projectId/wizard/prd" element={<PRDWizardPage />} />
         <Route path="/projects/:projectId/tools" element={<ToolSelectionPage />} />
         <Route path="/projects/:projectId/tool-output/:documentId" element={<ToolOutputPage />} />
-        <Route path="/documents/:documentId" element={<DocumentViewPage />} />
+        <Route path="/projects/:projectId/documents/:documentId" element={<DocumentViewPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
@@ -251,6 +285,35 @@ function App() {
         <Route path="/docs/software-development-process" element={<SoftwareProcessPage />} />
         <Route path="/docs/software-development-process-guide" element={<SoftwareProcessGuidePage />} />
         <Route path="/docs/how-to-use" element={<HowToUsePage />} />
+        <Route path="/brd-generator" element={<BRDGeneratorPage />} />
+        <Route path="/prd-generator" element={<PRDGeneratorPage />} />
+        {/* Blog posts */}
+        <Route path="/blog/why-every-ai-project-needs-prd" element={<WhyEveryAIProjectNeedsPRDPost />} />
+        <Route path="/blog/complete-guide-to-writing-brds" element={<CompleteGuideToWritingBRDsPost />} />
+        <Route path="/blog/ai-assisted-documentation" element={<AIAssistedDocumentationPost />} />
+        <Route path="/blog/translate-user-needs-to-requirements" element={<TranslateUserNeedsPost />} />
+        <Route path="/blog/how-to-write-a-brd-2026" element={<HowToWriteABRD2026Post />} />
+        <Route path="/blog/prd-template-guide" element={<PRDTemplateGuidePost />} />
+        <Route path="/blog/brd-vs-prd" element={<BRDvsPRDPost />} />
+        <Route path="/blog/ai-requirements-gathering" element={<AIRequirementsGatheringPost />} />
+        <Route path="/blog/user-stories-vs-requirements" element={<UserStoriesVsRequirementsPost />} />
+        <Route path="/blog/acceptance-criteria-examples" element={<AcceptanceCriteriaExamplesPost />} />
+        <Route path="/blog/requirements-management-tools-2026" element={<RequirementsManagementTools2026Post />} />
+        <Route path="/blog/how-to-write-user-stories" element={<HowToWriteUserStoriesPost />} />
+        <Route path="/blog/functional-vs-non-functional-requirements" element={<FunctionalVsNonFunctionalPost />} />
+        <Route path="/blog/ai-coding-tools-requirements" element={<AICodingToolsRequirementsPost />} />
+        <Route path="/blog/brd-templates-by-industry" element={<BRDTemplatesByIndustryPost />} />
+        <Route path="/blog/requirements-elicitation-guide" element={<RequirementsElicitationPost />} />
+        <Route path="/blog/reduce-scope-creep-requirements" element={<ReduceScopeCreepPost />} />
+        <Route path="/blog/brd-mistakes-to-avoid" element={<BRDMistakesPost />} />
+        <Route path="/blog/agile-requirements-documentation" element={<AgileRequirementsPost />} />
+        <Route path="/blog/how-to-write-srs-document" element={<SRSDocumentGuidePost />} />
+        <Route path="/blog/defining-the-right-problem-ai-era" element={<DefiningTheRightProblemPost />} />
+        {/* Comparison & utility pages */}
+        <Route path="/sitemap" element={<SitemapPage />} />
+        <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />
+        <Route path="/clearly-vs-manual" element={<ClearlyVsManualPage />} />
+        <Route path="/clearly-vs-confluence" element={<ClearlyVsConfluencePage />} />
         <Route path="/*" element={<AppContent />} />
       </Routes>
     </Suspense>

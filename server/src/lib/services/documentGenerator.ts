@@ -53,9 +53,80 @@ interface GenerationResult {
 }
 
 // Maximum output tokens for Gemini 2.5 Flash model
-// Note: The model supports up to 65,536 output tokens
-// Using 64K to generate comprehensive documents without truncation
-const MAX_OUTPUT_TOKENS = 64000;
+// The model supports up to 65,536 output tokens
+const MAX_OUTPUT_TOKENS = 65536;
+
+/**
+ * Generate Problem Definition Document from conversation
+ *
+ * @param systemPrompt - The system prompt for problem definition generation
+ * @param conversation - The conversation history
+ * @param language - Optional language override; if not provided, detects from conversation
+ */
+export async function generateProblemDefinition(
+  systemPrompt: string,
+  conversation: Message[],
+  language?: SupportedLanguage
+): Promise<GenerationResult> {
+  const conversationText = conversation.map((m) => m.content).join(' ');
+  const detectedLanguage = language || detectLanguage(conversationText);
+  const languageInstruction = getLanguageInstruction(detectedLanguage);
+
+  const messages = [
+    {
+      role: 'system' as const,
+      content: buildSystemPrompt(systemPrompt, { conversation }) + `\n\n${languageInstruction}`,
+    },
+    {
+      role: 'user' as const,
+      content: `Based on our conversation, please generate a comprehensive Problem Definition Document. Today's date is ${new Date().toISOString().split('T')[0]}. Use this date for the document header.
+
+The document MUST include these sections:
+1. **Initial Pain Point** - Observation, context, and current workarounds
+2. **Root Cause Analysis** - 5 Whys table (from symptom to root cause) + Job-to-be-Done analysis
+3. **Problem Statement** - Using the formula: [Who] is struggling to [Task/Goal] because [Obstacle], which results in [Negative Impact]
+4. **Impact Analysis** - Affected stakeholders table, current cost of problem, expected impact if solved
+5. **Validation Checklist** - Root cause verified, no solution bias, impact quantified, scope appropriate, technical fit, aligned with goals
+6. **Go/No-Go Decision** - Recommendation with rationale
+7. **Handoff to BRD** - Mapping table showing which PDD sections feed into which BRD sections
+
+CRITICAL: The problem statement must NOT mention any specific technology or solution. Focus purely on the problem, not how to solve it.
+
+Remember to wrap the entire document in <<PROBLEM_DEFINITION_START>> and <<PROBLEM_DEFINITION_END>> markers. ${languageInstruction}`,
+    },
+  ];
+
+  const response = await generateCompletion(messages, {
+    temperature: 0.7,
+    maxTokens: MAX_OUTPUT_TOKENS,
+  });
+
+  const rawContent = response.content;
+  let warning: string | undefined;
+
+  if (response.truncated) {
+    warning = 'The Problem Definition document may be incomplete due to length constraints.';
+    console.warn(`Problem Definition generation truncated. Output tokens: ${response.usage?.completionTokens}`);
+  }
+
+  let content = extractMarkedContent(rawContent, '<<PROBLEM_DEFINITION_START>>', '<<PROBLEM_DEFINITION_END>>', response.truncated);
+
+  if (!content) {
+    console.warn('Problem Definition markers not found in AI response. Using full content as fallback.');
+    content = rawContent.trim();
+  }
+
+  return {
+    content,
+    rawContent,
+    model: response.model,
+    tokensUsed: response.usage?.totalTokens,
+    inputTokens: response.usage?.promptTokens,
+    outputTokens: response.usage?.completionTokens,
+    truncated: response.truncated,
+    warning,
+  };
+}
 
 /**
  * Generate BRD from conversation
@@ -102,16 +173,10 @@ export async function generateBRD(
   }
 
   // Extract content between markers
-  let content = extractMarkedContent(rawContent, '<<BRD_START>>', '<<BRD_END>>');
+  let content = extractMarkedContent(rawContent, '<<BRD_START>>', '<<BRD_END>>', response.truncated);
 
-  // If markers not found and response was truncated, this likely means the document was cut off
   if (!content) {
-    if (response.truncated) {
-      console.warn('BRD markers not found due to truncation. Using available content.');
-      warning = 'The BRD document was cut off due to length limits. Some sections may be missing.';
-    } else {
-      console.warn('BRD markers not found in AI response. Using full content as fallback.');
-    }
+    console.warn('BRD markers not found in AI response. Using full content as fallback.');
     content = rawContent.trim();
   }
 
@@ -174,16 +239,10 @@ export async function generatePRD(
   }
 
   // Extract content between markers
-  let content = extractMarkedContent(rawContent, '<<PRD_START>>', '<<PRD_END>>');
+  let content = extractMarkedContent(rawContent, '<<PRD_START>>', '<<PRD_END>>', response.truncated);
 
-  // If markers not found and response was truncated, this likely means the document was cut off
   if (!content) {
-    if (response.truncated) {
-      console.warn('PRD markers not found due to truncation. Using available content.');
-      warning = 'The PRD document was cut off due to length limits. Some sections may be missing.';
-    } else {
-      console.warn('PRD markers not found in AI response. Using full content as fallback.');
-    }
+    console.warn('PRD markers not found in AI response. Using full content as fallback.');
     content = rawContent.trim();
   }
 
@@ -245,16 +304,10 @@ export async function generateTasks(
   }
 
   // Extract content between markers
-  let content = extractMarkedContent(rawContent, '<<TASKS_START>>', '<<TASKS_END>>');
+  let content = extractMarkedContent(rawContent, '<<TASKS_START>>', '<<TASKS_END>>', response.truncated);
 
-  // If markers not found and response was truncated, this likely means the document was cut off
   if (!content) {
-    if (response.truncated) {
-      console.warn('Tasks markers not found due to truncation. Using available content.');
-      warning = 'The task list was cut off due to length limits. Some tasks may be missing.';
-    } else {
-      console.warn('Tasks markers not found in AI response. Using full content as fallback.');
-    }
+    console.warn('Tasks markers not found in AI response. Using full content as fallback.');
     content = rawContent.trim();
   }
 
@@ -344,16 +397,10 @@ export async function generatePromptBuild(
   }
 
   // Extract content between markers
-  let content = extractMarkedContent(rawContent, '<<PROMPT_BUILD_START>>', '<<PROMPT_BUILD_END>>');
+  let content = extractMarkedContent(rawContent, '<<PROMPT_BUILD_START>>', '<<PROMPT_BUILD_END>>', response.truncated);
 
-  // If markers not found and response was truncated, this likely means the document was cut off
   if (!content) {
-    if (response.truncated) {
-      console.warn('Prompt Build markers not found due to truncation. Using available content.');
-      warning = 'The prompt build was cut off due to length limits. Some content may be missing.';
-    } else {
-      console.warn('Prompt Build markers not found in AI response. Using full content as fallback.');
-    }
+    console.warn('Prompt Build markers not found in AI response. Using full content as fallback.');
     content = rawContent.trim();
   }
 
@@ -416,15 +463,10 @@ export async function generateToolOutput(
     console.warn(`Tool output generation truncated for ${toolType}. Output tokens: ${response.usage?.completionTokens}`);
   }
 
-  let toolContent = extractMarkedContent(rawContent, '<<TOOL_OUTPUT_START>>', '<<TOOL_OUTPUT_END>>');
+  let toolContent = extractMarkedContent(rawContent, '<<TOOL_OUTPUT_START>>', '<<TOOL_OUTPUT_END>>', response.truncated);
 
   if (!toolContent) {
-    if (response.truncated) {
-      console.warn('Tool output markers not found due to truncation. Using available content.');
-      warning = `The ${getToolLabel(toolType)} output was cut off due to length limits. Some content may be missing.`;
-    } else {
-      console.warn('Tool output markers not found in AI response. Using full content as fallback.');
-    }
+    console.warn('Tool output markers not found in AI response. Using full content as fallback.');
     toolContent = rawContent.trim();
   }
 

@@ -1,0 +1,45 @@
+# Clearly — AI-Powered BRD & PRD Generator
+
+## What is Clearly?
+
+Clearly is an AI-powered web application that helps product managers, developers, and business analysts generate professional Business Requirements Documents (BRDs) and Product Requirements Documents (PRDs) in minutes instead of days.
+
+## Entity Type
+Software-as-a-Service (SaaS) application for requirements documentation
+
+## Primary Function
+AI-guided wizard that transforms rough ideas into complete, structured requirements documents through conversational input
+
+## Key Features
+- AI-powered BRD (Business Requirements Document) generation
+- AI-powered PRD (Product Requirements Document) generation
+- Guided wizard with contextual AI tips
+- Real-time collaboration for teams
+- Export to PDF and Word formats
+- Plain language and technical modes
+- Vibe coding support — generates AI-ready context files
+
+## Target Users
+- Product Managers creating PRDs for software features
+- Business Analysts writing BRDs for stakeholders
+- Startup founders documenting product requirements
+- Development teams using AI coding tools (Cursor, Copilot, Claude)
+- Consultants and agencies building client documentation
+
+## Pricing
+Free trial available. No credit card required to start.
+
+## Key URLs
+- Homepage: https://www.clearlyreqs.com/
+- PRD Guide: https://www.clearlyreqs.com/docs/prd-guide
+- BRD Guide: https://www.clearlyreqs.com/docs/brd-guide
+- How to Use: https://www.clearlyreqs.com/docs/how-to-use
+- Blog: https://www.clearlyreqs.com/blog
+- Vibe Coding Guide: https://www.clearlyreqs.com/docs/vibe-coding
+
+## Competitive Positioning
+Clearly is purpose-built for requirements documentation with AI — not a generic document editor. It produces structured, stakeholder-ready BRDs and PRDs 10x faster than manual methods.
+
+## Contact
+Website: https://www.clearlyreqs.com/contact
+Demo: https://www.clearlyreqs.com/schedule-demo

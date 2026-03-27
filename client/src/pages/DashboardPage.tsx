@@ -23,6 +23,7 @@ export function DashboardPage() {
     deleteProjectAsync,
     archiveProjectAsync,
     updateProjectAsync,
+    duplicateProjectAsync,
   } = useProjects();
   const { stats, isLoading: isLoadingStats } = useProjectStats();
   const [editingProject, setEditingProject] = useState<{ id: string; title: string } | null>(null);
@@ -57,6 +58,15 @@ export function DashboardPage() {
       await archiveProjectAsync({ id });
     } catch (error) {
       alert('Failed to archive project: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleDuplicateProject = async (id: string) => {
+    try {
+      const newProject = await duplicateProjectAsync({ id });
+      navigate(`/projects/${newProject.id}`);
+    } catch (error) {
+      alert('Failed to duplicate project: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -218,6 +228,7 @@ export function DashboardPage() {
               onEditProject={handleEditProject}
               onArchiveProject={handleArchiveProject}
               onDeleteProject={handleDeleteProject}
+              onDuplicateProject={handleDuplicateProject}
               isLoading={isLoadingProjects}
             />
           </div>
@@ -227,7 +238,15 @@ export function DashboardPage() {
 
       {/* Rename Project Modal */}
       {editingProject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setEditingProject(null);
+              setEditTitle('');
+            }
+          }}
+        >
           <div className="bg-white dark:bg-gray-950 rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">

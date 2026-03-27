@@ -13,6 +13,7 @@ export default function TranslateUserNeedsPost() {
       readTime="6 min read"
       category="Best Practices"
       excerpt="Bridge the gap between business stakeholders and development teams with these proven techniques."
+      slug="translate-user-needs-to-requirements"
       coverImage="→"
       coverGradient="from-orange-600 via-red-600 to-pink-600"
     >

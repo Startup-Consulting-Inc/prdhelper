@@ -11,60 +11,129 @@
 
   Recent Changes:
   - [2025-10-30] Added comprehensive SEO meta tags, social cards, and JSON-LD structured data.
+  - [2026-03-20] Fixed domain to www.clearlyreqs.com, added canonical, expanded structured data.
 -->
 <!doctype html>
 <html lang="en">
   <head>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBG8GRS0CY"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BBG8GRS0CY');
+  </script>
+
+    <meta name="google-site-verification" content="GtKvjVYklBf3EdJEaUUv3uSeLpGmuexMtMudV09lQqM" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Content Security Policy - Allow Google APIs for OAuth -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://*.sentry.io; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;" />
-    <title>Clearly - AI-Powered Requirements Documents</title>
+    <title>Clearly - AI-Powered BRD & PRD Generator</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Clearly is an AI-powered platform that helps you generate Business Requirements Documents (BRDs) and Product Requirements Documents (PRDs) from your initial ideas." />
-    <meta name="keywords" content="AI, requirements documents, BRD, PRD, product management, software development, project planning" />
+    <meta name="description" content="Generate professional BRDs and PRDs in minutes with AI. Clearly's intelligent wizard guides you from idea to complete requirements document. Free trial." />
+    <meta name="keywords" content="AI, BRD generator, PRD generator, requirements documents, product requirements document, business requirements document, product management, software development" />
     <meta name="author" content="Clearly" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.clearlyreqs.com/" />
+
+    <!-- AI Discovery Files -->
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
+    <link rel="alternate" type="text/plain" href="/ai-llm.txt" title="AI-LLM.txt" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://clearly-711582759542.us-west1.run.app/" />
-    <meta property="og:title" content="Clearly - AI-Powered Requirements Documents" />
-    <meta property="og:description" content="Transform your ideas into detailed, structured requirements documents with the power of AI. Get started with Clearly." />
-    <meta property="og:image" content="https://clearly-711582759542.us-west1.run.app/images/og-image.png" />
+    <meta property="og:url" content="https://www.clearlyreqs.com/" />
+    <meta property="og:title" content="Clearly - AI-Powered BRD & PRD Generator" />
+    <meta property="og:description" content="Generate professional BRDs and PRDs in minutes with AI. Clearly's intelligent wizard guides you from idea to complete requirements document. Free trial." />
+    <meta property="og:image" content="https://www.clearlyreqs.com/og-image.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://clearly-711582759542.us-west1.run.app/" />
-    <meta property="twitter:title" content="Clearly - AI-Powered Requirements Documents" />
-    <meta property="twitter:description" content="Transform your ideas into detailed, structured requirements documents with the power of AI. Get started with Clearly." />
-    <meta property="twitter:image" content="https://clearly-711582759542.us-west1.run.app/images/og-image.png" />
+    <meta property="twitter:url" content="https://www.clearlyreqs.com/" />
+    <meta property="twitter:title" content="Clearly - AI-Powered BRD & PRD Generator" />
+    <meta property="twitter:description" content="Generate professional BRDs and PRDs in minutes with AI. Clearly's intelligent wizard guides you from idea to complete requirements document. Free trial." />
+    <meta property="twitter:image" content="https://www.clearlyreqs.com/twitter-image.png" />
 
     <!-- Favicon -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- Structured Data -->
+    <!-- Resource Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://firebaseio.com" />
+
+    <!-- Structured Data: SoftwareApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "Clearly",
-      "applicationCategory": "Productivity",
+      "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web",
-      "description": "An AI-powered platform for generating Business and Product Requirements Documents.",
-      "url": "https://clearly-711582759542.us-west1.run.app/",
+      "description": "An AI-powered platform for generating Business Requirements Documents (BRDs) and Product Requirements Documents (PRDs) 10x faster.",
+      "url": "https://www.clearlyreqs.com",
+      "logo": "https://www.clearlyreqs.com/logo.svg",
+      "screenshot": "https://www.clearlyreqs.com/og-image.png",
+      "softwareVersion": "2.0",
+      "featureList": [
+        "AI-powered BRD generation",
+        "AI-powered PRD generation",
+        "Guided requirements wizard",
+        "Real-time collaboration",
+        "Export to PDF and Word",
+        "Contextual AI tips"
+      ],
       "author": {
         "@type": "Organization",
-        "name": "Clearly"
+        "name": "Clearly",
+        "url": "https://www.clearlyreqs.com"
       },
       "offers": {
         "@type": "Offer",
-        "price": "0" 
+        "price": "0",
+        "priceCurrency": "USD"
       }
     }
     </script>
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Clearly",
+      "url": "https://www.clearlyreqs.com",
+      "logo": "https://www.clearlyreqs.com/logo.svg",
+      "sameAs": []
+    }
+    </script>
+
+    <!-- Structured Data: WebSite with SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Clearly",
+      "url": "https://www.clearlyreqs.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.clearlyreqs.com/blog?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+
   </head>
   <body>
     <div id="root"></div>

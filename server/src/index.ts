@@ -21,6 +21,7 @@
  * - [2025-01-XX] Improved health checks with dependency verification
  */
 import express, { Request, Response } from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -46,6 +47,18 @@ import { checkEmailHealth } from './lib/health/email.js';
 
 // Load environment variables FIRST
 dotenv.config();
+
+// Validate required environment variables — fail fast on startup
+const requiredEnvVars = [
+  'OPENROUTER_API_KEY',
+  'FIREBASE_PROJECT_ID',
+  'FIRESTORE_DATABASE_ID',
+];
+const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
+if (missingVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  process.exit(1);
+}
 
 // Log startup immediately to help debug
 console.log('🚀 Starting server...');
@@ -100,6 +113,9 @@ app.set('trust proxy', 1);
 // Sentry Express integration is already configured via expressIntegration() in Sentry.init()
 // No need for separate request handler when using expressIntegration()
 
+// Compression middleware (Gzip/Brotli for all responses)
+app.use(compression());
+
 // Correlation ID middleware (must be early for logging)
 app.use(correlationIdMiddleware);
 
@@ -116,6 +132,10 @@ if (clientDistExists) {
   logger.info({ clientDistPath }, 'Serving static client files');
   app.use(express.static(clientDistPath, {
     setHeaders: (res, filePath) => {
+      // Cache immutable hashed assets for 1 year
+      if (filePath.match(/\.(js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
       // Set proper MIME types for video files
       if (filePath.endsWith('.mp4')) {
         res.setHeader('Content-Type', 'video/mp4');
@@ -143,6 +163,7 @@ app.use(
           "'unsafe-inline'",
           'https://apis.google.com', // Google OAuth API
           'https://www.gstatic.com', // Google static resources
+          'https://www.googletagmanager.com', // Google Tag Manager
           'blob:', // Allow blobs for workers
         ],
         workerSrc: ["'self'", 'blob:'], // Explicitly allow workers from blobs
@@ -154,6 +175,9 @@ app.use(
           'https://*.firebaseio.com', // Firebase Realtime Database
           'https://*.firebaseapp.com', // Firebase Hosting
           'https://*.sentry.io', // Sentry error tracking
+          'https://www.googletagmanager.com', // Google Tag Manager
+          'https://www.google-analytics.com', // Google Analytics
+          'https://region1.google-analytics.com', // GA4 regional endpoint
         ],
         fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         objectSrc: ["'none'"],

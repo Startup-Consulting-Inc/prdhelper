@@ -374,6 +374,239 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
   pdf.save(filename);
 }
 
+export interface PDFBlobOptions {
+  title: string;
+  content: string;
+  metadata?: {
+    author?: string;
+    subject?: string;
+    keywords?: string;
+  };
+}
+
+/**
+ * Generate PDF as Blob (for inclusion in ZIP bundles)
+ */
+export async function generatePDFBlob(options: PDFBlobOptions): Promise<Blob> {
+  const { title, content, metadata } = options;
+
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  pdf.setProperties({
+    title,
+    author: metadata?.author || 'Clearly',
+    subject: metadata?.subject || title,
+    keywords: metadata?.keywords || '',
+    creator: 'Clearly - The Intelligent Requirements Platform',
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 20;
+  const contentWidth = pageWidth - 2 * margin;
+  const lineHeight = 7;
+  let currentY = margin;
+
+  const getFontConfig = (style: FontVariant) => {
+    switch (style) {
+      case 'bold':
+        return { font: 'helvetica', fontStyle: 'bold' as const };
+      case 'italic':
+        return { font: 'helvetica', fontStyle: 'italic' as const };
+      case 'boldItalic':
+        return { font: 'helvetica', fontStyle: 'bolditalic' as const };
+      case 'code':
+        return { font: 'courier', fontStyle: 'normal' as const };
+      default:
+        return { font: 'helvetica', fontStyle: 'normal' as const };
+    }
+  };
+
+  const mergeStyles = (base: FontVariant, next: FontVariant): FontVariant => {
+    if (base === 'code' || next === 'code') return 'code';
+    const hasBold = base === 'bold' || base === 'boldItalic' || next === 'bold' || next === 'boldItalic';
+    const hasItalic = base === 'italic' || base === 'boldItalic' || next === 'italic' || next === 'boldItalic';
+    if (hasBold && hasItalic) return 'boldItalic';
+    if (hasBold) return 'bold';
+    if (hasItalic) return 'italic';
+    return 'normal';
+  };
+
+  const parseInlineSegments = (text: string, baseStyle: FontVariant = 'normal'): Segment[] => {
+    const pattern = /(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`)/g;
+    const segments: Segment[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({ text: text.slice(lastIndex, match.index), style: baseStyle });
+      }
+      const token = match[0];
+      if ((token.startsWith('**') && token.endsWith('**')) || (token.startsWith('__') && token.endsWith('__'))) {
+        segments.push(...parseInlineSegments(token.slice(2, -2), mergeStyles(baseStyle, 'bold')));
+      } else if ((token.startsWith('*') && token.endsWith('*')) || (token.startsWith('_') && token.endsWith('_'))) {
+        segments.push(...parseInlineSegments(token.slice(1, -1), mergeStyles(baseStyle, 'italic')));
+      } else if (token.startsWith('`') && token.endsWith('`')) {
+        segments.push({ text: token.slice(1, -1), style: 'code' });
+      }
+      lastIndex = match.index + token.length;
+    }
+    if (lastIndex < text.length) segments.push({ text: text.slice(lastIndex), style: baseStyle });
+    return segments.filter((s) => s.text.length > 0);
+  };
+
+  const measureWord = (word: string, style: FontVariant, fontSize: number): number => {
+    const { font, fontStyle } = getFontConfig(style);
+    pdf.setFont(font, fontStyle);
+    pdf.setFontSize(fontSize);
+    return pdf.getTextWidth(word);
+  };
+
+  const wrapSegments = (segments: Segment[], fontSize: number, maxWidth: number): SegmentWord[][] => {
+    const lines: SegmentWord[][] = [];
+    let currentLine: SegmentWord[] = [];
+    let currentWidth = 0;
+    const pushLine = () => {
+      if (currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = [];
+        currentWidth = 0;
+      }
+    };
+    segments.forEach((segment) => {
+      const words = segment.text.split(/(\s+)/).filter((t) => t.length > 0);
+      words.forEach((word) => {
+        const width = measureWord(word, segment.style, fontSize);
+        const isWhitespace = word.trim() === '';
+        if (width === 0) return;
+        if (isWhitespace) {
+          if (currentLine.length > 0) {
+            currentLine.push({ text: word, style: segment.style, width });
+            currentWidth += width;
+          }
+          return;
+        }
+        if (width > maxWidth) {
+          for (const char of word) {
+            const charWidth = measureWord(char, segment.style, fontSize);
+            if (currentWidth + charWidth > maxWidth && currentLine.length > 0) pushLine();
+            currentLine.push({ text: char, style: segment.style, width: charWidth });
+            currentWidth += charWidth;
+          }
+          return;
+        }
+        if (currentWidth + width > maxWidth && currentLine.length > 0) pushLine();
+        currentLine.push({ text: word, style: segment.style, width });
+        currentWidth += width;
+      });
+    });
+    if (currentLine.length > 0) pushLine();
+    return lines;
+  };
+
+  const addNewPage = () => {
+    pdf.addPage();
+    currentY = margin;
+  };
+
+  const checkPageBreak = (requiredHeight: number) => {
+    if (currentY + requiredHeight > pageHeight - margin) {
+      addNewPage();
+      return true;
+    }
+    return false;
+  };
+
+  const renderParagraph = (
+    text: string,
+    opts: ParagraphOptions = {}
+  ) => {
+    const { fontSize = 11, baseStyle = 'normal', lineSpacingMultiplier = 1, spacingAfter = 0, indent = 0, prefix } = opts;
+    const segments = parseInlineSegments(text, baseStyle);
+    if (segments.length === 0) {
+      currentY += spacingAfter;
+      return;
+    }
+    const startX = margin + indent;
+    const availableWidth = Math.max(contentWidth - indent, 10);
+    const lines = wrapSegments(segments, fontSize, availableWidth);
+    const effectiveLineHeight = lineHeight * lineSpacingMultiplier;
+    lines.forEach((lineSegments, index) => {
+      checkPageBreak(effectiveLineHeight);
+      if (prefix && index === 0) {
+        const { font, fontStyle } = getFontConfig(prefix.fontStyle ?? 'normal');
+        pdf.setFont(font, fontStyle);
+        pdf.setFontSize(fontSize);
+        pdf.text(prefix.text, margin + (prefix.xOffset ?? 0), currentY);
+      }
+      let currentX = startX;
+      lineSegments.forEach(({ text: segmentText, style, width }) => {
+        const { font, fontStyle } = getFontConfig(style);
+        pdf.setFont(font, fontStyle);
+        pdf.setFontSize(fontSize);
+        pdf.text(segmentText, currentX, currentY);
+        currentX += width;
+      });
+      currentY += effectiveLineHeight;
+    });
+    currentY += spacingAfter;
+  };
+
+  const lines = content.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) {
+      currentY += lineHeight * 0.5;
+      continue;
+    }
+    checkPageBreak(lineHeight * 2);
+    if (line.startsWith('# ')) {
+      renderParagraph(line.substring(2), { fontSize: 20, baseStyle: 'bold', lineSpacingMultiplier: 1.2, spacingAfter: 5 });
+    } else if (line.startsWith('## ')) {
+      renderParagraph(line.substring(3), { fontSize: 16, baseStyle: 'bold', lineSpacingMultiplier: 1.1, spacingAfter: 4 });
+    } else if (line.startsWith('### ')) {
+      renderParagraph(line.substring(4), { fontSize: 14, baseStyle: 'bold', lineSpacingMultiplier: 1.05, spacingAfter: 3 });
+    } else if (line.startsWith('#### ')) {
+      renderParagraph(line.substring(5), { fontSize: 12, spacingAfter: 2 });
+    } else if (/^[-*_]{3,}\s*$/.test(line.trim())) {
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(margin, currentY, margin + contentWidth, currentY);
+      currentY += lineHeight * 0.5;
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      renderParagraph(line.substring(2), { fontSize: 11, indent: 8, prefix: { text: '•', xOffset: 2 } });
+    } else if (line.match(/^\d+\.\s/)) {
+      const m = line.match(/^(\d+)\.\s(.+)/);
+      if (m) renderParagraph(m[2], { fontSize: 11, indent: 12, prefix: { text: `${m[1]}.`, xOffset: 2 } });
+    } else if (line.startsWith('|')) {
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const cells = line.split('|').filter((c) => c.trim());
+      const cellWidth = contentWidth / cells.length;
+      cells.forEach((cell, idx) => {
+        pdf.text(cell.trim(), margin + idx * cellWidth + 2, currentY, { maxWidth: cellWidth - 4 });
+      });
+      pdf.line(margin, currentY + 2, margin + contentWidth, currentY + 2);
+      currentY += lineHeight;
+    } else {
+      renderParagraph(line, { fontSize: 11 });
+    }
+  }
+
+  const pageCount = pdf.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Page ${i} of ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+  }
+
+  return pdf.output('blob');
+}
+
 /**
  * Generate filename for PDF export
  */

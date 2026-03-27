@@ -5,23 +5,9 @@
  */
 
 import { trpc } from '../lib/trpc';
+import type { Message, Conversation } from '@shared/types';
 
-// Type definitions
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date | string;
-}
-
-export interface Conversation {
-  id: string;
-  projectId: string;
-  documentType: 'BRD' | 'PRD' | 'TASKS';
-  messages: Message[];
-  createdAt: Date | string;
-  updatedAt: Date | string;
-}
+export type { Message, Conversation };
 
 export interface ExplanationResponse {
   purpose: string;
@@ -39,7 +25,7 @@ export interface ExplanationResponse {
   }[];
 }
 
-export function useWizard(projectId: string, documentType: 'BRD' | 'PRD') {
+export function useWizard(projectId: string, documentType: 'PROBLEM_DEFINITION' | 'BRD' | 'PRD') {
   const utils = trpc.useUtils();
 
   // Mutation: Ask next question
@@ -69,7 +55,7 @@ export function useWizard(projectId: string, documentType: 'BRD' | 'PRD') {
   };
 }
 
-export function useConversation(projectId: string, documentType: 'BRD' | 'PRD' | 'TASKS') {
+export function useConversation(projectId: string, documentType: 'PROBLEM_DEFINITION' | 'BRD' | 'PRD' | 'TASKS') {
   const utils = trpc.useUtils();
 
   // Query: Get conversation

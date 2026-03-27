@@ -16,22 +16,24 @@ import { trpc } from '../../lib/trpc';
 
 interface VersionHistoryProps {
   documentId: string;
+  projectId: string;
   onClose: () => void;
   onRestore: () => void;
 }
 
-export function VersionHistory({ documentId, onClose, onRestore }: VersionHistoryProps) {
+export function VersionHistory({ documentId, projectId, onClose, onRestore }: VersionHistoryProps) {
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch version history
   const { data: versions, isLoading } = trpc.documents.getVersionHistory.useQuery({
     documentId,
+    projectId,
   });
 
   // Fetch selected version content
   const { data: selectedVersion, isLoading: isLoadingVersion } = trpc.documents.getVersion.useQuery(
-    { versionId: selectedVersionId! },
+    { versionId: selectedVersionId!, documentId, projectId },
     { enabled: !!selectedVersionId }
   );
 
@@ -46,11 +48,11 @@ export function VersionHistory({ documentId, onClose, onRestore }: VersionHistor
 
     try {
       setError(null);
-      await restoreVersionMutation.mutateAsync({ versionId });
+      await restoreVersionMutation.mutateAsync({ versionId, documentId, projectId });
 
       // Invalidate queries to refresh data
       await utils.documents.getById.invalidate({ id: documentId });
-      await utils.documents.getVersionHistory.invalidate({ documentId });
+      await utils.documents.getVersionHistory.invalidate({ documentId, projectId });
 
       onRestore();
       alert('Version restored successfully!');

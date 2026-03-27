@@ -5,6 +5,8 @@
  */
 
 import { PublicLayout } from '../../../components/layout/PublicLayout';
+import { SEO } from '../../../components/SEO';
+import { Helmet } from 'react-helmet-async';
 import {
   Zap,
   FileText,
@@ -33,6 +35,44 @@ import {
 export default function PRDGuidePage() {
   return (
     <PublicLayout>
+      <SEO
+        title="How to Write a PRD – Complete Guide to Product Requirements Documents"
+        description="Step-by-step guide to writing Product Requirements Documents. Templates, examples, and best practices for product managers and development teams."
+        path="/docs/prd-guide"
+      />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'What is a Product Requirements Document (PRD)?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A Product Requirements Document (PRD) is a document that defines the features, functionality, and behavior of a product or feature. It describes what the product should do, who it is for, and how success will be measured. PRDs are written by product managers and used by engineers, designers, and QA teams to build the right product.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'What should a PRD include?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A PRD should include: a problem statement, product goals and success metrics, target users and personas, user stories with acceptance criteria, functional requirements, non-functional requirements (performance, security, scalability), technical constraints, out-of-scope items, dependencies, and a timeline. Clearly generates all of these sections automatically.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'How long should a PRD be?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A PRD length depends on the complexity of the feature or product. A single-feature PRD may be 2-5 pages; a full product PRD may be 10-30 pages. The goal is completeness, not length — every critical section should be covered without unnecessary padding.' },
+            },
+            {
+              '@type': 'Question',
+              name: "What is the difference between a PRD and a BRD?",
+              acceptedAnswer: { '@type': 'Answer', text: 'A BRD (Business Requirements Document) focuses on business objectives and stakeholder needs — the "why" behind a project. A PRD (Product Requirements Document) focuses on the product features and technical requirements — the "what" and "how." BRDs are written first; PRDs are written before development begins.' },
+            },
+            {
+              '@type': 'Question',
+              name: 'Do PRDs still matter in agile development?',
+              acceptedAnswer: { '@type': 'Answer', text: 'Yes. PRDs adapt to agile as living documents rather than up-front specifications. In agile teams, PRDs define the scope and goals of an initiative, while user stories and sprint tasks capture the tactical details. A PRD provides the strategic context that keeps the team aligned as requirements evolve.' },
+            },
+          ],
+        })}</script>
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <header className="text-center py-12 mb-8 bg-white dark:bg-gray-800 shadow-xl rounded-xl">

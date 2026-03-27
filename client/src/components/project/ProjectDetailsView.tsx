@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench } from 'lucide-react';
+import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench, Download, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -19,6 +19,7 @@ import { useProject } from '../../hooks/useProjects';
 import { useDocuments } from '../../hooks/useDocuments';
 import { trpc } from '../../lib/trpc';
 import { calculateProjectProgress } from '../../lib/utils/projectProgress';
+import { exportAllAsZip } from '../../lib/utils/exportAllZip';
 import { OUTPUT_TOOLS } from '@shared/types';
 
 interface ProjectDetailsViewProps {
@@ -34,6 +35,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const generateTasksMutation = trpc.ai.generateDocument.useMutation();
   const generatePromptBuildMutation = trpc.ai.generateDocument.useMutation();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [isExportingAll, setIsExportingAll] = useState(false);
 
   if (isLoadingProject) {
     return (
@@ -58,6 +60,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   }
 
   // Get document status
+  const problemDefDoc = documents?.find((d) => d.type === 'PROBLEM_DEFINITION');
   const brdDoc = documents?.find((d) => d.type === 'BRD');
   const prdDoc = documents?.find((d) => d.type === 'PRD');
   const promptBuildDoc = documents?.find((d) => d.type === 'PROMPT_BUILD');
@@ -67,7 +70,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
   const isUnified = project.mode === 'UNIFIED';
 
   // Calculate progress using shared utility
-  const allDocs = [brdDoc, prdDoc, promptBuildDoc, tasksDoc, ...toolOutputDocs]
+  const allDocs = [problemDefDoc, brdDoc, prdDoc, promptBuildDoc, tasksDoc, ...toolOutputDocs]
     .filter((doc) => doc !== undefined)
     .map((doc) => ({
       type: doc.type,
@@ -75,9 +78,11 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
     }));
   const progressPercent = calculateProjectProgress({ mode: project.mode }, allDocs);
 
-  // Calculate completed steps from documents
-  const totalSteps = 3; // BRD, PRD, and final document/tool output
+  // hasProblemDef is false when: user explicitly skipped PD, OR old project has BRD but no PD doc
+  const hasProblemDef = !!problemDefDoc || (!brdDoc && !project.skipProblemDefinition);
+  const totalSteps = hasProblemDef ? 4 : 3;
   let completedSteps = 0;
+  if (problemDefDoc?.status === 'APPROVED') completedSteps++;
   if (brdDoc?.status === 'APPROVED') completedSteps++;
   if (prdDoc?.status === 'APPROVED') completedSteps++;
   if (isUnified) {
@@ -123,6 +128,33 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
 
   // Determine current phase and next action
   const getPhaseInfo = () => {
+    if (!brdDoc && !problemDefDoc) {
+      if (project.skipProblemDefinition) {
+        return {
+          phase: 'Start BRD',
+          subtitle: 'BRD WIZARD',
+          action: 'Start BRD Wizard',
+          icon: FileText,
+          handler: () => navigate(`/projects/${projectId}/wizard/brd?autoStart=true`)
+        };
+      }
+      return {
+        phase: 'Define Problem',
+        subtitle: 'PROBLEM DEFINITION',
+        action: 'Start Problem Definition',
+        icon: Target,
+        handler: () => navigate(`/projects/${projectId}/wizard/problem-definition?autoStart=true`)
+      };
+    }
+    if (!brdDoc && problemDefDoc && problemDefDoc.status === 'DRAFT') {
+      return {
+        phase: 'Review Problem Definition',
+        subtitle: 'PROBLEM DEFINITION',
+        action: 'Review & Approve Problem Definition',
+        icon: Target,
+        handler: () => navigate(`/projects/${projectId}/documents/${problemDefDoc.id}`)
+      };
+    }
     if (!brdDoc) {
       return {
         phase: 'Start BRD',
@@ -138,7 +170,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'BRD QUESTIONS',
         action: 'Review & Approve BRD',
         icon: FileText,
-        handler: () => navigate(`/documents/${brdDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${brdDoc.id}`)
       };
     }
     if (!prdDoc) {
@@ -156,7 +188,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'PRD QUESTIONS',
         action: 'Review & Approve PRD',
         icon: FileText,
-        handler: () => navigate(`/documents/${prdDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${prdDoc.id}`)
       };
     }
     // UNIFIED mode: after PRD approved, go to tool selection
@@ -195,7 +227,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'VIBE CODING PROMPT',
         action: 'Review & Copy Prompt',
         icon: FileText,
-        handler: () => navigate(`/documents/${promptBuildDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${promptBuildDoc.id}`)
       };
     }
 
@@ -215,7 +247,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
         subtitle: 'TECHNICAL TASKS',
         action: 'Review & Approve Tasks',
         icon: Code,
-        handler: () => navigate(`/documents/${tasksDoc.id}`)
+        handler: () => navigate(`/projects/${projectId}/documents/${tasksDoc.id}`)
       };
     }
     return {
@@ -308,9 +340,48 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
 
         {/* Documents */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Documents
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              Documents
+            </h2>
+            {documents && documents.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const docsToExport = [brdDoc, prdDoc, tasksDoc, promptBuildDoc]
+                    .filter((d): d is NonNullable<typeof d> => d != null)
+                    .map((d) => ({ id: d.id, type: d.type, projectId }));
+
+                  if (docsToExport.length === 0) return;
+
+                  setIsExportingAll(true);
+                  try {
+                    await exportAllAsZip({
+                      projectId,
+                      projectTitle: project.title || 'Untitled Project',
+                      documents: docsToExport,
+                      fetchDocumentContent: async (docId, projId) => {
+                        const doc = await utils.documents.getById.fetch({
+                          id: docId,
+                          projectId: projId,
+                        });
+                        return { content: doc?.content ?? '' };
+                      },
+                    });
+                  } catch (err) {
+                    alert('Failed to export: ' + (err instanceof Error ? err.message : 'Unknown error'));
+                  } finally {
+                    setIsExportingAll(false);
+                  }
+                }}
+                disabled={isExportingAll}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExportingAll ? 'Exporting...' : 'Export All'}
+              </Button>
+            )}
+          </div>
           
           {isLoadingDocuments ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -362,7 +433,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/documents/${brdDoc.id}`)}
+                        onClick={() => navigate(`/projects/${projectId}/documents/${brdDoc.id}`)}
                       >
                         View Document
                       </Button>
@@ -430,7 +501,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate(`/documents/${prdDoc.id}`)}
+                        onClick={() => navigate(`/projects/${projectId}/documents/${prdDoc.id}`)}
                       >
                         View Document
                       </Button>
@@ -508,7 +579,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                           variant="outline"
                           size="sm"
                           className="w-full"
-                          onClick={() => navigate(`/documents/${promptBuildDoc.id}`)}
+                          onClick={() => navigate(`/projects/${projectId}/documents/${promptBuildDoc.id}`)}
                         >
                           View & Copy
                         </Button>
@@ -676,7 +747,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                           variant="outline"
                           size="sm"
                           className="w-full"
-                          onClick={() => navigate(`/documents/${tasksDoc.id}`)}
+                          onClick={() => navigate(`/projects/${projectId}/documents/${tasksDoc.id}`)}
                         >
                           View Tasks
                         </Button>

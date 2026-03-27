@@ -9,9 +9,16 @@
 
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { router, protectedProcedure } from '../lib/trpc/trpc.js';
+import {
+  router,
+  protectedProcedure,
+  aiAskProcedure,
+  aiGenerateProcedure,
+  aiRegenerateProcedure,
+} from '../lib/trpc/trpc.js';
 import { generateCompletion, type ChatMessage } from '../lib/services/ai.js';
 import {
+  generateProblemDefinition,
   generateBRD,
   generatePRD,
   generateTasks,
@@ -39,11 +46,11 @@ export const aiRouter = router({
   /**
    * Ask next question in wizard based on conversation history
    */
-  askQuestion: protectedProcedure
+  askQuestion: aiAskProcedure
     .input(
       z.object({
         projectId: z.string(),
-        documentType: z.enum(['BRD', 'PRD']),
+        documentType: z.enum(['PROBLEM_DEFINITION', 'BRD', 'PRD']),
         userAnswer: z.string().optional(),
       })
     )
@@ -106,10 +113,14 @@ export const aiRouter = router({
         // Get system prompt
         // UNIFIED mode uses TECHNICAL prompts (most comprehensive)
         const isPlainMode = project?.mode === 'PLAIN';
-        const promptType =
-          input.documentType === 'BRD'
-            ? isPlainMode ? 'BRD_PLAIN' : 'BRD_TECHNICAL'
-            : isPlainMode ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
+        let promptType: string;
+        if (input.documentType === 'PROBLEM_DEFINITION') {
+          promptType = isPlainMode ? 'PROBLEM_DEFINITION_PLAIN' : 'PROBLEM_DEFINITION_TECHNICAL';
+        } else if (input.documentType === 'BRD') {
+          promptType = isPlainMode ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
+        } else {
+          promptType = isPlainMode ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
+        }
 
         const systemPromptSnapshot = await ctx.db
           .collection('systemPrompts')
@@ -147,6 +158,24 @@ export const aiRouter = router({
         // Add language requirement to ensure AI responds in the correct language
         contextInfo += `\n\n### Language Requirement\n\n${languageInstruction}`;
 
+        if (input.documentType === 'BRD') {
+          // Include approved Problem Definition for BRD context
+          const pdDocsSnapshot = await projectRef
+            .collection('documents')
+            .where('type', '==', 'PROBLEM_DEFINITION')
+            .where('status', '==', 'APPROVED')
+            .limit(1)
+            .get();
+
+          if (!pdDocsSnapshot.empty) {
+            const pdDoc = pdDocsSnapshot.docs[0].data();
+            if (pdDoc?.content) {
+              const resolvedPdContent = isGCSReference(pdDoc.content) ? await resolveDocumentContent(pdDoc.content) : pdDoc.content;
+              contextInfo += `\n\n### Approved Problem Definition\n\n${resolvedPdContent}`;
+            }
+          }
+        }
+
         if (input.documentType === 'PRD') {
           // Include approved BRD for PRD context
           const brdDocsSnapshot = await projectRef
@@ -179,7 +208,9 @@ export const aiRouter = router({
             role: 'user' as const,
             content:
               messages.length === 0
-                ? `Start the wizard. Ask the first question to gather requirements for the ${input.documentType}. Reference the project title and description in your question.`
+                ? input.documentType === 'PROBLEM_DEFINITION'
+                  ? `Start the wizard. Ask the first question to understand the pain point or problem the user wants to solve. Reference the project title and description. Focus on understanding what situation or symptom prompted this project idea.`
+                  : `Start the wizard. Ask the first question to gather requirements for the ${input.documentType}. Reference the project title and description in your question.`
                 : 'Based on the previous answer, ask the next relevant question.',
           },
         ];
@@ -244,11 +275,11 @@ export const aiRouter = router({
   /**
    * Generate document from conversation
    */
-  generateDocument: protectedProcedure
+  generateDocument: aiGenerateProcedure
     .input(
       z.object({
         projectId: z.string(),
-        documentType: z.enum(['BRD', 'PRD', 'PROMPT_BUILD', 'TASKS']),
+        documentType: z.enum(['PROBLEM_DEFINITION', 'BRD', 'PRD', 'PROMPT_BUILD', 'TASKS']),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -276,8 +307,10 @@ export const aiRouter = router({
         // Get system prompt
         // UNIFIED mode uses TECHNICAL prompts (most comprehensive)
         const isPlain = project?.mode === 'PLAIN';
-        let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
-        if (input.documentType === 'BRD') {
+        let promptType: string;
+        if (input.documentType === 'PROBLEM_DEFINITION') {
+          promptType = isPlain ? 'PROBLEM_DEFINITION_PLAIN' : 'PROBLEM_DEFINITION_TECHNICAL';
+        } else if (input.documentType === 'BRD') {
           promptType = isPlain ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
         } else if (input.documentType === 'PRD') {
           promptType = isPlain ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
@@ -325,7 +358,36 @@ export const aiRouter = router({
         let truncated: boolean | undefined;
         let warning: string | undefined;
 
-        if (input.documentType === 'BRD') {
+        if (input.documentType === 'PROBLEM_DEFINITION') {
+          // Get conversation from subcollection
+          const conversationDoc = await projectRef
+            .collection('conversations')
+            .doc('PROBLEM_DEFINITION')
+            .get();
+
+          if (!conversationDoc.exists) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'No conversation found for Problem Definition generation',
+            });
+          }
+
+          const conversationData = conversationDoc.data();
+
+          const result = await generateProblemDefinition(
+            systemPromptData.prompt,
+            conversationData?.messages as Message[],
+            detectedLanguage
+          );
+          content = result.content;
+
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+          truncated = result.truncated;
+          warning = result.warning;
+        } else if (input.documentType === 'BRD') {
           // Get conversation from subcollection
           const conversationDoc = await projectRef
             .collection('conversations')
@@ -610,44 +672,39 @@ export const aiRouter = router({
   /**
    * Regenerate document with optional feedback
    */
-  regenerateDocument: protectedProcedure
+  regenerateDocument: aiRegenerateProcedure
     .input(
       z.object({
         documentId: z.string(),
+        projectId: z.string(),
         feedback: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // Find document across all projects (documents are in subcollections)
-        const projectsSnapshot = await ctx.db.collection('projects').get();
+        // Direct lookup using projectId (O(1) instead of scanning all projects)
+        const projectRef = ctx.db.collection('projects').doc(input.projectId);
+        const projectDoc = await projectRef.get();
 
-        let documentRef: FirebaseFirestore.DocumentReference | null = null;
-        let existingDocData: any = null;
-        let projectRef: FirebaseFirestore.DocumentReference | null = null;
-        let projectData: any = null;
-
-        for (const projectDoc of projectsSnapshot.docs) {
-          const docSnapshot = await projectDoc.ref
-            .collection('documents')
-            .doc(input.documentId)
-            .get();
-
-          if (docSnapshot.exists) {
-            documentRef = docSnapshot.ref;
-            existingDocData = docSnapshot.data();
-            projectRef = projectDoc.ref;
-            projectData = projectDoc.data();
-            break;
-          }
+        if (!projectDoc.exists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Project not found',
+          });
         }
 
-        if (!documentRef || !existingDocData || !projectRef || !projectData) {
+        const projectData = projectDoc.data()!;
+        const documentRef = projectRef.collection('documents').doc(input.documentId);
+        const docSnapshot = await documentRef.get();
+
+        if (!docSnapshot.exists) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Document not found',
           });
         }
+
+        const existingDocData = docSnapshot.data()!;
 
         // Verify ownership
         if (projectData.userId !== ctx.user.id) {
@@ -660,8 +717,10 @@ export const aiRouter = router({
         // Get system prompt
         // UNIFIED mode uses TECHNICAL prompts (most comprehensive)
         const isPlainRegen = projectData.mode === 'PLAIN';
-        let promptType: 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
-        if (existingDocData.type === 'BRD') {
+        let promptType: 'PROBLEM_DEFINITION_PLAIN' | 'PROBLEM_DEFINITION_TECHNICAL' | 'BRD_PLAIN' | 'BRD_TECHNICAL' | 'PRD_PLAIN' | 'PRD_TECHNICAL' | 'PROMPT_BUILD' | 'TASKS';
+        if (existingDocData.type === 'PROBLEM_DEFINITION') {
+          promptType = isPlainRegen ? 'PROBLEM_DEFINITION_PLAIN' : 'PROBLEM_DEFINITION_TECHNICAL';
+        } else if (existingDocData.type === 'BRD') {
           promptType = isPlainRegen ? 'BRD_PLAIN' : 'BRD_TECHNICAL';
         } else if (existingDocData.type === 'PRD') {
           promptType = isPlainRegen ? 'PRD_PLAIN' : 'PRD_TECHNICAL';
@@ -707,7 +766,33 @@ export const aiRouter = router({
         let inputTokens: number | undefined;
         let outputTokens: number | undefined;
 
-        if (existingDocData.type === 'BRD') {
+        if (existingDocData.type === 'PROBLEM_DEFINITION') {
+          // Get conversation from subcollection
+          const conversationDoc = await projectRef
+            .collection('conversations')
+            .doc('PROBLEM_DEFINITION')
+            .get();
+
+          if (!conversationDoc.exists) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'No conversation found for Problem Definition regeneration',
+            });
+          }
+
+          const conversationData = conversationDoc.data();
+
+          const result = await generateProblemDefinition(
+            systemPromptData.prompt + `\n\n**IMPORTANT: This is a regeneration request. Do NOT ask questions. Generate the complete Problem Definition document directly based on the conversation history provided.` + (input.feedback ? `\n\nUser Feedback for improvement: ${input.feedback}` : ''),
+            conversationData?.messages as Message[],
+            detectedLanguage
+          );
+          content = result.content;
+          model = result.model;
+          tokensUsed = result.tokensUsed;
+          inputTokens = result.inputTokens;
+          outputTokens = result.outputTokens;
+        } else if (existingDocData.type === 'BRD') {
           // Get conversation from subcollection
           const conversationDoc = await projectRef
             .collection('conversations')
@@ -960,7 +1045,7 @@ export const aiRouter = router({
       z.object({
         question: z.string().min(1).max(2000),
         projectMode: z.enum(['PLAIN', 'TECHNICAL', 'UNIFIED']),
-        documentType: z.enum(['BRD', 'PRD']),
+        documentType: z.enum(['PROBLEM_DEFINITION', 'BRD', 'PRD']),
       })
     )
     .mutation(async ({ ctx, input }) => {

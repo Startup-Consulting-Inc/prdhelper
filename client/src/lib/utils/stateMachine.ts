@@ -5,6 +5,10 @@
  */
 
 export type ProjectPhase =
+  | 'PROBLEM_DEFINITION_QUESTIONS'
+  | 'PROBLEM_DEFINITION_GENERATING'
+  | 'PROBLEM_DEFINITION_READY'
+  | 'PROBLEM_DEFINITION_APPROVED'
   | 'BRD_QUESTIONS'
   | 'BRD_GENERATING'
   | 'BRD_READY'
@@ -24,13 +28,17 @@ export type ProjectPhase =
  */
 export function getPhaseProgress(phase: ProjectPhase): number {
   const progress: Record<ProjectPhase, number> = {
-    BRD_QUESTIONS: 10,
-    BRD_GENERATING: 20,
-    BRD_READY: 25,
-    BRD_APPROVED: 35,
-    PRD_QUESTIONS: 45,
-    PRD_GENERATING: 55,
-    PRD_READY: 60,
+    PROBLEM_DEFINITION_QUESTIONS: 5,
+    PROBLEM_DEFINITION_GENERATING: 10,
+    PROBLEM_DEFINITION_READY: 15,
+    PROBLEM_DEFINITION_APPROVED: 20,
+    BRD_QUESTIONS: 25,
+    BRD_GENERATING: 35,
+    BRD_READY: 40,
+    BRD_APPROVED: 45,
+    PRD_QUESTIONS: 50,
+    PRD_GENERATING: 60,
+    PRD_READY: 65,
     PRD_APPROVED: 70,
     PROMPT_BUILD_GENERATING: 85,
     PROMPT_BUILD_READY: 90,
@@ -47,6 +55,10 @@ export function getPhaseProgress(phase: ProjectPhase): number {
  */
 export function getPhaseLabel(phase: ProjectPhase): string {
   const labels: Record<ProjectPhase, string> = {
+    PROBLEM_DEFINITION_QUESTIONS: 'Defining the Problem',
+    PROBLEM_DEFINITION_GENERATING: 'Generating Problem Definition',
+    PROBLEM_DEFINITION_READY: 'Problem Definition Ready for Review',
+    PROBLEM_DEFINITION_APPROVED: 'Problem Definition Approved',
     BRD_QUESTIONS: 'Answering BRD Questions',
     BRD_GENERATING: 'Generating BRD',
     BRD_READY: 'BRD Ready for Review',

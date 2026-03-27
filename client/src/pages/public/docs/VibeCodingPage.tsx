@@ -5,12 +5,18 @@
  */
 
 import { PublicLayout } from '../../../components/layout/PublicLayout';
+import { SEO } from '../../../components/SEO';
 import { MessageSquare, Zap, Code, Brain, AlertTriangle, CheckCircle, ArrowRight, Lightbulb, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function VibeCodingPage() {
   return (
     <PublicLayout>
+      <SEO
+        title="Vibe Coding & AI Requirements – How to Ship Better with Clear Specs"
+        description="Learn how vibe coding with AI tools like Cursor and Claude benefits from clear requirements. Clearly generates AI-ready context files for faster, higher-quality development."
+        path="/docs/vibe-coding"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">

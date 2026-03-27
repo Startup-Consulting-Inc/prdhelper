@@ -1,4 +1,4 @@
-import { Layers, Calendar, MoreVertical, Trash2, Archive, Pencil } from 'lucide-react';
+import { Layers, Calendar, MoreVertical, Trash2, Archive, Pencil, Copy } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { DropdownMenu, type DropdownMenuItem } from '../ui/DropdownMenu';
 import { cn } from '@/lib/utils/cn';
@@ -19,6 +19,7 @@ export interface ProjectCardProps {
   onEdit?: (id: string, currentTitle: string) => void;
   onArchive?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onDuplicate?: (id: string) => void;
   className?: string;
 }
 
@@ -35,6 +36,7 @@ const ProjectCard = ({
   onEdit,
   onArchive,
   onDelete,
+  onDuplicate,
   className,
 }: ProjectCardProps) => {
   const statusConfig = {
@@ -74,6 +76,13 @@ const ProjectCard = ({
       label: 'Archive',
       onClick: () => onArchive(id),
       icon: <Archive className="h-4 w-4" />,
+    });
+  }
+  if (onDuplicate) {
+    menuItems.push({
+      label: 'Duplicate',
+      onClick: () => onDuplicate(id),
+      icon: <Copy className="h-4 w-4" />,
     });
   }
   if (onDelete) {
