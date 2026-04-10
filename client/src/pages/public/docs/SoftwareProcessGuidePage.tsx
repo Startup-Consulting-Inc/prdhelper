@@ -5,6 +5,7 @@
  */
 
 import { PublicLayout } from '../../../components/layout/PublicLayout';
+import { SEO } from '../../../components/SEO';
 import {
   Zap,
   FileText,
@@ -34,6 +35,11 @@ import {
 export default function SoftwareProcessGuidePage() {
   return (
     <PublicLayout>
+      <SEO
+        title="AI-Powered Software Development Process – Full Guide"
+        description="A complete guide to software development with AI-assisted coding. Learn how to go from prototype to production using PRDs, BRDs, and structured development processes."
+        path="/docs/software-development-process-guide"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <header className="text-center py-12 mb-8 bg-white dark:bg-gray-800 shadow-xl rounded-xl">

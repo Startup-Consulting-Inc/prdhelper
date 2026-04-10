@@ -7,10 +7,16 @@
 import { PublicLayout } from '../../../components/layout/PublicLayout';
 import { FileText, Layers, Users, CheckCircle, ArrowRight, Code, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SEO } from '../../../components/SEO';
 
 export default function PRDDocPage() {
   return (
     <PublicLayout>
+      <SEO
+        title="Product Requirements Document (PRD) – Complete Guide"
+        description="Learn what a PRD is, what it contains, and how to write one. A Product Requirements Document defines features, user stories, and technical specifications for your product."
+        path="/docs/prd"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">

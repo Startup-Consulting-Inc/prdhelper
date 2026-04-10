@@ -20,10 +20,10 @@ export function PublicFooter({ className }: PublicFooterProps) {
       className={`bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 ${className ?? ''}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Four Column Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* Column 1: Service Name */}
-          <div>
+        {/* Six Column Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-8">
+          {/* Column 1: Service Name (spans 2 cols on large) */}
+          <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="h-5 w-5 text-primary-600 dark:text-primary-400" />
               <span className="text-lg font-bold text-gray-900 dark:text-white">Clearly</span>
@@ -105,7 +105,69 @@ export function PublicFooter({ className }: PublicFooterProps) {
             </ul>
           </div>
 
-          {/* Column 4: Contact */}
+          {/* Column 4: Tools */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Tools</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  to="/brd-generator"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  BRD Generator
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/prd-generator"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  PRD Generator
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/blog"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 5: Compare */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Compare</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  to="/clearly-vs-chatprd"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Clearly vs ChatPRD
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/clearly-vs-manual"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Clearly vs Manual
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/clearly-vs-confluence"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Clearly vs Confluence
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 6: Contact */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Contact</h3>
             <ul className="space-y-3">

@@ -7,10 +7,16 @@
 import { PublicLayout } from '../../../components/layout/PublicLayout';
 import { FileText, GitBranch, TestTube, Shield, Rocket, ArrowRight, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SEO } from '../../../components/SEO';
 
 export default function SoftwareProcessPage() {
   return (
     <PublicLayout>
+      <SEO
+        title="Software Development Process with AI – Overview"
+        description="Understand the modern software development process in the AI era. From requirements to deployment — how AI-assisted coding changes each phase of building software."
+        path="/docs/software-development-process"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">
