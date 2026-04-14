@@ -29,6 +29,8 @@ import WhyEveryAIProjectNeedsPRDPost from './pages/public/blog/WhyEveryAIProject
 import CompleteGuideToWritingBRDsPost from './pages/public/blog/CompleteGuideToWritingBRDsPost';
 import TranslateUserNeedsPost from './pages/public/blog/TranslateUserNeedsPost';
 import DefiningTheRightProblemPost from './pages/public/blog/DefiningTheRightProblemPost';
+import CSDegreeAIEraPost from './pages/public/blog/CSDegreeAIEraPost';
+import DatabaseLandscapeAIEraPost from './pages/public/blog/DatabaseLandscapeAIEraPost';
 
 // Tool pages
 import BRDGeneratorPage from './pages/public/BRDGeneratorPage';
@@ -80,6 +82,8 @@ export function PublicRoutes() {
       <Route path="/blog/complete-guide-to-writing-brds" element={<CompleteGuideToWritingBRDsPost />} />
       <Route path="/blog/translate-user-needs-to-requirements" element={<TranslateUserNeedsPost />} />
       <Route path="/blog/defining-the-right-problem-ai-era" element={<DefiningTheRightProblemPost />} />
+      <Route path="/blog/cs-degree-ai-era" element={<CSDegreeAIEraPost />} />
+      <Route path="/blog/database-landscape-ai-era" element={<DatabaseLandscapeAIEraPost />} />
 
       {/* Tool pages */}
       <Route path="/brd-generator" element={<BRDGeneratorPage />} />

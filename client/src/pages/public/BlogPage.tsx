@@ -18,6 +18,8 @@ import {
   Wrench,
   FileText,
   Star,
+  GraduationCap,
+  Database,
   type LucideIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -30,6 +32,8 @@ const CATEGORY_STYLES: Record<string, { bg: string; text: string; icon: LucideIc
   Tools:                { bg: 'bg-orange-500',  text: 'text-orange-50',  icon: Wrench },
   Templates:            { bg: 'bg-rose-500',    text: 'text-rose-50',    icon: FileText },
   Featured:             { bg: 'bg-pink-500',    text: 'text-pink-50',    icon: Star },
+  'AI & Education':          { bg: 'bg-indigo-500',  text: 'text-indigo-50',  icon: GraduationCap },
+  'AI & Data Infrastructure': { bg: 'bg-violet-600',  text: 'text-violet-50',  icon: Database },
 };
 
 const DEFAULT_STYLE: { bg: string; text: string; icon: LucideIcon } = {
@@ -49,6 +53,28 @@ export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState('All');
 
   const blogPosts = [
+    {
+      id: 23,
+      slug: 'database-landscape-ai-era',
+      title: 'The Database World Just Got Flipped Upside Down',
+      excerpt:
+        'How AI agents, MCP, and the rise of semantic layers are rewriting every rule about databases — and what it means for your team.',
+      author: 'Jaehee Song',
+      date: '2026-04-15',
+      readTime: '14 min read',
+      category: 'AI & Data Infrastructure',
+    },
+    {
+      id: 22,
+      slug: 'cs-degree-ai-era',
+      title: 'Do We Still Need CS Degrees in the Age of AI?',
+      excerpt:
+        'The golden ticket to tech is being questioned. Here\'s what the evidence actually says about CS degrees, vibe coding, skills-first hiring, and which path makes sense for you.',
+      author: 'Jaehee Song',
+      date: '2026-06-14',
+      readTime: '10 min read',
+      category: 'AI & Education',
+    },
     {
       id: 21,
       slug: 'defining-the-right-problem-ai-era',

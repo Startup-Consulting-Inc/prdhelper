@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Do We Still Need CS Degrees in the Age of AI?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Epilogue:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --ink-muted: #5a5a55;
+    --ink-faint: #9a9a93;
+    --surface: #faf9f6;
+    --surface-warm: #f3f0e8;
+    --accent: #c94a1a;
+    --accent-light: #fdf0ea;
+    --border: #e2dfd6;
+    --border-strong: #c5c0b4;
+    --highlight: #2a5f3e;
+    --highlight-light: #eaf3ee;
+    --blue-dark: #1e3a5f;
+    --blue-light: #eaf1f8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Epilogue', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.75;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    background: var(--ink);
+    color: var(--surface);
+    padding: 80px 24px 72px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 300px; height: 300px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; right: -40px;
+    width: 400px; height: 400px;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-family: 'Epilogue', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(201,74,26,0.15);
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+  }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(34px, 6vw, 58px);
+    font-weight: 700;
+    line-height: 1.12;
+    max-width: 760px;
+    margin: 0 auto 28px;
+    color: #faf9f6;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: rgba(250,249,246,0.6);
+    max-width: 560px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    font-size: 13px;
+    color: rgba(250,249,246,0.45);
+  }
+
+  .hero-meta span { display: flex; align-items: center; gap: 6px; }
+  .hero-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(250,249,246,0.3); }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .article-body {
+    padding: 64px 0 80px;
+  }
+
+  /* ── TYPOGRAPHY ── */
+  p {
+    margin-bottom: 1.6rem;
+    color: var(--ink);
+  }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 56px 0 20px;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-family: 'Epilogue', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 36px 0 12px;
+  }
+
+  strong { font-weight: 600; }
+
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ── INTRO CALLOUT ── */
+  .intro-callout {
+    background: var(--ink);
+    color: var(--surface);
+    border-radius: 16px;
+    padding: 40px 40px;
+    margin: 48px 0 56px;
+    position: relative;
+  }
+
+  .intro-callout p {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    line-height: 1.55;
+    color: var(--surface);
+    font-weight: 300;
+    margin: 0;
+  }
+
+  .intro-callout em {
+    font-style: italic;
+    color: rgba(250,249,246,0.7);
+  }
+
+  /* ── PULL QUOTE ── */
+  .pull-quote {
+    border-left: 3px solid var(--accent);
+    padding: 6px 0 6px 28px;
+    margin: 40px 0;
+  }
+
+  .pull-quote p {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+
+  .pull-quote .attribution {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  /* ── INFO CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 40px 0;
+  }
+
+  @media (max-width: 600px) { .card-grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface-warm);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card .card-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  .card .card-icon.red { background: var(--accent-light); color: var(--accent); }
+  .card .card-icon.green { background: var(--highlight-light); color: var(--highlight); }
+
+  .card h4 {
+    font-family: 'Epilogue', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .card p {
+    font-size: 14.5px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── EXPERT TABLE ── */
+  .expert-section {
+    margin: 48px 0;
+  }
+
+  .expert-card {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 18px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+
+  .expert-card:last-child { border-bottom: none; }
+
+  .expert-avatar {
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .avatar-blue { background: var(--blue-dark); }
+  .avatar-green { background: var(--highlight); }
+  .avatar-red { background: var(--accent); }
+  .avatar-gray { background: #4a4a45; }
+
+  .expert-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+
+  .expert-title {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+
+  .expert-quote {
+    font-family: 'Fraunces', serif;
+    font-size: 15.5px;
+    font-style: italic;
+    color: var(--ink-muted);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .expert-take {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .take-for { background: var(--highlight-light); color: var(--highlight); }
+  .take-against { background: var(--accent-light); color: var(--accent); }
+  .take-nuanced { background: var(--blue-light); color: var(--blue-dark); }
+
+  /* ── STAT CALLOUT ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 40px 0;
+  }
+
+  @media (max-width: 520px) { .stat-row { grid-template-columns: 1fr; } }
+
+  .stat-box {
+    background: var(--surface-warm);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 18px;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: 'Fraunces', serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    line-height: 1.4;
+  }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-box {
+    background: var(--highlight-light);
+    border: 1px solid rgba(42,95,62,0.2);
+    border-left: 3px solid var(--highlight);
+    border-radius: 0 12px 12px 0;
+    padding: 22px 24px;
+    margin: 40px 0;
+  }
+
+  .highlight-box p {
+    color: #1a3d28;
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+
+  .highlight-box strong { color: #1a3d28; }
+
+  /* ── WARNING BOX ── */
+  .warning-box {
+    background: var(--blue-light);
+    border: 1px solid rgba(30,58,95,0.15);
+    border-left: 3px solid var(--blue-dark);
+    border-radius: 0 12px 12px 0;
+    padding: 22px 24px;
+    margin: 40px 0;
+  }
+
+  .warning-box p {
+    color: #162c47;
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+
+  /* ── PATH CARDS (verdict section) ── */
+  .path-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin: 36px 0;
+  }
+
+  .path-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .path-card.featured {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .path-card.featured-green {
+    border-color: var(--highlight);
+    background: var(--highlight-light);
+  }
+
+  .path-badge {
+    font-size: 22px;
+    margin-top: 2px;
+  }
+
+  .path-card h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .path-card p {
+    font-size: 14.5px;
+    color: var(--ink-muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* ── TAKEAWAYS ── */
+  .takeaways {
+    background: var(--ink);
+    color: var(--surface);
+    border-radius: 20px;
+    padding: 48px;
+    margin: 64px 0 0;
+  }
+
+  .takeaways h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    color: var(--surface);
+    margin: 0 0 32px;
+  }
+
+  .takeaway-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: start;
+  }
+
+  .takeaway-item:last-child { margin-bottom: 0; }
+
+  .takeaway-num {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1.6;
+  }
+
+  .takeaway-text {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: rgba(250,249,246,0.75);
+    margin: 0;
+  }
+
+  .takeaway-text strong {
+    color: var(--surface);
+    font-weight: 600;
+  }
+
+  /* ── FOOTER DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 56px 0 0;
+  }
+
+  /* ── SECTION RULE ── */
+  .section-rule {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 56px 0 0;
+  }
+
+  .section-rule .rule-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-rule .rule-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-tag">AI &amp; Education</div>
+  <h1>Do We Still Need CS Degrees in the Age of AI?</h1>
+  <p class="hero-sub">The golden ticket to tech is being questioned. Here's what the evidence actually says.</p>
+  <div class="hero-meta">
+    <span>Jaehee Song</span>
+    <span class="dot"></span>
+    <span>June 2025</span>
+    <span class="dot"></span>
+    <span>10 min read</span>
+  </div>
+</header>
+
+<!-- ARTICLE -->
+<main class="container article-body">
+
+  <!-- INTRO -->
+  <p>For most of the past thirty years, if you wanted to work in software, you knew the playbook. Four years of computer science, internship at a big tech company, six-figure job offer before graduation. The degree wasn't just a credential — it was the filter that separated those who "really understood computers" from everyone else.</p>
+
+  <p>That filter is cracking. And not slowly.</p>
+
+  <p>Between the rise of AI coding assistants, the proliferation of bootcamps, the explosion of YouTube tutorials, and tools that let non-programmers ship working products in a weekend, the question that once lived on the fringes of tech forums has moved into boardrooms: <strong>do we actually need a computer science degree anymore?</strong></p>
+
+  <div class="intro-callout">
+    <p>"We are living through a genuine inflection point. The barriers to acquiring high-level technical skills are crumbling, replaced by natural language prompts and personalized AI tutors. <em>The rules are being rewritten in real time.</em>"</p>
+  </div>
+
+  <p>The answer is no longer a simple yes or no. It never really was — but right now, the gap between those two positions is wider and more consequential than it's ever been. Let's actually dig into it.</p>
+
+
+  <!-- SECTION 1: DEMOCRATIZATION -->
+  <div class="section-rule"><div class="rule-line"></div><div class="rule-label">Part One</div><div class="rule-line"></div></div>
+  <h2>The Old Gate Is Rusting</h2>
+
+  <p>The data is blunt. Developer Nation's survey found that <strong>43% of working developers are self-taught</strong>, while only 16.6% learned through traditional schooling. Stack Overflow's 2025 survey shows nearly half of working developers never followed the conventional university path at all.</p>
+
+  <div class="stat-row">
+    <div class="stat-box">
+      <span class="stat-number">43%</span>
+      <div class="stat-label">of developers are self-taught (Developer Nation)</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-number">53%</span>
+      <div class="stat-label">of employers have removed degree requirements (Harvard Business School)</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-number">8%</span>
+      <div class="stat-label">drop in CS enrollment in 2025–26 — steepest of any major</div>
+    </div>
+  </div>
+
+  <p>Those numbers reflect something real: the path into software has genuinely diversified. But they don't tell the whole story. Saying "nearly half of developers are self-taught" is a bit like saying "nearly half of restaurant owners never went to culinary school." True, but it doesn't tell you who's running a three-star kitchen and who's running a food truck. Both are legitimate — but they're different things.</p>
+
+  <h3>The AI Co-Pilot Effect</h3>
+
+  <p>The more fundamental shift isn't in education — it's in the tools themselves. AI coding assistants like GitHub Copilot, Cursor, and Claude Code have genuinely changed what "writing software" means on a day-to-day basis. Andrej Karpathy, the former Tesla AI director, coined the term <strong>"vibe coding"</strong> in early 2025 to describe a new mode of development: express your intent in natural language, let the AI handle the implementation, iterate from there.</p>
+
+  <div class="pull-quote">
+    <p>"Programming is becoming less about 'how' and more about 'what' — expressing intent."</p>
+    <p class="attribution">Andrej Karpathy · AI Researcher, former Tesla AI Director</p>
+  </div>
+
+  <p>Andrew Ng, whose DeepLearning.AI platform has trained millions of developers, launched "Vibe Coding 101" — a course that takes absolute beginners to a deployed web application in under 94 minutes. His philosophy is clear: the bottleneck is no longer technical knowledge, it's the ability to collaborate with AI effectively, to give agents one task at a time, to debug iteratively, and to ship.</p>
+
+  <p>This isn't fringe thinking. Anton Osika, CEO of Lovable (a vibe-coding platform recently valued at $1.5 billion), put it bluntly: "I wouldn't say it's worthless, but I do think the leverage has moved." For most people building most things, the credential isn't the entry ticket anymore. Curiosity and shipping speed matter more.</p>
+
+  <h3>Skills-First Hiring Is Real</h3>
+
+  <p>Google, Meta, Microsoft, Apple, IBM, and Tesla have all publicly removed degree requirements for at least some technical roles. When Elon Musk says degrees aren't necessary to work at Tesla as long as you can prove your skills, he's signaling a broader shift. IBM has gone further, removing degree requirements for roughly half of its US roles in favor of skills-based assessments.</p>
+
+  <div class="warning-box">
+    <p><strong>The important caveat:</strong> Harvard Business School found that while 53% of employers have removed degree requirements in policy, fewer than 1 in 700 hires are actually affected by those policy changes. Companies are saying degrees are optional faster than they're actually hiring without them.</p>
+  </div>
+
+  <p>The trend is real. But it's moving slower in practice than the headlines suggest.</p>
+
+
+  <!-- SECTION 2: CASE FOR DEGREE -->
+  <div class="section-rule"><div class="rule-line"></div><div class="rule-label">Part Two</div><div class="rule-line"></div></div>
+  <h2>Why the Degree Still Matters</h2>
+
+  <p>Here's the thing that often gets lost in the "degrees are dying" narrative: the people most publicly confident about AI's abilities are also the ones who spent years building their foundational CS knowledge before AI tools existed. They know when the AI is wrong because they understand what right looks like.</p>
+
+  <h3>The "Confident Liar" Problem</h3>
+
+  <p>AI models hallucinate. They generate code that looks right but isn't. They suggest architectural patterns that will create problems at scale. They reference APIs that don't exist. For someone with deep CS foundations, catching these errors is second nature. For someone who only knows what the AI tells them, it's a disaster waiting to happen.</p>
+
+  <p>Microsoft CEO Satya Nadella framed this well: AI "lowers the floor" (anyone can write some code) but "raises the ceiling" (understanding what the AI is actually doing becomes more valuable, not less). If you can't audit the output, you're not an engineer — you're an executor hoping the black box works.</p>
+
+  <div class="pull-quote">
+    <p>"Now anyone can be a software developer, but it's also raising the ceiling on what sophistication you need."</p>
+    <p class="attribution">Satya Nadella · CEO, Microsoft</p>
+  </div>
+
+  <p>This is the core tension. The degree's value isn't the syntax you memorized — it's the mental model you built. Data structures, algorithms, systems architecture, discrete math. None of that is what you use every day at work. But it's what you draw on when something breaks in a way that doesn't make sense, or when you're designing a system that needs to handle ten times the current load.</p>
+
+  <h3>The Jensen Huang Pivot</h3>
+
+  <p>Here's a surprising data point: Nvidia's CEO Jensen Huang — head of the world's most valuable company by market cap in 2025 — recently said that if he were a 22-year-old student today, he would study <strong>physical sciences</strong>, not computer science. Not because CS is dead, but because the next wave of AI requires understanding physics, robotics, and real-world systems.</p>
+
+  <p>His point was the opposite of "don't get a technical degree." It was: the skills AI can't replicate are moving toward first-principles understanding of the physical world. Reasoning, causality, systems thinking. The kind of rigorous thinking that a strong CS or science degree develops — not the rote syntax training, but the deeper habits of mind.</p>
+
+  <h3>Where the Degree Still Wins</h3>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon green">&#9650;</div>
+      <h4>ML Research &amp; AI Infrastructure</h4>
+      <p>Roles building the models that power AI tools overwhelmingly favor (and often require) formal education in mathematics and CS theory.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon green">&#9650;</div>
+      <h4>Distributed Systems Design</h4>
+      <p>Designing systems at scale requires deep intuition about tradeoffs — consistency vs. availability, latency vs. throughput — that's hard to build without foundational exposure.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon green">&#9650;</div>
+      <h4>Security &amp; Cryptography</h4>
+      <p>Attack surfaces require the kind of adversarial thinking and mathematical grounding that CS programs are built to develop.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon green">&#9650;</div>
+      <h4>Robotics &amp; Physical AI</h4>
+      <p>As AI moves into the physical world, understanding control theory, computer vision, and embedded systems becomes the real differentiator.</p>
+    </div>
+  </div>
+
+  <p>Karim Meghji, president of Code.org, pushes back against the "AI kills CS" narrative directly: "There's a growing narrative that AI makes computer science obsolete, but it's just not the case. AI isn't killing computer science; it's making it more essential." What's changing isn't the value of CS knowledge — it's which aspects of that knowledge matter most.</p>
+
+
+  <!-- SECTION 3: VOICES -->
+  <div class="section-rule"><div class="rule-line"></div><div class="rule-label">Part Three</div><div class="rule-line"></div></div>
+  <h2>What Industry Leaders Are Actually Saying</h2>
+
+  <div class="expert-section">
+    <div class="expert-card">
+      <div class="expert-avatar avatar-blue">JH</div>
+      <div>
+        <div class="expert-name">Jensen Huang</div>
+        <div class="expert-title">CEO, Nvidia</div>
+        <p class="expert-quote">"The next wave requires us to understand the laws of physics... not just coding. If I were a student today, I'd study physical sciences."</p>
+        <span class="expert-take take-nuanced">Nuanced: Deep skills still matter</span>
+      </div>
+    </div>
+
+    <div class="expert-card">
+      <div class="expert-avatar avatar-red">SN</div>
+      <div>
+        <div class="expert-name">Satya Nadella</div>
+        <div class="expert-title">CEO, Microsoft</div>
+        <p class="expert-quote">"AI lowers the floor for coding, but simultaneously raises the ceiling — the sophistication required to build great software is growing, not shrinking."</p>
+        <span class="expert-take take-for">Pro-degree: Deep understanding more valuable</span>
+      </div>
+    </div>
+
+    <div class="expert-card">
+      <div class="expert-avatar avatar-green">AK</div>
+      <div>
+        <div class="expert-name">Andrej Karpathy</div>
+        <div class="expert-title">AI Researcher, former Tesla &amp; OpenAI</div>
+        <p class="expert-quote">"Vibe coding is a real thing. You express intent, AI handles implementation. The 'how' matters less than the 'what' now."</p>
+        <span class="expert-take take-against">Pro-path: Traditional degree less critical for builders</span>
+      </div>
+    </div>
+
+    <div class="expert-card">
+      <div class="expert-avatar avatar-gray">AN</div>
+      <div>
+        <div class="expert-name">Andrew Ng</div>
+        <div class="expert-title">Founder, DeepLearning.AI</div>
+        <p class="expert-quote">"Skills matter more than credentials — but understanding the plumbing of AI systems is crucial. The method of learning is changing; the need for depth is not."</p>
+        <span class="expert-take take-nuanced">Nuanced: Skills over credentials, but depth required</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECTION 4: ECONOMIC REALITY -->
+  <div class="section-rule"><div class="rule-line"></div><div class="rule-label">Part Four</div><div class="rule-line"></div></div>
+  <h2>The Economic Reality Nobody Wants to Say Clearly</h2>
+
+  <p>Let's talk about the numbers that don't make it into the LinkedIn thought-leadership posts.</p>
+
+  <p>A CS degree from a top US program costs between $40,000 and $130,000 in tuition alone. Add four years of foregone income and the total real cost can exceed $300,000. Meanwhile, a motivated self-taught developer who starts learning at 22 and lands a $70,000 role at 24 will bank roughly $350,000 over five years while a CS student is still finishing their junior year.</p>
+
+  <div class="highlight-box">
+    <p><strong>The math is brutal for anyone without family wealth or access to affordable in-state tuition.</strong> Georgia Tech's Online MS in CS costs roughly $7,000 total — a full master's degree. That changes the calculus entirely for people who already work in the field and want to fill theoretical gaps.</p>
+  </div>
+
+  <p>The degree persists partly because of legitimate value — the rigor, the network, the signal — and partly because of institutional inertia. Government contractors, Fortune 500 HR departments with compliance requirements, and immigration systems still lean heavily on the four-year credential. That's not changing as fast as the tech startup world would have you believe.</p>
+
+  <p>The curriculum lag is also real. Many university CS programs are still teaching frameworks and tools that have been partially superseded by AI. The "hot" technology a freshman encounters in week one of a four-year program may be significantly less relevant by graduation. Industry moves in quarters; academia moves in decades.</p>
+
+
+  <!-- SECTION 5: VERDICT -->
+  <div class="section-rule"><div class="rule-line"></div><div class="rule-label">The Verdict</div><div class="rule-line"></div></div>
+  <h2>What to Actually Do With This Information</h2>
+
+  <p>The degree isn't dying — its monopoly is over. That's a meaningful distinction. What we're seeing is a shift from a world where a CS degree was a <strong>requirement</strong> to a world where it's an <strong>option</strong>. One of several legitimate paths that lead to the same place.</p>
+
+  <p>Here's an honest breakdown of which path makes sense for which goal:</p>
+
+  <div class="path-grid">
+    <div class="path-card featured-green">
+      <div class="path-badge">🏗️</div>
+      <div>
+        <h4>You want to build AI, work in ML research, or design infrastructure at scale</h4>
+        <p>Get the degree. The theoretical foundation — linear algebra, probability theory, systems architecture, distributed computing — is genuinely hard to replicate through self-study, and the research environment accelerates your development in ways that bootcamps can't. The degree isn't just about employment; it's about depth of understanding.</p>
+      </div>
+    </div>
+    <div class="path-card featured">
+      <div class="path-badge">🚀</div>
+      <div>
+        <h4>You want to build products, start companies, or change careers quickly</h4>
+        <p>You don't need the degree. A bootcamp plus intensive self-study plus a strong GitHub profile has become a genuinely viable alternative path. What you ship matters more than your alma mater. Focus on demonstrating ability, not collecting credentials.</p>
+      </div>
+    </div>
+    <div class="path-card">
+      <div class="path-badge">🔁</div>
+      <div>
+        <h4>You're not sure yet — you're early in the process</h4>
+        <p>The hybrid approach is winning. Start with free resources to test your actual commitment. Add structure (bootcamp or online program) once you know it's real. Then consider a part-time online CS degree like Georgia Tech's OMSCS once you're employed and can see exactly which theoretical gaps are holding you back. Don't pay $120,000 to find out if you like coding.</p>
+      </div>
+    </div>
+  </div>
+
+  <p>The deeper shift isn't about degrees at all — it's about what makes a strong technologist right now. Increasingly, it's the combination of <strong>systems thinking</strong> (which a CS degree develops well), <strong>AI fluency</strong> (which most CS programs are still catching up on), and the ability to ship real things fast (which you develop by actually shipping things). No single path gives you all three automatically.</p>
+
+  <div class="pull-quote">
+    <p>"Don't just learn to code. Learn to solve. In a world where everyone can code, the winners will be those who know what is worth building."</p>
+    <p class="attribution">The takeaway</p>
+  </div>
+
+  <p>The fascinating part of this moment isn't the debate between degrees and bootcamps. It's that for the first time, the path genuinely doesn't matter as much as the destination — and the destination is someone who can think clearly about hard problems, build systems that work under real conditions, and keep learning as the tools keep changing.</p>
+
+  <p>The gatekeepers are losing their keys. That's good news. What you do with the open door is still up to you.</p>
+
+
+  <!-- TAKEAWAYS -->
+  <div class="takeaways">
+    <h2>Key Takeaways</h2>
+    <div class="takeaway-item">
+      <div class="takeaway-num">01</div>
+      <p class="takeaway-text"><strong>The degree's monopoly is over, but its value isn't.</strong> For research, infrastructure, and deep systems work, a CS degree still provides foundations that are genuinely hard to replicate elsewhere. For product-building and entrepreneurship, it's increasingly optional.</p>
+    </div>
+    <div class="takeaway-item">
+      <div class="takeaway-num">02</div>
+      <p class="takeaway-text"><strong>AI tools raise the ceiling while lowering the floor.</strong> Anyone can write some code now. But to audit what AI generates, catch architectural mistakes, and build systems that scale — you need the kind of mental model that deep technical education builds.</p>
+    </div>
+    <div class="takeaway-item">
+      <div class="takeaway-num">03</div>
+      <p class="takeaway-text"><strong>The skills-first hiring shift is real but slower than advertised.</strong> Policy changes outpace actual hiring changes. Traditional institutions (government contractors, compliance-heavy companies, immigration systems) still lean heavily on the credential.</p>
+    </div>
+    <div class="takeaway-item">
+      <div class="takeaway-num">04</div>
+      <p class="takeaway-text"><strong>The economics vary enormously by situation.</strong> A $7,000 online master's, a $15,000 bootcamp, and a $130,000 four-year degree are radically different bets. Choose the path based on your specific goal, not on which narrative is louder on LinkedIn right now.</p>
+    </div>
+    <div class="takeaway-item">
+      <div class="takeaway-num">05</div>
+      <p class="takeaway-text"><strong>Learning is the only permanent advantage.</strong> The tools, frameworks, and even the job titles will keep changing. The habit of continuous learning — whether through formal programs, AI-assisted self-study, or hands-on building — is the one skill that doesn't go obsolete.</p>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

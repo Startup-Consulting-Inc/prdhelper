@@ -69,6 +69,8 @@ const BRDMistakesPost = lazyWithRetry(() => import('./pages/public/blog/BRDMista
 const AgileRequirementsPost = lazyWithRetry(() => import('./pages/public/blog/AgileRequirementsPost'));
 const SRSDocumentGuidePost = lazyWithRetry(() => import('./pages/public/blog/SRSDocumentGuidePost'));
 const DefiningTheRightProblemPost = lazyWithRetry(() => import('./pages/public/blog/DefiningTheRightProblemPost'));
+const CSDegreeAIEraPost = lazyWithRetry(() => import('./pages/public/blog/CSDegreeAIEraPost'));
+const DatabaseLandscapeAIEraPost = lazyWithRetry(() => import('./pages/public/blog/DatabaseLandscapeAIEraPost'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -309,6 +311,8 @@ function App() {
         <Route path="/blog/agile-requirements-documentation" element={<AgileRequirementsPost />} />
         <Route path="/blog/how-to-write-srs-document" element={<SRSDocumentGuidePost />} />
         <Route path="/blog/defining-the-right-problem-ai-era" element={<DefiningTheRightProblemPost />} />
+        <Route path="/blog/cs-degree-ai-era" element={<CSDegreeAIEraPost />} />
+        <Route path="/blog/database-landscape-ai-era" element={<DatabaseLandscapeAIEraPost />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />
