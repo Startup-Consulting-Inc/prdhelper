@@ -3,6 +3,7 @@
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
+import { Link } from 'react-router-dom';
 
 export default function AIRequirementsGatheringPost() {
   return (
@@ -289,6 +290,20 @@ export default function AIRequirementsGatheringPost() {
         </li>
       </ul>
 
+      {/* Inline CTA for top blog post */}
+      <div className="not-prose my-10 rounded-2xl bg-gradient-to-r from-primary-600 to-accent-600 p-8 text-center text-white">
+        <h3 className="text-xl font-bold mb-2">Turn interviews into documents faster</h3>
+        <p className="text-primary-100 mb-6 max-w-lg mx-auto">
+          Clearly's AI wizard transforms your requirements gathering into a complete BRD or PRD in 15–30 minutes.
+        </p>
+        <Link
+          to="/brd-generator"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+        >
+          Start Free Trial
+        </Link>
+      </div>
+
       <h2>The Pitfalls of AI Requirements Gathering</h2>
       <p>
         AI assistance is powerful, but it introduces its own risks if used without discipline.
@@ -349,7 +364,7 @@ export default function AIRequirementsGatheringPost() {
 
       <h2>Clearly's AI Wizard Approach</h2>
       <p>
-        Clearly was designed from the ground up around the specific challenges of requirements
+        <Link to="/" className="text-primary-600 hover:underline font-medium">Clearly</Link> was designed from the ground up around the specific challenges of requirements
         gathering. Rather than offering a general-purpose AI chat interface, Clearly uses a
         structured wizard approach that guides users through a systematic intake process.
       </p>

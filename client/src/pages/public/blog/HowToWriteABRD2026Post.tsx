@@ -3,6 +3,7 @@
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
+import { Link } from 'react-router-dom';
 
 export default function HowToWriteABRD2026Post() {
   return (
@@ -373,11 +374,25 @@ export default function HowToWriteABRD2026Post() {
       <div className="not-prose bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-xl p-6 my-8">
         <p className="text-sm font-semibold text-teal-700 dark:text-teal-400 uppercase tracking-wide mb-2">Clearly's Approach</p>
         <p className="text-gray-800 dark:text-gray-200 text-base">
-          Clearly's AI wizard walks you through a structured intake process — asking the right
+          <Link to="/brd-generator" className="text-primary-600 hover:underline font-medium">Clearly's free BRD generator</Link> walks you through a structured intake process — asking the right
           questions about your project, business objectives, stakeholders, and constraints —
           then generates a complete, professionally structured BRD. Most users complete their
           first draft in under 20 minutes instead of 2 days.
         </p>
+      </div>
+
+      {/* Inline CTA for top blog post */}
+      <div className="not-prose my-10 rounded-2xl bg-gradient-to-r from-primary-600 to-accent-600 p-8 text-center text-white">
+        <h3 className="text-xl font-bold mb-2">Want to skip the manual writing?</h3>
+        <p className="text-primary-100 mb-6 max-w-lg mx-auto">
+          Generate a complete, professional BRD in 15–30 minutes with Clearly's AI wizard.
+        </p>
+        <Link
+          to="/brd-generator"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+        >
+          Start Free Trial
+        </Link>
       </div>
 
       <h2>Common BRD Mistakes to Avoid</h2>
@@ -460,7 +475,7 @@ export default function HowToWriteABRD2026Post() {
         requirements into a document that drives alignment and accountability.
       </p>
       <p>
-        In 2026, AI tools like Clearly can accelerate the process dramatically — generating
+        In 2026, AI tools like <Link to="/brd-generator" className="text-primary-600 hover:underline font-medium">Clearly's free BRD generator</Link> can accelerate the process dramatically — generating
         complete first drafts, checking for completeness, and refining requirements to be
         specific and testable. But the judgment, the stakeholder relationships, and the domain
         expertise still come from you.
