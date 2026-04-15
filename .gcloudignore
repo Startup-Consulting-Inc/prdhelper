@@ -60,8 +60,8 @@ logs/
 # Ignore Terraform (infrastructure managed separately)
 terraform/
 
-# Ignore scripts (not needed for build)
-scripts/
+# Include prerender script needed for the Docker build; exclude shell deploy scripts
+scripts/*.sh
 
 # Ignore large media files
 *.mp4

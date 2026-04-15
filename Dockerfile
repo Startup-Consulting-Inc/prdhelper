@@ -63,8 +63,12 @@ ENV VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET
 ENV VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID
 ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
 
-# Build the client and server
-RUN npm run build
+# Build server + client
+RUN npm run build:server && npm run build:client
+
+# Build SSR bundle and prerender public routes
+# This generates client/dist/prerendered/*.html for AI crawlers
+RUN npm run build:ssr && npm run prerender
 
 # Remove development dependencies
 RUN npm prune --production

@@ -13,10 +13,16 @@ import { ReactNode, useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../Breadcrumbs';
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface BlogPostLayoutProps {
   title: string;
   author: string;
   date: string;
+  dateModified?: string;
   readTime: string;
   category: string;
   excerpt: string;
@@ -25,6 +31,7 @@ export interface BlogPostLayoutProps {
   coverGradient?: string;
   children: ReactNode;
   relatedPosts?: Array<{ slug: string; title: string; category: string; date: string }>;
+  faqItems?: FaqItem[];
 }
 
 const BASE_URL = 'https://www.clearlyreqs.com';
@@ -144,6 +151,7 @@ export function BlogPostLayout({
   title,
   author,
   date,
+  dateModified,
   readTime,
   category,
   excerpt,
@@ -152,6 +160,7 @@ export function BlogPostLayout({
   coverGradient = 'from-primary-600 to-accent-600',
   children,
   relatedPosts,
+  faqItems,
 }: BlogPostLayoutProps) {
   const canonicalUrl = `${BASE_URL}/blog/${slug}`;
   const formattedDate = new Date(date).toLocaleDateString('en-US', {
@@ -218,9 +227,22 @@ export function BlogPostLayout({
     description: excerpt,
     author: { '@type': 'Person', name: author },
     datePublished: date,
+    ...(dateModified ? { dateModified } : {}),
     url: canonicalUrl,
     publisher: { '@type': 'Organization', name: 'Clearly', url: BASE_URL },
   };
+
+  const faqSchema = faqItems && faqItems.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqItems.map(({ question, answer }) => ({
+          '@type': 'Question',
+          name: question,
+          acceptedAnswer: { '@type': 'Answer', text: answer },
+        })),
+      }
+    : null;
 
   const authorInitials = author
     .split(' ')
@@ -243,6 +265,9 @@ export function BlogPostLayout({
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={excerpt} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+        {faqSchema && (
+          <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+        )}
       </Helmet>
 
       {/* Reading progress bar — fixed above everything */}

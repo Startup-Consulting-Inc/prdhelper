@@ -54,6 +54,39 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 26,
+      slug: 'responsible-ai-guide',
+      title: 'Responsible AI: The Complete Guide to Ethical AI Development and Governance in 2026',
+      excerpt:
+        'From principles to practice — a comprehensive guide to building AI systems that are ethical, transparent, and aligned with human values, covering global governance frameworks, industry use cases, tools, and implementation roadmaps.',
+      author: 'Jaehee Song',
+      date: '2026-04-15',
+      readTime: '16 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 25,
+      slug: 'data-governance-ai-era',
+      title: 'Data Governance in the AI Era: A Practical Guide for 2026',
+      excerpt:
+        'AI makes the case for data governance impossible to ignore. Here\'s what good governance actually looks like, why programs fail, and where AI is taking it next.',
+      author: 'Jaehee Song',
+      date: '2026-04-14',
+      readTime: '12 min read',
+      category: 'AI & Data Infrastructure',
+    },
+    {
+      id: 24,
+      slug: 'agentic-ai-guide',
+      title: 'Agentic AI: The Complete Guide to Autonomous AI Systems in 2026',
+      excerpt:
+        'From chatbots that answer to agents that act — how agentic AI works, which industries are deploying it first, the tools driving adoption, and the risks you cannot ignore.',
+      author: 'Jaehee Song',
+      date: '2026-04-14',
+      readTime: '14 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 23,
       slug: 'database-landscape-ai-era',
       title: 'The Database World Just Got Flipped Upside Down',

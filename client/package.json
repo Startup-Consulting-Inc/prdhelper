@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:ssr": "vite build --config vite.ssr.config.ts",
+    "prerender": "node ../scripts/prerender.mjs",
+    "build:full": "npm run build && npm run build:ssr && npm run prerender",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",

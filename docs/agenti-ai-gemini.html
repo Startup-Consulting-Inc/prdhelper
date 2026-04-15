@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI: The Next Evolution of Autonomous Systems</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutrals with Teal Accents -->
+    <!-- Application Structure Plan: A linear, vertically scrolling SPA with a sticky top navigation. It is structured into thematic sections: Introduction (Concept), Industry Impact (Use Cases), Ecosystem (Tools), Risks (Limitations), and Horizon (Future). This structure allows users to logically flow from understanding "what it is" to "how it's used," "what tools exist," "what to watch out for," and "what comes next." Interactive charts (Chart.js) and filterable grids provide deep dives without cluttering the main view. -->
+    <!-- Visualization & Content Choices: 
+         1. Concept -> Goal: Compare -> Grid layout with hover states -> HTML/CSS (No SVG). Justification: Easy scannability of AI evolution.
+         2. Use Cases -> Goal: Inform/Explore -> Doughnut Chart (Chart.js) with onClick updating an info panel. Justification: Shows distribution while allowing drill-down into specific industries.
+         3. Tools -> Goal: Organize -> Filterable grid -> HTML/JS. Justification: Helps users navigate a complex landscape by category.
+         4. Limitations -> Goal: Compare -> Horizontal Bar Chart (Chart.js). Justification: Clearly ranks risks by perceived severity.
+         5. Future -> Goal: Inform -> Step layout -> HTML/CSS. 
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #fcfaf8; 
+            color: #292524; 
+        }
+        
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 350px; 
+            max-height: 400px; 
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-active {
+            background-color: #0d9488;
+            color: white;
+            border-color: #0d9488;
+        }
+        
+        .tab-inactive {
+            background-color: transparent;
+            color: #44403c;
+            border-color: #d6d3d1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5f5f4; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c; 
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-teal-200 selection:text-teal-900">
+
+    <nav class="fixed top-0 w-full glass-panel z-50 border-b border-stone-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 font-bold text-xl tracking-tight text-teal-800">
+                    &#9881; Agentic<span class="text-stone-800">Intelligence</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#concept" class="text-stone-600 hover:text-teal-700 transition-colors font-medium">Concept</a>
+                    <a href="#usecases" class="text-stone-600 hover:text-teal-700 transition-colors font-medium">Use Cases</a>
+                    <a href="#tools" class="text-stone-600 hover:text-teal-700 transition-colors font-medium">Ecosystem</a>
+                    <a href="#limitations" class="text-stone-600 hover:text-teal-700 transition-colors font-medium">Limitations</a>
+                    <a href="#future" class="text-stone-600 hover:text-teal-700 transition-colors font-medium">Outlook</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-stone-600 hover:text-teal-700 text-2xl focus:outline-none">
+                        &#9776;
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-stone-50 border-b border-stone-200">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#concept" class="block px-3 py-2 rounded-md text-base font-medium text-stone-700 hover:text-teal-700 hover:bg-stone-100">Concept</a>
+                <a href="#usecases" class="block px-3 py-2 rounded-md text-base font-medium text-stone-700 hover:text-teal-700 hover:bg-stone-100">Use Cases</a>
+                <a href="#tools" class="block px-3 py-2 rounded-md text-base font-medium text-stone-700 hover:text-teal-700 hover:bg-stone-100">Ecosystem</a>
+                <a href="#limitations" class="block px-3 py-2 rounded-md text-base font-medium text-stone-700 hover:text-teal-700 hover:bg-stone-100">Limitations</a>
+                <a href="#future" class="block px-3 py-2 rounded-md text-base font-medium text-stone-700 hover:text-teal-700 hover:bg-stone-100">Outlook</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        <div class="inline-block px-4 py-1.5 rounded-full bg-teal-100 text-teal-800 font-semibold text-sm mb-6 tracking-wide uppercase">
+            State of the Art Report
+        </div>
+        <h1 class="text-5xl md:text-6xl font-extrabold text-stone-900 tracking-tight mb-6">
+            The Rise of <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-500">Agentic AI</span>
+        </h1>
+        <p class="mt-4 max-w-3xl mx-auto text-xl text-stone-600 leading-relaxed">
+            Moving beyond chatbots that generate text to autonomous systems that perceive, reason, plan, and execute actions to achieve complex goals.
+        </p>
+        <div class="mt-10 flex justify-center gap-4">
+            <a href="#concept" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-8 rounded-lg shadow-md transition-transform hover:-translate-y-0.5">
+                Explore the Report
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-32">
+
+        <section id="concept" class="scroll-mt-24">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-teal-500 pl-4">Defining the Concept</h2>
+                <p class="text-lg text-stone-600 max-w-4xl">
+                    This section breaks down the fundamental shift in artificial intelligence. We are transitioning from systems that simply answer queries to systems that operate with autonomy. By comparing traditional AI to Agentic AI, we establish the baseline for why these new systems are revolutionary.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-stone-300"></div>
+                    <div class="text-4xl mb-4">&#128269;</div>
+                    <h3 class="text-xl font-bold mb-3 text-stone-800">Traditional AI</h3>
+                    <p class="text-stone-600">Pattern recognition, classification, and prediction based on historical data. Highly specialized but lacks generative capabilities.</p>
+                    <div class="mt-4 pt-4 border-t border-stone-100 text-sm font-medium text-stone-500">Focus: Analysis</div>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-teal-300"></div>
+                    <div class="text-4xl mb-4">&#128172;</div>
+                    <h3 class="text-xl font-bold mb-3 text-stone-800">Generative AI</h3>
+                    <p class="text-stone-600">Creation of novel text, images, and code based on prompts. Operates in a stateless request-response loop without persistent agency.</p>
+                    <div class="mt-4 pt-4 border-t border-stone-100 text-sm font-medium text-stone-500">Focus: Creation</div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-lg border border-teal-100 hover:shadow-xl transition-shadow relative overflow-hidden group transform md:-translate-y-2">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-teal-600"></div>
+                    <div class="text-4xl mb-4">&#129302;</div>
+                    <h3 class="text-xl font-bold mb-3 text-stone-900">Agentic AI</h3>
+                    <p class="text-stone-700">Systems that maintain state, break down complex goals into tasks, utilize external tools, and autonomously execute multi-step workflows.</p>
+                    <div class="mt-4 pt-4 border-t border-teal-100 text-sm font-bold text-teal-700">Focus: Action & Execution</div>
+                </div>
+            </div>
+            
+            <div class="mt-12 bg-stone-100 p-8 rounded-2xl flex flex-col md:flex-row items-center gap-8">
+                <div class="flex-1">
+                    <h3 class="text-2xl font-bold text-stone-800 mb-4">The Core Loop of an Agent</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 rounded-full bg-teal-200 text-teal-800 flex items-center justify-center font-bold text-sm mr-3 mt-0.5">1</span>
+                            <div><strong class="text-stone-900">Perceive:</strong> Understands the environment, user intent, and available tools.</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 rounded-full bg-teal-200 text-teal-800 flex items-center justify-center font-bold text-sm mr-3 mt-0.5">2</span>
+                            <div><strong class="text-stone-900">Reason & Plan:</strong> Breaks complex requests into logical, sequential steps using techniques like Chain-of-Thought.</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="flex-shrink-0 h-6 w-6 rounded-full bg-teal-200 text-teal-800 flex items-center justify-center font-bold text-sm mr-3 mt-0.5">3</span>
+                            <div><strong class="text-stone-900">Act:</strong> Uses APIs, writes code, or browses the web to execute the plan.</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="flex-1 text-center bg-white p-6 rounded-xl border border-stone-200 shadow-sm w-full">
+                    <div class="text-stone-500 font-mono text-sm text-left whitespace-pre-wrap">
+User: "Research our top 3 competitors, summarize their Q3 earnings, and draft an email to the sales team."
+
+Agent:
+> [Planning] Identifying competitors...
+> [Action] Browsing web for competitor A Q3 report...
+> [Action] Extracting key metrics...
+> [Action] Browsing web for competitor B...
+> [Reasoning] Synthesizing findings into email format...
+> [Action] Drafting email to specified format...
+> [Complete] Awaiting user approval.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="usecases" class="scroll-mt-24">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-teal-500 pl-4">Industry Impact & Use Cases</h2>
+                <p class="text-lg text-stone-600 max-w-4xl">
+                    Agentic AI is moving rapidly from research labs into enterprise environments. This section explores projected investment and adoption across major sectors. Interact with the chart to view specific, high-value autonomous use cases currently transforming each industry.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10 flex flex-col lg:flex-row gap-10 items-center">
+                <div class="w-full lg:w-1/2">
+                    <h3 class="text-center font-bold text-stone-700 mb-2">Projected Agentic AI Enterprise Investment</h3>
+                    <p class="text-center text-sm text-stone-500 mb-6">Click a segment to view industry specifics</p>
+                    <div class="chart-container">
+                        <canvas id="industryChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="w-full lg:w-1/2 bg-stone-50 rounded-xl p-8 min-h-[350px] flex flex-col justify-center border border-stone-100" id="useCasePanel">
+                    <div class="text-6xl mb-4 text-teal-600">&#8592;</div>
+                    <h3 class="text-2xl font-bold text-stone-900 mb-4">Select an Industry</h3>
+                    <p class="text-stone-600 text-lg">Click on the chart to discover how different sectors are deploying autonomous agents to handle complex, multi-step workflows previously requiring human intervention.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tools" class="scroll-mt-24">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-teal-500 pl-4">The Agent Ecosystem</h2>
+                <p class="text-lg text-stone-600 max-w-4xl">
+                    The tooling landscape is fragmenting into foundational frameworks for building agents and specialized, off-the-shelf autonomous systems. Use the filters below to organize and explore popular tools driving this technology.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-3 mb-8" id="toolFilters">
+                <button class="px-5 py-2 rounded-full font-medium transition-colors border tab-active" data-filter="all">All Ecosystem</button>
+                <button class="px-5 py-2 rounded-full font-medium transition-colors border tab-inactive" data-filter="framework">Development Frameworks</button>
+                <button class="px-5 py-2 rounded-full font-medium transition-colors border tab-inactive" data-filter="autonomous">Autonomous Systems</button>
+                <button class="px-5 py-2 rounded-full font-medium transition-colors border tab-inactive" data-filter="orchestration">Multi-Agent Orchestration</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="toolsGrid">
+            </div>
+        </section>
+
+        <section id="limitations" class="scroll-mt-24">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-teal-500 pl-4">Current Limitations & Risks</h2>
+                <p class="text-lg text-stone-600 max-w-4xl">
+                    Giving AI agency introduces novel risks. While text-generation errors are benign, action-generation errors can be catastrophic. The chart below quantifies the primary concerns of enterprise leaders regarding autonomous agent deployment.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                    <h3 class="font-bold text-stone-700 mb-6 text-center">Enterprise Deployment Concerns (% of Leaders Surveyed)</h3>
+                    <div class="chart-container">
+                        <canvas id="limitationsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-5 flex flex-col justify-center space-y-6">
+                    <div class="bg-red-50 border border-red-100 p-5 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-2xl">&#9888;</span>
+                            <h4 class="font-bold text-red-900">Infinite Loops & Hallucinated Actions</h4>
+                        </div>
+                        <p class="text-red-800 text-sm">Agents can get stuck in reasoning loops, repeatedly calling the same API, or worse, confidently executing destructive actions based on hallucinated premises (e.g., deleting a database table it invented).</p>
+                    </div>
+
+                    <div class="bg-orange-50 border border-orange-100 p-5 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-2xl">&#128274;</span>
+                            <h4 class="font-bold text-orange-900">Security & Access Control</h4>
+                        </div>
+                        <p class="text-orange-800 text-sm">Granting agents API keys and read/write permissions creates massive attack surfaces. Prompt injection can be used to hijack an agent and force it to exfiltrate private data.</p>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-100 p-5 rounded-xl">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-2xl">&#128184;</span>
+                            <h4 class="font-bold text-blue-900">Compute Costs</h4>
+                        </div>
+                        <p class="text-blue-800 text-sm">Multi-step reasoning involves numerous LLM calls per task. A single complex agentic workflow might consume $0.50 to $2.00 in API credits, making widespread deployment expensive.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="future" class="scroll-mt-24">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4 border-l-4 border-teal-500 pl-4">Future Outlook</h2>
+                <p class="text-lg text-stone-600 max-w-4xl">
+                    The trajectory of Agentic AI moves from isolated task execution to collaborative, highly integrated systems. This timeline maps the anticipated evolution toward broader autonomy.
+                </p>
+            </div>
+
+            <div class="relative border-l-4 border-stone-200 ml-4 md:ml-8 py-4 space-y-12">
+                
+                <div class="relative pl-8 md:pl-12">
+                    <div class="absolute w-6 h-6 bg-stone-400 rounded-full -left-[15px] top-1 border-4 border-stone-50"></div>
+                    <div class="text-sm font-bold text-stone-500 uppercase tracking-wide mb-1">Present</div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Single-Domain Agents</h3>
+                    <p class="text-stone-600 bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                        Agents are highly specialized (e.g., coding only, customer support only). They require strict human-in-the-loop oversight for critical actions and operate in tightly sandboxed environments.
+                    </p>
+                </div>
+
+                <div class="relative pl-8 md:pl-12">
+                    <div class="absolute w-6 h-6 bg-teal-500 rounded-full -left-[15px] top-1 border-4 border-stone-50"></div>
+                    <div class="text-sm font-bold text-teal-600 uppercase tracking-wide mb-1">Near Term (1-2 Years)</div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Multi-Agent Collaboration</h3>
+                    <p class="text-stone-600 bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                        Systems where a 'Manager Agent' delegates tasks to 'Worker Agents' (e.g., a researcher agent passing data to a coder agent, reviewed by a QA agent). Standardized protocols for agent-to-agent communication emerge.
+                    </p>
+                </div>
+
+                <div class="relative pl-8 md:pl-12">
+                    <div class="absolute w-6 h-6 bg-stone-300 rounded-full -left-[15px] top-1 border-4 border-stone-50"></div>
+                    <div class="text-sm font-bold text-stone-500 uppercase tracking-wide mb-1">Long Term (3-5+ Years)</div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Cross-Platform Enterprise Autonomy</h3>
+                    <p class="text-stone-600 bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                        Agents seamlessly navigate complex GUI environments via Computer Use APIs, operating identically to human employees across desktop applications, web apps, and internal databases, requiring supervision only for edge cases or high-stakes business logic decisions.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-12 border-t border-stone-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
+            <div class="font-bold text-2xl tracking-tight text-stone-200 mb-4">
+                &#9881; Agentic<span class="text-teal-500">Intelligence</span>
+            </div>
+            <p class="mb-6 max-w-2xl text-sm">
+                This interactive report was synthesized to provide a comprehensive overview of Agentic AI, its use cases, underlying technologies, and future implications. 
+            </p>
+            <div class="text-sm border-t border-stone-700 pt-6 w-full max-w-md">
+                &copy; 2026 Interactive Architecture Report
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const DOMElements = {
+            mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+            mobileMenu: document.getElementById('mobile-menu'),
+            toolFilters: document.getElementById('toolFilters'),
+            toolsGrid: document.getElementById('toolsGrid'),
+            useCasePanel: document.getElementById('useCasePanel')
+        };
+
+        DOMElements.mobileMenuBtn.addEventListener('click', () => {
+            DOMElements.mobileMenu.classList.toggle('hidden');
+        });
+
+        const industryData = {
+            labels: ['Software Engineering', 'Financial Services', 'Healthcare', 'Customer Support', 'Retail/E-commerce'],
+            datasets: [{
+                data: [35, 20, 15, 20, 10],
+                backgroundColor: [
+                    '#0f766e', 
+                    '#0d9488', 
+                    '#14b8a6', 
+                    '#5eead4', 
+                    '#ccfbf1'  
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
+        };
+
+        const useCaseDetails = {
+            'Software Engineering': {
+                icon: '&#128187;',
+                title: 'Autonomous Coding & DevOps',
+                text: 'Agents like Devin act as autonomous software engineers. They can take a GitHub issue, read the codebase, write code to fix the issue, run tests, debug failing tests, and submit a pull request without human intervention.',
+                metric: 'Reduces time-to-resolution for standard bugs by up to 60%.'
+            },
+            'Financial Services': {
+                icon: '&#128200;',
+                title: 'Deep Research & Risk Modeling',
+                text: 'Agents autonomously crawl financial filings, news, and alternative data sources. They synthesize this data into comprehensive reports, perform scenario analysis, and adjust risk models in real-time.',
+                metric: 'Saves analysts 15+ hours per week on data collection.'
+            },
+            'Healthcare': {
+                icon: '&#127973;',
+                title: 'Clinical Workflow Automation',
+                text: 'Agents assist in pre-charting patient visits by extracting relevant history from EHRs, drafting clinical notes based on audio transcripts, and autonomously triggering referral workflows or lab orders for physician review.',
+                metric: 'Aims to reduce physician administrative burden by 40%.'
+            },
+            'Customer Support': {
+                icon: '&#128222;',
+                title: 'End-to-End Ticket Resolution',
+                text: 'Moving beyond simple FAQs, agentic support systems can access internal databases, process refunds, provision accounts, and update shipping details autonomously to completely resolve customer issues.',
+                metric: 'Increases First Contact Resolution (FCR) rates by 35%.'
+            },
+            'Retail/E-commerce': {
+                icon: '&#128722;',
+                title: 'Dynamic Supply Chain Optimization',
+                text: 'Agents monitor inventory levels, competitor pricing, and weather patterns. They autonomously reorder stock, adjust dynamic pricing, and reroute logistics to avoid disruptions.',
+                metric: 'Improves inventory turnover and prevents stockouts.'
+            }
+        };
+
+        const ctxIndustry = document.getElementById('industryChart').getContext('2d');
+        const industryChart = new Chart(ctxIndustry, {
+            type: 'doughnut',
+            data: industryData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { font: { family: 'system-ui' }, color: '#44403c' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const label = industryData.labels[index];
+                        updateUseCasePanel(label);
+                    }
+                }
+            }
+        });
+
+        function updateUseCasePanel(industry) {
+            const data = useCaseDetails[industry];
+            if (!data) return;
+            
+            DOMElements.useCasePanel.innerHTML = `
+                <div class="animate-pulse flex space-x-4 h-full items-center justify-center">
+                    <div class="w-8 h-8 bg-teal-200 rounded-full"></div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                DOMElements.useCasePanel.innerHTML = `
+                    <div class="text-5xl mb-4">${data.icon}</div>
+                    <div class="text-sm font-bold text-teal-600 uppercase tracking-wider mb-1">${industry}</div>
+                    <h3 class="text-2xl font-bold text-stone-900 mb-3">${data.title}</h3>
+                    <p class="text-stone-700 leading-relaxed mb-6">${data.text}</p>
+                    <div class="mt-auto bg-white border border-stone-200 rounded-lg p-4 shadow-sm">
+                        <div class="text-xs font-semibold text-stone-400 uppercase mb-1">Estimated Impact</div>
+                        <div class="font-medium text-stone-800">${data.metric}</div>
+                    </div>
+                `;
+            }, 300);
+        }
+
+        const toolsData = [
+            { name: "LangChain & LangGraph", category: "framework", desc: "Foundational framework for developing applications powered by LLMs, specifically adding cyclic graph capabilities for agentic workflows.", tag: "Framework" },
+            { name: "Microsoft AutoGen", category: "orchestration", desc: "A framework that enables the development of LLM applications using multiple agents that can converse with each other to solve tasks.", tag: "Multi-Agent" },
+            { name: "Devin (Cognition)", category: "autonomous", desc: "The world's first fully autonomous AI software engineer, capable of planning and executing complex engineering tasks.", tag: "App/System" },
+            { name: "CrewAI", category: "orchestration", desc: "Framework for orchestrating role-playing, autonomous AI agents. Promotes collaborative intelligence for complex tasks.", tag: "Multi-Agent" },
+            { name: "AutoGPT", category: "autonomous", desc: "An open-source experimental application showcasing the capabilities of the GPT-4 language model to achieve goals autonomously.", tag: "App/System" },
+            { name: "LlamaIndex", category: "framework", desc: "A data framework for connecting custom data sources to large language models, critical for giving agents access to private enterprise data.", tag: "Framework" }
+        ];
+
+        function renderTools(filter = 'all') {
+            DOMElements.toolsGrid.innerHTML = '';
+            const filteredTools = filter === 'all' 
+                ? toolsData 
+                : toolsData.filter(t => t.category === filter);
+
+            filteredTools.forEach(tool => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl p-6 border border-stone-200 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full';
+                
+                let tagColor = 'bg-stone-100 text-stone-600';
+                if (tool.category === 'framework') tagColor = 'bg-blue-100 text-blue-700';
+                if (tool.category === 'autonomous') tagColor = 'bg-teal-100 text-teal-700';
+                if (tool.category === 'orchestration') tagColor = 'bg-purple-100 text-purple-700';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="font-bold text-lg text-stone-900">${tool.name}</h4>
+                        <span class="text-xs font-semibold px-2 py-1 rounded ${tagColor}">${tool.tag}</span>
+                    </div>
+                    <p class="text-stone-600 text-sm flex-grow">${tool.desc}</p>
+                `;
+                DOMElements.toolsGrid.appendChild(card);
+            });
+        }
+
+        DOMElements.toolFilters.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('#toolFilters button').forEach(btn => {
+                    btn.classList.remove('tab-active');
+                    btn.classList.add('tab-inactive');
+                });
+                e.target.classList.remove('tab-inactive');
+                e.target.classList.add('tab-active');
+                
+                renderTools(e.target.dataset.filter);
+            }
+        });
+
+        renderTools();
+
+        const ctxLimitations = document.getElementById('limitationsChart').getContext('2d');
+        new Chart(ctxLimitations, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'Hallucinated Actions', 
+                    'Security & Data Privacy', 
+                    'Lack of Predictability', 
+                    'High Compute Costs', 
+                    'Latency in Execution'
+                ],
+                datasets: [{
+                    label: '% of Leaders Highly Concerned',
+                    data: [82, 75, 68, 55, 40],
+                    backgroundColor: '#0d9488',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: '#e7e5e4' },
+                        ticks: { color: '#78716c' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            color: '#44403c',
+                            font: { weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

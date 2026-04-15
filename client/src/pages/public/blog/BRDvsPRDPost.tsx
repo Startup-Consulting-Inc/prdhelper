@@ -2,21 +2,67 @@
  * Blog Post: BRD vs PRD: What's the Difference and When to Use Each
  */
 
-import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
+import { BlogPostLayout, type FaqItem } from '../../../components/blog/BlogPostLayout';
+
+const FAQ_ITEMS: FaqItem[] = [
+  {
+    question: 'What is the difference between a BRD and a PRD?',
+    answer:
+      'A BRD (Business Requirements Document) defines what a business needs to achieve — the business problem, goals, and constraints. A PRD (Product Requirements Document) defines what a product must do — specific features, user stories, and acceptance criteria. The BRD answers "should we build this and why?" while the PRD answers "exactly what should we build and how do we know we built it correctly?"',
+  },
+  {
+    question: 'Do I need both a BRD and a PRD?',
+    answer:
+      'Not always. Large enterprise projects with formal approval processes typically require both. The BRD gets executive sign-off before resources are committed; the PRD guides engineering and design execution. Smaller teams or startups often skip the BRD and write a PRD directly — this works when business approval and product planning happen in the same conversation.',
+  },
+  {
+    question: 'Who writes a BRD vs a PRD?',
+    answer:
+      'A BRD is typically written by a Business Analyst (BA) or a senior Product Manager with a business strategy focus. It is written for executives and business stakeholders. A PRD is written by a Product Manager and is directed at engineering, design, and QA teams.',
+  },
+  {
+    question: 'Can a PRD replace a BRD?',
+    answer:
+      'A PRD can replace a BRD in small teams where there is no formal business approval process. However, for enterprise projects requiring budget approval, regulatory compliance, or cross-departmental sign-off, a PRD is not an adequate substitute — it is written for the wrong audience (engineers, not executives) and lacks the business case framing that stakeholders need.',
+  },
+  {
+    question: 'What comes first — BRD or PRD?',
+    answer:
+      'The BRD always comes first. It documents the business case and gets executive approval before resources are committed. The PRD is then written using the approved BRD as its input. Writing a PRD before a BRD is one of the most common causes of project failure — teams build technically correct products that do not align with approved business priorities.',
+  },
+  {
+    question: 'How long should a BRD be?',
+    answer:
+      'A BRD typically ranges from 5 to 30 pages depending on project complexity. Enterprise ERP implementations or compliance-driven projects may require 20-30 pages. Internal initiatives with a clear scope can be covered in 5-10 pages. Length should reflect the complexity of the business problem and the number of stakeholders who need to align.',
+  },
+  {
+    question: 'What is the BRD vs PRD vs MRD?',
+    answer:
+      'A Market Requirements Document (MRD) defines the market opportunity — customer segments, market size, and competitive landscape. It precedes both the BRD and PRD. The BRD translates market needs into specific business requirements. The PRD translates business requirements into product specifications. The sequence is: MRD → BRD → PRD.',
+  },
+];
 
 export default function BRDvsPRDPost() {
   return (
     <BlogPostLayout
       title="BRD vs PRD: What's the Difference and When to Use Each"
       author="Alex Kumar"
-      date="2026-03-12"
+      date="2026-01-15"
+      dateModified="2026-04-01"
       readTime="8 min read"
       category="Guides"
       excerpt="BRD vs PRD — two documents that every PM and BA needs, but few teams use correctly. Learn the differences, when each is needed, and how they work together."
       slug="brd-vs-prd"
       coverImage="vs"
       coverGradient="from-orange-600 via-amber-500 to-yellow-500"
+      faqItems={FAQ_ITEMS}
     >
+      <div className="not-prose bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-6 my-0 mb-8">
+        <p className="text-gray-900 dark:text-white text-base leading-relaxed">
+          A <strong>BRD (Business Requirements Document)</strong> defines what a business needs to achieve — the problem being solved, the goals, and the constraints. A <strong>PRD (Product Requirements Document)</strong> defines what a product must do to solve those needs — specific features, user stories, and acceptance criteria. The BRD answers <em>"should we build this and why?"</em> The PRD answers <em>"exactly what should we build?"</em> Both documents address requirements, but for different audiences, at different stages, and with different levels of detail.
+        </p>
+      </div>
+
       <h2>The Confusion Is Real — And It's Costly</h2>
       <p>
         Ask ten product managers what the difference between a BRD and a PRD is, and you'll
@@ -78,6 +124,30 @@ export default function BRDvsPRDPost() {
         A PRD is authored by a Product Manager and written for engineers, designers, and
         QA teams. It's the handoff document between product strategy and product execution.
       </p>
+
+      <h2>Why Getting This Wrong Is Expensive</h2>
+
+      <p>
+        The cost of requirements errors compounds the later they're caught. IBM Systems Sciences
+        Institute research found that fixing a requirements defect discovered in production costs
+        100x more than fixing it during the requirements phase. Getting the BRD/PRD distinction
+        right isn't process formality — it's risk management.
+      </p>
+
+      <div className="not-prose grid grid-cols-1 sm:grid-cols-3 gap-4 my-8">
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-5 text-center">
+          <p className="text-3xl font-black text-orange-600 dark:text-orange-400 mb-1">70%</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">of software rework stems from requirements defects, according to NIST research on software errors.</p>
+        </div>
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-5 text-center">
+          <p className="text-3xl font-black text-orange-600 dark:text-orange-400 mb-1">37%</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">of projects fail due to unclear or incomplete requirements, per PMI's Pulse of the Profession.</p>
+        </div>
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-5 text-center">
+          <p className="text-3xl font-black text-orange-600 dark:text-orange-400 mb-1">100×</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">costlier to fix a requirements defect in production vs. the requirements phase. (IBM Systems Sciences Institute)</p>
+        </div>
+      </div>
 
       <h2>Key Differences: BRD vs PRD</h2>
 
@@ -340,6 +410,26 @@ export default function BRDvsPRDPost() {
         <li><strong>Large enterprise project with formal approval gates?</strong> → Write both, in order.</li>
         <li><strong>Early-stage startup with a flat team and no approval process?</strong> → A PRD alone is often sufficient.</li>
       </ul>
+
+      <h2>Frequently Asked Questions</h2>
+
+      <div className="not-prose space-y-4 my-8">
+        {FAQ_ITEMS.map(({ question, answer }) => (
+          <details
+            key={question}
+            className="group rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+          >
+            <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <span className="font-semibold text-gray-900 dark:text-white text-sm">{question}</span>
+              <span className="text-gray-400 flex-shrink-0 text-xs font-medium group-open:hidden">▼</span>
+              <span className="text-gray-400 flex-shrink-0 text-xs font-medium hidden group-open:inline">▲</span>
+            </summary>
+            <div className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+              {answer}
+            </div>
+          </details>
+        ))}
+      </div>
     </BlogPostLayout>
   );
 }
