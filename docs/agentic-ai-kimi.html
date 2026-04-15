@@ -1,0 +1,1520 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Agentic AI: From Tools to Teammates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tiempos+Headline:wght@400;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #475569;
+            --accent: #0f766e;
+            --surface: #f8fafc;
+            --muted: #64748b;
+        }
+        
+        .font-tiempos { font-family: 'Tiempos Headline', serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            color: var(--primary);
+            background: var(--surface);
+            overflow-x: hidden;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23ffffff" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(10px, 10px); }
+        }
+        
+        .toc-fixed {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            width: 280px;
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+            z-index: 50;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .toc-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 40;
+        }
+        
+        .main-content {
+            margin-left: 320px;
+            max-width: 800px;
+        }
+        
+        .citation-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px dotted var(--accent);
+        }
+        
+        .citation-link:hover {
+            background-color: rgba(15, 118, 110, 0.1);
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .bento-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pull-quote {
+            border-left: 4px solid var(--accent);
+            padding-left: 2rem;
+            margin: 2rem 0;
+            font-style: italic;
+            font-size: 1.1rem;
+            color: var(--secondary);
+        }
+        
+        /* Mermaid diagram styling */
+        .mermaid-container {
+            display: flex;
+            justify-content: center;
+            min-height: 300px;
+            max-height: 800px;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mermaid-container .mermaid {
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            cursor: grab;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .mermaid-container .mermaid svg {
+            max-width: 100%;
+            height: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .mermaid-container .mermaid:active {
+            cursor: grabbing;
+        }
+
+        .mermaid-container.zoomed .mermaid {
+            height: 100%;
+            width: 100%;
+            cursor: grab;
+        }
+
+        .mermaid-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mermaid-control-btn {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #374151;
+            font-size: 14px;
+            min-width: 36px;
+            height: 36px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mermaid-control-btn:hover {
+            background: #f8fafc;
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        .mermaid-control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        @media (max-width: 1280px) {
+            .toc-fixed {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                max-width: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .mermaid-control-btn:not(.reset-zoom) {
+                display: none;
+            }
+            .mermaid-controls {
+                top: auto;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+            .mermaid-container {
+                padding: 15px;
+            }
+        }
+
+        /* Enhanced Mermaid theme customization for better contrast */
+        .mermaid .node rect,
+        .mermaid .node circle,
+        .mermaid .node ellipse,
+        .mermaid .node polygon {
+            stroke-width: 2px !important;
+            stroke: var(--secondary) !important;
+        }
+        
+        .mermaid .node .label {
+            color: var(--primary) !important;
+            font-weight: 500 !important;
+            font-size: 13px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        
+        .mermaid .edgePath .path {
+            stroke: var(--accent) !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .edgeLabel {
+            background-color: white !important;
+            color: var(--primary) !important;
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+            border: 1px solid #e2e8f0 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        
+        /* Special styling for different node types with better contrast */
+        .mermaid .node.perception rect,
+        .mermaid .node.perception circle,
+        .mermaid .node.perception ellipse,
+        .mermaid .node.perception polygon {
+            fill: #dbeafe !important;
+            stroke: #2563eb !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .node.perception .label {
+            color: #1e3a8a !important;
+            font-weight: 600 !important;
+        }
+        
+        .mermaid .node.reasoning rect,
+        .mermaid .node.reasoning circle,
+        .mermaid .node.reasoning ellipse,
+        .mermaid .node.reasoning polygon {
+            fill: #fef3c7 !important;
+            stroke: #d97706 !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .node.reasoning .label {
+            color: #92400e !important;
+            font-weight: 600 !important;
+        }
+        
+        .mermaid .node.action rect,
+        .mermaid .node.action circle,
+        .mermaid .node.action ellipse,
+        .mermaid .node.action polygon {
+            fill: #dcfce7 !important;
+            stroke: #16a34a !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .node.action .label {
+            color: #14532d !important;
+            font-weight: 600 !important;
+        }
+        
+        .mermaid .node.memory rect,
+        .mermaid .node.memory circle,
+        .mermaid .node.memory ellipse,
+        .mermaid .node.memory polygon {
+            fill: #f3e8ff !important;
+            stroke: #9333ea !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .node.memory .label {
+            color: #581c87 !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Default node styling */
+        .mermaid .node:not(.perception):not(.reasoning):not(.action):not(.memory) rect,
+        .mermaid .node:not(.perception):not(.reasoning):not(.action):not(.memory) circle,
+        .mermaid .node:not(.perception):not(.reasoning):not(.action):not(.memory) ellipse,
+        .mermaid .node:not(.perception):not(.reasoning):not(.action):not(.memory) polygon {
+            fill: #f8fafc !important;
+            stroke: var(--secondary) !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .node:not(.perception):not(.reasoning):not(.action):not(.memory) .label {
+            color: var(--primary) !important;
+            font-weight: 500 !important;
+        }
+    </style>
+  <base target="_blank">
+</head>
+
+  <body>
+    <!-- Toggle button for mobile -->
+    <button id="toc-toggle" class="fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-md md:hidden">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Table of Contents -->
+    <nav id="toc-nav" class="toc-fixed md:block hidden">
+      <div class="p-6">
+        <h3 class="font-tiempos text-lg font-bold text-gray-900 mb-4">Contents</h3>
+        <ul class="space-y-2 text-sm">
+          <li>
+            <a href="#executive-summary" class="text-gray-600 hover:text-teal-700 transition-colors">Executive Summary</a>
+          </li>
+          <li>
+            <a href="#core-concept" class="text-gray-600 hover:text-teal-700 transition-colors">Core Concept</a>
+          </li>
+          <li>
+            <a href="#operational-mechanisms" class="text-gray-600 hover:text-teal-700 transition-colors">Operational Mechanisms</a>
+          </li>
+          <li>
+            <a href="#industry-use-cases" class="text-gray-600 hover:text-teal-700 transition-colors">Industry Use Cases</a>
+          </li>
+          <li>
+            <a href="#limitations" class="text-gray-600 hover:text-teal-700 transition-colors">Technical Limitations</a>
+          </li>
+          <li>
+            <a href="#tools-platforms" class="text-gray-600 hover:text-teal-700 transition-colors">Tools &amp; Platforms</a>
+          </li>
+          <li>
+            <a href="#future-outlook" class="text-gray-600 hover:text-teal-700 transition-colors">Future Outlook</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Toggle overlay -->
+    <div id="toc-overlay" class="toc-overlay"></div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content md:ml-0">
+      <!-- Hero Section -->
+      <section class="hero-gradient text-white py-16 px-8 mb-12">
+        <div class="relative z-10">
+          <h1 class="font-tiempos text-5xl md:text-6xl font-bold mb-6 leading-tight">
+            <em class="text-teal-300">Agentic AI:</em>
+            <br/>
+            From Tools to Teammates
+          </h1>
+          <p class="text-xl text-gray-200 max-w-2xl mb-8">
+            A comprehensive technical overview of autonomous AI systems reshaping enterprise operations across financial services, healthcare, IT, and beyond
+          </p>
+          <div class="flex items-center space-x-6 text-sm text-gray-300">
+            <span><i class="fas fa-calendar mr-2"></i>2026 Enterprise Analysis</span>
+            <span><i class="fas fa-chart-line mr-2"></i>Technical Deep Dive</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Executive Summary -->
+      <section id="executive-summary" class="px-8 mb-16">
+        <div class="bento-grid">
+          <div class="bento-card">
+            <h2 class="font-tiempos text-3xl font-bold mb-6 text-gray-900">Executive Summary</h2>
+            <p class="text-lg text-gray-700 mb-6">
+              Agentic AI represents a fundamental shift from AI as a tool to AI as an autonomous actor—systems that independently perceive environments, reason about goals, execute multi-step actions, and learn from outcomes.
+            </p>
+            <div class="pull-quote">
+              &#34;By 2026, agentic AI has evolved from experimental prototypes to enterprise infrastructure, with platforms like Microsoft Copilot Studio, Salesforce Agentforce, and specialized frameworks enabling deployment across financial services, healthcare, IT operations, and beyond.&#34;
+            </div>
+            <p class="text-gray-700 mb-4">
+              Key challenges include hallucination propagation in reasoning chains, security vulnerabilities like prompt injection, and governance gaps in autonomous decision-making. The technology trajectory points toward proactive systems, physical-digital convergence, and fully autonomous enterprise operations, with success hinging on trust architecture, security-by-design, and continuous learning infrastructure.
+            </p>
+          </div>
+          <div class="space-y-4">
+            <div class="bento-card">
+              <h3 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Market Acceleration</h3>
+              <div class="text-3xl font-bold text-teal-700 mb-2">40%</div>
+              <p class="text-sm text-gray-600">Enterprise applications with task-specific AI agents by end of 2026</p>
+              <div class="text-sm text-gray-500 mt-2">
+                <a href="https://ezintegrations.ai/agentic-ai-platform-comparison/" class="citation-link">Source: Gartner Analysis</a>
+              </div>
+            </div>
+            <div class="bento-card">
+              <h3 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Critical Adoption</h3>
+              <div class="text-3xl font-bold text-teal-700 mb-2">86%</div>
+              <p class="text-sm text-gray-600">Executives rating AI agents as critical to strategy</p>
+              <div class="text-sm text-gray-500 mt-2">
+                <a href="https://www.creatio.com/glossary/agentic-ai-tools" class="citation-link">Source: Creatio Global Survey</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Core Concept -->
+      <section id="core-concept" class="px-8 mb-16">
+        <h2 class="font-tiempos text-4xl font-bold mb-8 text-gray-900">Core Concept and Defining Characteristics</h2>
+
+        <div class="prose prose-lg max-w-none mb-12">
+          <h3 class="font-tiempos text-2xl font-bold mb-4 text-gray-900">Fundamental Definition</h3>
+          <p class="text-gray-700 mb-6">
+            Agentic AI represents a paradigm shift in artificial intelligence systems, moving beyond passive response generation to autonomous, goal-directed operation in complex environments. At its foundation, <strong>agentic AI is defined as a software system designed to interact with data and tools in a manner requiring minimal human intervention</strong>, with explicit emphasis on goal-oriented behavior that enables autonomous task completion through self-generated step sequences <a href="https://www.redhat.com/en/topics/ai/what-is-agentic-ai" class="citation-link">[1]</a>.
+          </p>
+
+          <div class="bg-gray-50 p-6 rounded-lg mb-8">
+            <h4 class="font-tiempos text-xl font-bold mb-4 text-gray-900">Three Defining Dimensions</h4>
+            <div class="grid md:grid-cols-3 gap-6">
+              <div>
+                <h5 class="font-bold text-teal-700 mb-2">Operational Autonomy</h5>
+                <p class="text-sm text-gray-600">Function independently across extended time horizons without continuous human prompting or supervision</p>
+              </div>
+              <div>
+                <h5 class="font-bold text-teal-700 mb-2">Goal-Directed Behavior</h5>
+                <p class="text-sm text-gray-600">Maintain objective focus across multi-step execution sequences with internal goal representations</p>
+              </div>
+              <div>
+                <h5 class="font-bold text-teal-700 mb-2">Integrated Capabilities</h5>
+                <p class="text-sm text-gray-600">Combine generative AI creativity with automation infrastructure for actionable execution</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Key Architectural Components</h3>
+
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Component Layer</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Primary Function</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Key Technologies</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 font-medium text-teal-700">Perception</td>
+                <td class="px-6 py-4 text-gray-700">Environmental data acquisition and context establishment</td>
+                <td class="px-6 py-4 text-gray-700 text-sm">APIs, sensors, web scraping, multimodal processing, OCR</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-teal-700">Reasoning</td>
+                <td class="px-6 py-4 text-gray-700">Goal interpretation, planning, and strategy formulation</td>
+                <td class="px-6 py-4 text-gray-700 text-sm">LLMs, multimodal foundation models, planning algorithms</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-teal-700">Action</td>
+                <td class="px-6 py-4 text-gray-700">Environmental interaction through tool use and execution</td>
+                <td class="px-6 py-4 text-gray-700 text-sm">API calls, robotic actuation, browser automation, code execution</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-teal-700">Memory</td>
+                <td class="px-6 py-4 text-gray-700">Temporal continuity and learning from experience</td>
+                <td class="px-6 py-4 text-gray-700 text-sm">Vector databases, knowledge graphs, context windows, episodic storage</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="mermaid-container">
+          <div class="mermaid-controls">
+            <button class="mermaid-control-btn zoom-in" title="放大">
+              <i class="fas fa-search-plus"></i>
+            </button>
+            <button class="mermaid-control-btn zoom-out" title="缩小">
+              <i class="fas fa-search-minus"></i>
+            </button>
+            <button class="mermaid-control-btn reset-zoom" title="重置">
+              <i class="fas fa-expand-arrows-alt"></i>
+            </button>
+            <button class="mermaid-control-btn fullscreen" title="全屏查看">
+              <i class="fas fa-expand"></i>
+            </button>
+          </div>
+          <div class="mermaid">
+            graph TD
+            A[&#34;Environment&#34;] --&gt; B[&#34;Perception Layer&#34;]
+            B --&gt; C[&#34;Data Acquisition
+            <br/>Context Establishment&#34;]
+            C --&gt; D[&#34;Reasoning Engine&#34;]
+            D --&gt; E[&#34;Goal Interpretation
+            <br/>Planning &amp; Strategy&#34;]
+            E --&gt; F[&#34;Action Layer&#34;]
+            F --&gt; G[&#34;Tool Invocation
+            <br/>Execution&#34;]
+            G --&gt; H[&#34;Environment&#34;]
+            G --&gt; I[&#34;Memory System&#34;]
+            I --&gt; J[&#34;Experience Storage
+            <br/>Knowledge Management&#34;]
+            J --&gt; D
+            H --&gt; A
+
+            classDef perception fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+            classDef reasoning fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e
+            classDef action fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+            classDef memory fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+
+            class B,C perception
+            class D,E reasoning
+            class F,G action
+            class I,J memory
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Differentiation from Related Paradigms</h3>
+
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Comparison Dimension</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Traditional Automation</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Generative AI</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Agentic AI</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Core capability</td>
+                <td class="px-6 py-4 text-gray-700">Rule-based execution</td>
+                <td class="px-6 py-4 text-gray-700">Content generation</td>
+                <td class="px-6 py-4 text-gray-700 font-medium">Autonomous goal pursuit</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Adaptation</td>
+                <td class="px-6 py-4 text-gray-700">None—rigid scripts</td>
+                <td class="px-6 py-4 text-gray-700">Limited—prompt-dependent</td>
+                <td class="px-6 py-4 text-gray-700 font-medium">Dynamic—learns from outcomes</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Human role</td>
+                <td class="px-6 py-4 text-gray-700">Operator, exception handler</td>
+                <td class="px-6 py-4 text-gray-700">Director, evaluator</td>
+                <td class="px-6 py-4 text-gray-700 font-medium">Supervisor, goal specifier</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Integration depth</td>
+                <td class="px-6 py-4 text-gray-700">Deep in specific systems</td>
+                <td class="px-6 py-4 text-gray-700">None—standalone generation</td>
+                <td class="px-6 py-4 text-gray-700 font-medium">Deep—cross-system orchestration</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Operational Mechanisms -->
+      <section id="operational-mechanisms" class="px-8 mb-16">
+        <h2 class="font-tiempos text-4xl font-bold mb-8 text-gray-900">Operational Mechanisms and Workflow</h2>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Four-Phase Execution Cycle</h3>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+          <div class="grid md:grid-cols-4 gap-6">
+            <div class="text-center">
+              <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-eye text-blue-600 text-xl"></i>
+              </div>
+              <h4 class="font-bold text-gray-900 mb-2">Sensing</h4>
+              <p class="text-sm text-gray-600">Data acquisition, filtering, context establishment</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-brain text-amber-600 text-xl"></i>
+              </div>
+              <h4 class="font-bold text-gray-900 mb-2">Reasoning</h4>
+              <p class="text-sm text-gray-600">Goal decomposition, planning, strategy selection</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-play text-green-600 text-xl"></i>
+              </div>
+              <h4 class="font-bold text-gray-900 mb-2">Acting</h4>
+              <p class="text-sm text-gray-600">Tool invocation, execution validation, error handling</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+              </div>
+              <h4 class="font-bold text-gray-900 mb-2">Learning</h4>
+              <p class="text-sm text-gray-600">Outcome assessment, pattern extraction, model updating</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Advanced Capabilities</h3>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Multi-step Chaining</h4>
+            <p class="text-gray-700 text-sm mb-4">Sequential action execution with intermediate state management, supporting complex objective achievement that requires extended action sequences.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://logiolegion.com/blogs/best-agentic-ai-models-2026" class="citation-link">Leading models demonstrate industry-leading performance</a>
+            </div>
+          </div>
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Self-Correction</h4>
+            <p class="text-gray-700 text-sm mb-4">Error detection and recovery mechanisms that enable robust operation despite imperfect reasoning and execution.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://logiolegion.com/blogs/best-agentic-ai-models-2026" class="citation-link">Autonomous recovery from intermediate step failures</a>
+            </div>
+          </div>
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Multi-agent Orchestration</h4>
+            <p class="text-gray-700 text-sm mb-4">Collaborative operation among specialized agents with role-specific capabilities, addressing objectives that exceed individual agent competence.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://arxiv.org/html/2505.10468v3" class="citation-link">Coordination mechanisms ensuring coherent collective behavior</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Industry Use Cases -->
+      <section id="industry-use-cases" class="px-8 mb-16">
+        <h2 class="font-tiempos text-4xl font-bold mb-8 text-gray-900">Industry Use Cases and Applications</h2>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+          <div class="bento-card">
+            <h3 class="font-tiempos text-2xl font-bold mb-4 text-gray-900">Financial Services</h3>
+            <ul class="space-y-3 text-gray-700">
+              <li class="flex items-start">
+                <i class="fas fa-chart-line text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Autonomous Trading Systems:</strong> Real-time market analysis with dynamic strategy adaptation based on market regime identification
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-shield-alt text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Fraud Detection:</strong> Multi-source data synthesis and autonomous investigation tracing suspicious activity across networks
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-balance-scale text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Compliance Monitoring:</strong> Autonomous monitoring of operational activities against regulatory requirements with intelligent interpretation
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bento-card">
+            <h3 class="font-tiempos text-2xl font-bold mb-4 text-gray-900">Healthcare &amp; Life Sciences</h3>
+            <ul class="space-y-3 text-gray-700">
+              <li class="flex items-start">
+                <i class="fas fa-stethoscope text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Diagnostic Assistance:</strong> Multi-source data synthesis integrating EHRs, imaging, labs, genomics, and clinical literature
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-prescription text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Treatment Planning:</strong> Personalized care pathway generation considering comorbidities, preferences, and social determinants
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-flask text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Drug Discovery:</strong> Autonomous research workflows compressing development timelines through continuous experimental progression
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+          <div class="bento-card">
+            <h3 class="font-tiempos text-2xl font-bold mb-4 text-gray-900">IT &amp; Cybersecurity</h3>
+            <ul class="space-y-3 text-gray-700">
+              <li class="flex items-start">
+                <i class="fas fa-tools text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Intelligent Incident Management:</strong> Closed-loop remediation with autonomous detection, diagnosis, and resolution
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-bug text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Vulnerability Assessment:</strong> Continuous monitoring with intelligent prioritization focusing remediation resources on highest-risk exposures
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-server text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Self-Healing Infrastructure:</strong> Predictive maintenance through performance trend analysis and anticipatory intervention
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bento-card">
+            <h3 class="font-tiempos text-2xl font-bold mb-4 text-gray-900">Customer Experience</h3>
+            <ul class="space-y-3 text-gray-700">
+              <li class="flex items-start">
+                <i class="fas fa-headset text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>End-to-End Resolution:</strong> System integration across billing, fulfillment, and technical infrastructure for comprehensive issue resolution
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-bell text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Proactive Engagement:</strong> Predictive support identifying potential issues before customer impact through usage pattern monitoring
+                </div>
+              </li>
+              <li class="flex items-start">
+                <i class="fas fa-comments text-teal-600 mr-3 mt-1"></i>
+                <div>
+                  <strong>Omnichannel Orchestration:</strong> Context preservation across interaction modalities with autonomous channel optimization
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Limitations -->
+      <section id="limitations" class="px-8 mb-16">
+        <h2 class="font-tiempos text-4xl font-bold mb-8 text-gray-900">Technical and Operational Limitations</h2>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Reliability and Accuracy Challenges</h3>
+
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <thead class="bg-red-50">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold text-red-900">Challenge</th>
+                <th class="px-6 py-4 text-left font-bold text-red-900">Mechanism</th>
+                <th class="px-6 py-4 text-left font-bold text-red-900">Impact</th>
+                <th class="px-6 py-4 text-left font-bold text-red-900">Mitigation Approaches</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Hallucination Propagation</td>
+                <td class="px-6 py-4 text-gray-700">Erroneous intermediate results contaminate downstream reasoning</td>
+                <td class="px-6 py-4 text-red-600">Compounded errors, systematically wrong outcomes</td>
+                <td class="px-6 py-4 text-gray-700">Verification checkpoints, uncertainty representation, multi-source confirmation</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Error Accumulation</td>
+                <td class="px-6 py-4 text-gray-700">Undetected failures trigger cascades of dependent actions</td>
+                <td class="px-6 py-4 text-red-600">Amplified initial mistake impact, service degradation</td>
+                <td class="px-6 py-4 text-gray-700">Robust monitoring, graceful degradation, human escalation thresholds</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Edge Case Failures</td>
+                <td class="px-6 py-4 text-gray-700">Training distribution mismatch produces unpredictable behavior</td>
+                <td class="px-6 py-4 text-red-600">Catastrophic performance on rare but critical scenarios</td>
+                <td class="px-6 py-4 text-gray-700">Comprehensive testing, conservative deployment, continuous monitoring</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pull-quote">
+          &#34;Hallucination propagation in multi-step reasoning chains represents a particularly insidious challenge, where foundation model tendency to generate plausible but incorrect information propagates and amplifies across autonomous execution sequences.&#34;
+          <div class="text-sm mt-2">
+            <a href="https://arxiv.org/html/2505.10468v3" class="citation-link">Source: Technical Analysis</a>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Security and Safety Risks</h3>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+          <div class="bento-card border-l-4 border-red-500">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Prompt Injection Attacks</h4>
+            <p class="text-gray-700 text-sm mb-4">Malicious input overrides behavior constraints, potentially leading to information disclosure, unauthorized actions, or goal manipulation.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://arxiv.org/html/2505.10468v3" class="citation-link">Attack surface expands with system capability</a>
+            </div>
+          </div>
+          <div class="bento-card border-l-4 border-orange-500">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Tool Misuse</h4>
+            <p class="text-gray-700 text-sm mb-4">Errors or manipulation induce harmful actions leading to data corruption, financial loss, or operational damage.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://www.mdpi.com/1999-5903/17/9/404" class="citation-link">Particularly acute for systems with write access to critical systems</a>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Governance and Accountability Gaps</h3>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-8">
+          <h4 class="font-bold text-amber-900 mb-3">Decision Traceability Challenges</h4>
+          <p class="text-amber-800 text-sm mb-3">Difficulty reconstructing agentic system decision rationale, particularly for systems employing foundation model reasoning whose internal processes resist straightforward interpretation.</p>
+          <p class="text-amber-800 text-sm">This opacity creates compliance challenges for regulated industries with explicit explainability requirements <a href="https://www.mdpi.com/1999-5903/17/9/404" class="citation-link">[80]</a>.</p>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Implementation Barriers</h3>
+
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Barrier</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Description</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Organizational Impact</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Data Quality</td>
+                <td class="px-6 py-4 text-gray-700">Dependence on comprehensive, accurate, accessible data</td>
+                <td class="px-6 py-4 text-gray-700">Substantial preparation effort, ongoing maintenance requirements</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Legacy System Interoperability</td>
+                <td class="px-6 py-4 text-gray-700">Many systems lack modern APIs for straightforward integration</td>
+                <td class="px-6 py-4 text-gray-700">Custom development, fragile bridges, system modernization cost</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Skill Gaps</td>
+                <td class="px-6 py-4 text-gray-700">Requirements spanning AI engineering, domain expertise, change management</td>
+                <td class="px-6 py-4 text-gray-700">Capability shortages, adoption resistance, implementation failure</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tools and Platforms -->
+      <section id="tools-platforms" class="px-8 mb-16">
+        <h2 class="font-tiempos text-4xl font-bold mb-8 text-gray-900">Popular Tools, Platforms, and Model Comparisons</h2>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Enterprise Agentic AI Platforms</h3>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Microsoft Copilot Studio</h4>
+            <div class="space-y-3 text-sm text-gray-700">
+              <div><strong>Positioning:</strong> Low-code agent development with deep Microsoft ecosystem integration</div>
+              <div><strong>Key Strengths:</strong> 1,400+ Power Platform connectors, Entra Agent ID for unified identity, computer use for legacy UI automation</div>
+              <div><strong>Pricing:</strong> $200/25,000 Copilot Credits/month</div>
+              <div class="text-xs text-gray-500">
+                <a href="https://ezintegrations.ai/agentic-ai-platform-comparison/" class="citation-link">Source: Platform Analysis</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Salesforce Agentforce</h4>
+            <div class="space-y-3 text-sm text-gray-700">
+              <div><strong>Positioning:</strong> CRM-native agentic automation with deep customer data utilization</div>
+              <div><strong>Key Strengths:</strong> Atlas Reasoning Engine with Data 360 grounding, 8,000+ customers, $900M AI/Data Cloud revenue in 6 months</div>
+              <div><strong>Pricing:</strong> Flex Credits ($0.10/action or $2/conversation)</div>
+              <div class="text-xs text-gray-500">
+                <a href="https://ezintegrations.ai/agentic-ai-platform-comparison/" class="citation-link">Source: Platform Analysis</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Agent Development Frameworks</h3>
+
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Framework</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Core Architecture</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Key Strengths</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Enterprise Maturity</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">LangChain/LangGraph</td>
+                <td class="px-6 py-4 text-gray-700">Composable components; graph-based orchestration</td>
+                <td class="px-6 py-4 text-gray-700">Complete control, extensive integrations, explicit workflow representation</td>
+                <td class="px-6 py-4 text-green-700 font-medium">High</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Microsoft AutoGen</td>
+                <td class="px-6 py-4 text-gray-700">Actor-model; conversation-centric multi-agent</td>
+                <td class="px-6 py-4 text-gray-700">Distributed environment support, Azure integration, scalable coordination</td>
+                <td class="px-6 py-4 text-green-700 font-medium">High</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">CrewAI</td>
+                <td class="px-6 py-4 text-gray-700">Role-playing hierarchical teams</td>
+                <td class="px-6 py-4 text-gray-700">Intuitive abstraction, rapid prototyping, Fortune 500 adoption</td>
+                <td class="px-6 py-4 text-green-700 font-medium">High</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Leading Foundation Models (2026)</h3>
+
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Model</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Primary Strength</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Context Window</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Tool Use</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Optimal Use Cases</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">GPT-5.2</td>
+                <td class="px-6 py-4 text-gray-700">Tool-use accuracy; multi-step planning</td>
+                <td class="px-6 py-4 text-gray-700">Standard</td>
+                <td class="px-6 py-4 text-yellow-600">⭐⭐⭐⭐⭐</td>
+                <td class="px-6 py-4 text-gray-700">High-throughput production workflows</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Claude Opus 4.6</td>
+                <td class="px-6 py-4 text-gray-700">Long-context reasoning; enterprise stability</td>
+                <td class="px-6 py-4 text-gray-700">~500K-1M tokens</td>
+                <td class="px-6 py-4 text-yellow-600">⭐⭐⭐⭐⭐</td>
+                <td class="px-6 py-4 text-gray-700">Long-running agents; compliance-heavy workflows</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Gemini 3.1 Pro</td>
+                <td class="px-6 py-4 text-gray-700">Multimodal integration; real-world interaction</td>
+                <td class="px-6 py-4 text-gray-700">2M tokens</td>
+                <td class="px-6 py-4 text-yellow-600">⭐⭐⭐⭐</td>
+                <td class="px-6 py-4 text-gray-700">Multimodal applications; research synthesis</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">GLM-4.7 Thinking</td>
+                <td class="px-6 py-4 text-gray-700">Open-source capability; self-hosting</td>
+                <td class="px-6 py-4 text-gray-700">Standard</td>
+                <td class="px-6 py-4 text-yellow-600">⭐⭐⭐⭐⭐ (90.6%)</td>
+                <td class="px-6 py-4 text-gray-700">Self-hosted agents; data sovereignty needs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Future Outlook -->
+      <section id="future-outlook" class="px-8 mb-16">
+        <h2 class="font-tiempos text-4xl font-bold mb-8 text-gray-900">Future Outlook and Emerging Trends</h2>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Technology Evolution Trajectory</h3>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Reactive → Proactive</h4>
+            <p class="text-gray-700 text-sm mb-4">Current systems respond to explicit goals; future generations will autonomously identify opportunities and risks requiring attention.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://entomo.co/blog/how-agentic-ai-is-redefining-performance-management-for-the-future-of-work/" class="citation-link">Transformation from tool to partner</a>
+            </div>
+          </div>
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Digital → Physical-Digital</h4>
+            <p class="text-gray-700 text-sm mb-4">Unified agents operating seamlessly across information and physical environments through sensor fusion and robotic integration.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://www.linkedin.com/pulse/agentic-ai-quantum-mechanics-creating-truly-autonomous-robert-leidl-aqolc" class="citation-link">Physical-digital convergence</a>
+            </div>
+          </div>
+          <div class="bento-card">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Assisted → Autonomous</h4>
+            <p class="text-gray-700 text-sm mb-4">Human-supervised operation evolving toward fully autonomous enterprise operations in bounded domains.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://entomo.co/blog/how-agentic-ai-is-redefining-performance-management-for-the-future-of-work/" class="citation-link">Expanding scope of autonomous operation</a>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Standardization and Interoperability</h3>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+          <h4 class="font-tiempos text-xl font-bold mb-4 text-gray-900">Emerging Standards</h4>
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                <i class="fas fa-plug text-blue-600"></i>
+              </div>
+              <div>
+                <h5 class="font-bold text-gray-900 mb-1">Model Context Protocol (MCP)</h5>
+                <p class="text-gray-700 text-sm">Universal tool integration enabling any compliant agent to invoke any compliant tool, reducing integration burden.</p>
+                <div class="text-xs text-gray-500 mt-1">
+                  <a href="https://ezintegrations.ai/agentic-ai-platform-comparison/" class="citation-link">Accelerating adoption across ecosystem</a>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                <i class="fas fa-network-wired text-green-600"></i>
+              </div>
+              <div>
+                <h5 class="font-bold text-gray-900 mb-1">Agent-to-Agent (A2A) Protocol</h5>
+                <p class="text-gray-700 text-sm">Cross-platform agent collaboration enabling discovery, capability negotiation, task delegation, and result verification.</p>
+                <div class="text-xs text-gray-500 mt-1">
+                  <a href="https://machinelearningmastery.com/7-agentic-ai-trends-to-watch-in-2026/" class="citation-link">Emerging multi-agent coordination standard</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Market and Adoption Projections</h3>
+
+        <div class="grid md:grid-cols-4 gap-6 mb-12">
+          <div class="bento-card text-center">
+            <div class="text-4xl font-bold text-teal-700 mb-2">40%</div>
+            <div class="text-sm text-gray-600 mb-2">Enterprise AI Agent Adoption</div>
+            <div class="text-xs text-gray-500">by end of 2026</div>
+            <div class="text-xs text-gray-400 mt-2">
+              <a href="https://ezintegrations.ai/agentic-ai-platform-comparison/" class="citation-link">Gartner</a>
+            </div>
+          </div>
+          <div class="bento-card text-center">
+            <div class="text-4xl font-bold text-teal-700 mb-2">$190B</div>
+            <div class="text-sm text-gray-600 mb-2">AI Market Size</div>
+            <div class="text-xs text-gray-500">by 2025 (33.8% CAGR)</div>
+            <div class="text-xs text-gray-400 mt-2">
+              <a href="https://web.superagi.com/large-agentic-models-vs-traditional-machine-learning-a-head-to-head-comparison-of-performance-and-efficiency/" class="citation-link">Industry Analysis</a>
+            </div>
+          </div>
+          <div class="bento-card text-center">
+            <div class="text-4xl font-bold text-teal-700 mb-2">1,445%</div>
+            <div class="text-sm text-gray-600 mb-2">Multi-Agent System Inquiries</div>
+            <div class="text-xs text-gray-500">Q1→Q2 2025 Growth</div>
+            <div class="text-xs text-gray-400 mt-2">
+              <a href="https://machinelearningmastery.com/7-agentic-ai-trends-to-watch-in-2026/" class="citation-link">Gartner</a>
+            </div>
+          </div>
+          <div class="bento-card text-center">
+            <div class="text-4xl font-bold text-teal-700 mb-2">86%</div>
+            <div class="text-sm text-gray-600 mb-2">Executives Rating AI Critical</div>
+            <div class="text-xs text-gray-500">to Strategy</div>
+            <div class="text-xs text-gray-400 mt-2">
+              <a href="https://www.creatio.com/glossary/agentic-ai-tools" class="citation-link">Creatio Survey</a>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Human-AI Collaboration Models</h3>
+
+        <div class="overflow-x-auto mb-8">
+          <table class="w-full bg-white rounded-lg shadow-sm border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Model</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Description</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Human Role</th>
+                <th class="px-6 py-4 text-left font-bold text-gray-900">Agent Role</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Human-in-the-loop</td>
+                <td class="px-6 py-4 text-gray-700">Explicit approval for each significant action</td>
+                <td class="px-6 py-4 text-gray-700">Active decision-maker</td>
+                <td class="px-6 py-4 text-gray-700">Recommendation and execution support</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Human-on-the-loop</td>
+                <td class="px-6 py-4 text-gray-700">Monitoring with intervention capability</td>
+                <td class="px-6 py-4 text-gray-700">Supervisor, exception handler</td>
+                <td class="px-6 py-4 text-gray-700">Autonomous operation within guardrails</td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 font-medium text-gray-900">Human-out-of-the-loop</td>
+                <td class="px-6 py-4 text-gray-700">Fully autonomous with post-hoc review</td>
+                <td class="px-6 py-4 text-gray-700">Strategic oversight, accountability</td>
+                <td class="px-6 py-4 text-gray-700">Complete operational responsibility</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="font-tiempos text-2xl font-bold mb-6 text-gray-900">Critical Success Factors</h3>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+          <div class="bento-card border-l-4 border-blue-500">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Trust Architecture</h4>
+            <p class="text-gray-700 text-sm mb-4">Transparent operation, interpretable decisions, verifiable performance through chain-of-thought extraction and decision logging.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://ezintegrations.ai/agentic-ai-platform-comparison/" class="citation-link">Competitive differentiator for adoption</a>
+            </div>
+          </div>
+          <div class="bento-card border-l-4 border-red-500">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Security-by-Design</h4>
+            <p class="text-gray-700 text-sm mb-4">Proactive threat modeling, defense-in-depth, continuous monitoring addressing both traditional and AI-specific attack vectors.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://socprime.com/blog/cve-2025-32711-zero-click-ai-vulnerability/" class="citation-link">Essential for novel AI security risks</a>
+            </div>
+          </div>
+          <div class="bento-card border-l-4 border-green-500">
+            <h4 class="font-tiempos text-xl font-bold mb-3 text-gray-900">Continuous Learning</h4>
+            <p class="text-gray-700 text-sm mb-4">Systematic improvement from operational experience through feedback collection, performance monitoring, and model updating.</p>
+            <div class="text-xs text-gray-500">
+              <a href="https://sintra.ai/blog/best-agentic-ai-frameworks" class="citation-link">Compounding returns through continuous improvement</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="pull-quote">
+          &#34;Success in agentic AI deployment hinges on treating these systems as operational infrastructure rather than static capabilities—organizations that invest in continuous learning, trust architecture, and security-by-design will achieve compounding returns from their AI investments.&#34;
+          <div class="text-sm mt-2">
+            <a href="https://sintra.ai/blog/best-agentic-ai-frameworks" class="citation-link">Strategic Framework Analysis</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+        // Initialize Mermaid with enhanced theme and contrast
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#ffffff',
+                primaryTextColor: '#1e293b',
+                primaryBorderColor: '#475569',
+                lineColor: '#0f766e',
+                secondaryColor: '#f8fafc',
+                tertiaryColor: '#e2e8f0',
+                background: '#ffffff',
+                mainBkg: '#ffffff',
+                secondBkg: '#f8fafc',
+                tertiaryBkg: '#f1f5f9',
+                nodeBorder: '#475569',
+                clusterBkg: '#f8fafc',
+                edgeLabelBackground: '#ffffff',
+                nodeTextColor: '#1e293b',
+                // Enhanced contrast colors for different node types
+                perceptionBkg: '#dbeafe',
+                perceptionBorder: '#2563eb',
+                reasoningBkg: '#fef3c7',
+                reasoningBorder: '#d97706',
+                actionBkg: '#dcfce7',
+                actionBorder: '#16a34a',
+                memoryBkg: '#f3e8ff',
+                memoryBorder: '#9333ea'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true
+            },
+            gantt: {
+                useMaxWidth: true
+            },
+            securityLevel: 'loose'
+        });
+
+        // Initialize Mermaid Controls for zoom and pan
+        function initializeMermaidControls() {
+            const containers = document.querySelectorAll('.mermaid-container');
+
+            containers.forEach(container => {
+            const mermaidElement = container.querySelector('.mermaid');
+            let scale = 1;
+            let isDragging = false;
+            let startX, startY, translateX = 0, translateY = 0;
+
+            // 触摸相关状态
+            let isTouch = false;
+            let touchStartTime = 0;
+            let initialDistance = 0;
+            let initialScale = 1;
+            let isPinching = false;
+
+            // Zoom controls
+            const zoomInBtn = container.querySelector('.zoom-in');
+            const zoomOutBtn = container.querySelector('.zoom-out');
+            const resetBtn = container.querySelector('.reset-zoom');
+            const fullscreenBtn = container.querySelector('.fullscreen');
+
+            function updateTransform() {
+                mermaidElement.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+                if (scale > 1) {
+                container.classList.add('zoomed');
+                } else {
+                container.classList.remove('zoomed');
+                }
+
+                mermaidElement.style.cursor = isDragging ? 'grabbing' : 'grab';
+            }
+
+            if (zoomInBtn) {
+                zoomInBtn.addEventListener('click', () => {
+                scale = Math.min(scale * 1.25, 4);
+                updateTransform();
+                });
+            }
+
+            if (zoomOutBtn) {
+                zoomOutBtn.addEventListener('click', () => {
+                scale = Math.max(scale / 1.25, 0.3);
+                if (scale <= 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+                updateTransform();
+                });
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                scale = 1;
+                translateX = 0;
+                translateY = 0;
+                updateTransform();
+                });
+            }
+
+            if (fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', () => {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                }
+                });
+            }
+
+            // Mouse Events
+            mermaidElement.addEventListener('mousedown', (e) => {
+                if (isTouch) return; // 如果是触摸设备，忽略鼠标事件
+
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                mermaidElement.style.cursor = 'grabbing';
+                updateTransform();
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging && !isTouch) {
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                updateTransform();
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging && !isTouch) {
+                isDragging = false;
+                mermaidElement.style.cursor = 'grab';
+                updateTransform();
+                }
+            });
+
+            document.addEventListener('mouseleave', () => {
+                if (isDragging && !isTouch) {
+                isDragging = false;
+                mermaidElement.style.cursor = 'grab';
+                updateTransform();
+                }
+            });
+
+            // 获取两点之间的距离
+            function getTouchDistance(touch1, touch2) {
+                return Math.hypot(
+                touch2.clientX - touch1.clientX,
+                touch2.clientY - touch1.clientY
+                );
+            }
+
+            // Touch Events - 触摸事件处理
+            mermaidElement.addEventListener('touchstart', (e) => {
+                isTouch = true;
+                touchStartTime = Date.now();
+
+                if (e.touches.length === 1) {
+                // 单指拖动
+                isPinching = false;
+                isDragging = true;
+
+                const touch = e.touches[0];
+                startX = touch.clientX - translateX;
+                startY = touch.clientY - translateY;
+
+                } else if (e.touches.length === 2) {
+                // 双指缩放
+                isPinching = true;
+                isDragging = false;
+
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                initialDistance = getTouchDistance(touch1, touch2);
+                initialScale = scale;
+                }
+
+                e.preventDefault();
+            }, { passive: false });
+
+            mermaidElement.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isDragging && !isPinching) {
+                // 单指拖动
+                const touch = e.touches[0];
+                translateX = touch.clientX - startX;
+                translateY = touch.clientY - startY;
+                updateTransform();
+
+                } else if (e.touches.length === 2 && isPinching) {
+                // 双指缩放
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const currentDistance = getTouchDistance(touch1, touch2);
+
+                if (initialDistance > 0) {
+                    const newScale = Math.min(Math.max(
+                    initialScale * (currentDistance / initialDistance),
+                    0.3
+                    ), 4);
+                    scale = newScale;
+                    updateTransform();
+                }
+                }
+
+                e.preventDefault();
+            }, { passive: false });
+
+            mermaidElement.addEventListener('touchend', (e) => {
+                // 重置状态
+                if (e.touches.length === 0) {
+                isDragging = false;
+                isPinching = false;
+                initialDistance = 0;
+
+                // 延迟重置isTouch，避免鼠标事件立即触发
+                setTimeout(() => {
+                    isTouch = false;
+                }, 100);
+                } else if (e.touches.length === 1 && isPinching) {
+                // 从双指变为单指，切换为拖动模式
+                isPinching = false;
+                isDragging = true;
+
+                const touch = e.touches[0];
+                startX = touch.clientX - translateX;
+                startY = touch.clientY - translateY;
+                }
+
+                updateTransform();
+            });
+
+            mermaidElement.addEventListener('touchcancel', (e) => {
+                isDragging = false;
+                isPinching = false;
+                initialDistance = 0;
+
+                setTimeout(() => {
+                isTouch = false;
+                }, 100);
+
+                updateTransform();
+            });
+
+            // Enhanced wheel zoom with better center point handling
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const rect = container.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.min(Math.max(scale * delta, 0.3), 4);
+
+                // Adjust translation to zoom towards center
+                if (newScale !== scale) {
+                const scaleDiff = newScale / scale;
+                translateX = translateX * scaleDiff;
+                translateY = translateY * scaleDiff;
+                scale = newScale;
+
+                if (scale <= 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+
+                updateTransform();
+                }
+            });
+
+            // Initialize display
+            updateTransform();
+            });
+        }
+
+        // Initialize the mermaid interactions after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // TOC toggle functionality
+            const tocToggle = document.getElementById('toc-toggle');
+            const tocNav = document.getElementById('toc-nav');
+            const tocOverlay = document.getElementById('toc-overlay');
+            const mainContent = document.getElementById('main-content');
+
+            if (tocToggle && tocNav && tocOverlay) {
+                tocToggle.addEventListener('click', function() {
+                    tocNav.classList.toggle('hidden');
+                    tocOverlay.classList.toggle('hidden');
+                    if (window.innerWidth <= 1280) {
+                        if (tocNav.classList.contains('hidden')) {
+                            mainContent.classList.remove('ml-0');
+                            mainContent.classList.add('md:ml-0');
+                        } else {
+                            mainContent.classList.add('ml-0');
+                            mainContent.classList.remove('md:ml-0');
+                        }
+                    }
+                });
+
+                tocOverlay.addEventListener('click', function() {
+                    tocNav.classList.add('hidden');
+                    tocOverlay.classList.add('hidden');
+                    if (window.innerWidth <= 1280) {
+                        mainContent.classList.remove('ml-0');
+                        mainContent.classList.add('md:ml-0');
+                    }
+                });
+
+                // Close TOC when window is resized to desktop
+                function handleResize() {
+                    if (window.innerWidth > 1280) {
+                        tocNav.classList.remove('hidden');
+                        tocOverlay.classList.add('hidden');
+                        mainContent.classList.remove('ml-0');
+                        mainContent.classList.add('md:ml-0');
+                    } else {
+                        tocNav.classList.add('hidden');
+                        tocOverlay.classList.add('hidden');
+                        mainContent.classList.remove('ml-0');
+                        mainContent.classList.add('md:ml-0');
+                    }
+                }
+
+                window.addEventListener('resize', handleResize);
+                handleResize(); // Initial call
+            }
+
+            // Initialize mermaid controls
+            initializeMermaidControls();
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+  
+
+</body></html>

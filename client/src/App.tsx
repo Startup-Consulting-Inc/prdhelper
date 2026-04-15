@@ -69,6 +69,11 @@ const BRDMistakesPost = lazyWithRetry(() => import('./pages/public/blog/BRDMista
 const AgileRequirementsPost = lazyWithRetry(() => import('./pages/public/blog/AgileRequirementsPost'));
 const SRSDocumentGuidePost = lazyWithRetry(() => import('./pages/public/blog/SRSDocumentGuidePost'));
 const DefiningTheRightProblemPost = lazyWithRetry(() => import('./pages/public/blog/DefiningTheRightProblemPost'));
+const CSDegreeAIEraPost = lazyWithRetry(() => import('./pages/public/blog/CSDegreeAIEraPost'));
+const DatabaseLandscapeAIEraPost = lazyWithRetry(() => import('./pages/public/blog/DatabaseLandscapeAIEraPost'));
+const AgenticAIGuidePost = lazyWithRetry(() => import('./pages/public/blog/AgenticAIGuidePost'));
+const DataGovernanceAIEraPost = lazyWithRetry(() => import('./pages/public/blog/DataGovernanceAIEraPost'));
+const ResponsibleAIGuidePost = lazyWithRetry(() => import('./pages/public/blog/ResponsibleAIGuidePost'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -309,6 +314,11 @@ function App() {
         <Route path="/blog/agile-requirements-documentation" element={<AgileRequirementsPost />} />
         <Route path="/blog/how-to-write-srs-document" element={<SRSDocumentGuidePost />} />
         <Route path="/blog/defining-the-right-problem-ai-era" element={<DefiningTheRightProblemPost />} />
+        <Route path="/blog/cs-degree-ai-era" element={<CSDegreeAIEraPost />} />
+        <Route path="/blog/database-landscape-ai-era" element={<DatabaseLandscapeAIEraPost />} />
+        <Route path="/blog/agentic-ai-guide" element={<AgenticAIGuidePost />} />
+        <Route path="/blog/data-governance-ai-era" element={<DataGovernanceAIEraPost />} />
+        <Route path="/blog/responsible-ai-guide" element={<ResponsibleAIGuidePost />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />

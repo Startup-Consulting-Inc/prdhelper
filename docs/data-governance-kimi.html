@@ -1,0 +1,2619 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Data Governance: The Strategic Framework for Modern Organizations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tiempos+Headline:wght@400;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --text-color: #2c3e50;
+            --background-color: #ffffff;
+            --border-color: #e0e0e0;
+        }
+        
+        .font-tiempos { font-family: 'Tiempos Headline', serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        
+        .toc-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #fafafa;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            z-index: 100;
+            padding: 2rem 1.5rem;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            max-width: 900px;
+            padding: 2rem;
+        }
+        
+        .toc-link {
+            display: block;
+            padding: 0.5rem 0;
+            color: var(--text-color);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            padding-left: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        
+        .toc-link:hover {
+            color: var(--accent-color);
+            border-left-color: var(--accent-color);
+        }
+        
+        .toc-link.level-2 {
+            margin-left: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .hero-content h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .hero-image {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        
+        .hero-image img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+        
+        .hero-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.3) 0%, rgba(44, 62, 80, 0.6) 100%);
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--border-color), transparent);
+            margin: 4rem 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+        
+        .citation {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .citation:hover {
+            text-decoration: underline;
+        }
+        
+        .pull-quote {
+            background: #f8f9fa;
+            border-left: 4px solid var(--accent-color);
+            padding: 2rem;
+            margin: 2rem 0;
+            font-style: italic;
+            font-size: 1.1rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .mermaid-container {
+            display: flex;
+            justify-content: center;
+            min-height: 300px;
+            max-height: 800px;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mermaid-container .mermaid {
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            cursor: grab;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .mermaid-container .mermaid svg {
+            max-width: 100%;
+            height: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .mermaid-container .mermaid:active {
+            cursor: grabbing;
+        }
+
+        .mermaid-container.zoomed .mermaid {
+            height: 100%;
+            width: 100%;
+            cursor: grab;
+        }
+
+        .mermaid-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mermaid-control-btn {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #374151;
+            font-size: 14px;
+            min-width: 36px;
+            height: 36px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mermaid-control-btn:hover {
+            background: #f8fafc;
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        .mermaid-control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        @media (max-width: 1024px) {
+            .toc-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .toc-sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+            
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            /* Responsive mermaid controls */
+            .mermaid-control-btn:not(.reset-zoom) {
+                display: none;
+            }
+            .mermaid-controls {
+                top: auto;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .hero-image img {
+                height: 200px;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .toc-sidebar {
+                width: 250px;
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
+  <base target="_blank">
+</head>
+
+  <body>
+    <!-- Table of Contents Sidebar -->
+    <nav class="toc-sidebar">
+      <div class="mb-8">
+        <h3 class="font-tiempos text-xl font-bold text-gray-800 mb-4">Contents</h3>
+      </div>
+
+      <div class="space-y-1">
+        <a href="#section-1" class="toc-link">1. Core Concepts and Definitions</a>
+        <a href="#section-1-1" class="toc-link level-2">1.1 Fundamental Definition</a>
+        <a href="#section-1-2" class="toc-link level-2">1.2 Core Objectives</a>
+        <a href="#section-1-3" class="toc-link level-2">1.3 Key Components</a>
+
+        <a href="#section-2" class="toc-link">2. Organizational Frameworks</a>
+        <a href="#section-2-1" class="toc-link level-2">2.1 Established Frameworks</a>
+        <a href="#section-2-2" class="toc-link level-2">2.2 Operating Models</a>
+        <a href="#section-2-3" class="toc-link level-2">2.3 Governance Roles</a>
+        <a href="#section-2-4" class="toc-link level-2">2.4 Implementation Roadmap</a>
+
+        <a href="#section-3" class="toc-link">3. Technical Implementation</a>
+        <a href="#section-3-1" class="toc-link level-2">3.1 Core Capabilities</a>
+        <a href="#section-3-2" class="toc-link level-2">3.2 Cloud-Native Governance</a>
+        <a href="#section-3-3" class="toc-link level-2">3.3 Architecture Patterns</a>
+        <a href="#section-3-4" class="toc-link level-2">3.4 Automation and AI</a>
+
+        <a href="#section-4" class="toc-link">4. Industry Use Cases</a>
+        <a href="#section-4-1" class="toc-link level-2">4.1 Financial Services</a>
+        <a href="#section-4-2" class="toc-link level-2">4.2 Healthcare</a>
+        <a href="#section-4-3" class="toc-link level-2">4.3 Retail</a>
+        <a href="#section-4-4" class="toc-link level-2">4.4 Manufacturing</a>
+        <a href="#section-4-5" class="toc-link level-2">4.5 Public Sector</a>
+
+        <a href="#section-5" class="toc-link">5. Organizational Size</a>
+        <a href="#section-5-1" class="toc-link level-2">5.1 Enterprise-Scale</a>
+        <a href="#section-5-2" class="toc-link level-2">5.2 Mid-Market</a>
+        <a href="#section-5-3" class="toc-link level-2">5.3 Startups</a>
+
+        <a href="#section-6" class="toc-link">6. Popular Tools</a>
+        <a href="#section-6-1" class="toc-link level-2">6.1 Enterprise Platforms</a>
+        <a href="#section-6-2" class="toc-link level-2">6.2 Cloud-Native Solutions</a>
+        <a href="#section-6-3" class="toc-link level-2">6.3 Emerging Tools</a>
+        <a href="#section-6-4" class="toc-link level-2">6.4 Selection Criteria</a>
+
+        <a href="#section-7" class="toc-link">7. Limitations and Challenges</a>
+        <a href="#section-7-1" class="toc-link level-2">7.1 Organizational Barriers</a>
+        <a href="#section-7-2" class="toc-link level-2">7.2 Technical Challenges</a>
+        <a href="#section-7-3" class="toc-link level-2">7.3 Regulatory Complexity</a>
+        <a href="#section-7-4" class="toc-link level-2">7.4 Sustainability Risks</a>
+
+        <a href="#section-8" class="toc-link">8. Future Outlook</a>
+        <a href="#section-8-1" class="toc-link level-2">8.1 AI-Driven Governance</a>
+        <a href="#section-8-2" class="toc-link level-2">8.2 Governance-as-Code</a>
+        <a href="#section-8-3" class="toc-link level-2">8.3 Data Sovereignty</a>
+        <a href="#section-8-4" class="toc-link level-2">8.4 Convergence</a>
+        <a href="#section-8-5" class="toc-link level-2">8.5 Data Products</a>
+      </div>
+    </nav>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="fixed top-4 left-4 z-50 md:hidden bg-white shadow-lg rounded-lg p-2" onclick="toggleTOC()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero Section -->
+      <div class="hero-grid">
+        <div class="hero-content">
+          <h1 class="font-tiempos">Data Governance: The Strategic Framework for Modern Organizations</h1>
+          <p class="text-xl text-gray-600 mb-6">From compliance-focused IT function to business-critical capability enabling AI, cloud transformation, and data-driven competitive advantage.</p>
+          <div class="flex items-center space-x-4 text-sm text-gray-500">
+            <span><i class="fas fa-calendar mr-2"></i>2024</span>
+            <span><i class="fas fa-clock mr-2"></i>25 min read</span>
+            <span><i class="fas fa-chart-bar mr-2"></i>Strategic Framework</span>
+          </div>
+        </div>
+        <div class="hero-image">
+          <img src="https://kimi-web-img.moonshot.cn/img/static.cambridge.org/91eedb57d9a2f3fdbc6feadc08f45cc231d62694.png" alt="Abstract representation of data governance with interconnected nodes" size="medium" aspect="wide" query="abstract data governance framework" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+        </div>
+      </div>
+
+      <!-- Key Highlights -->
+      <div class="stats-grid mb-12">
+        <div class="stat-card">
+          <div class="stat-number">77%</div>
+          <div class="text-sm text-gray-600">of global C-suite leaders report compliance contributes significantly to business objectives</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">30-50%</div>
+          <div class="text-sm text-gray-600">reduction in data errors within 12-18 months of implementation</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">4x</div>
+          <div class="text-sm text-gray-600">higher success rate for organizations starting with targeted pilots vs enterprise-wide rollouts</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">10×</div>
+          <div class="text-sm text-gray-600">productivity improvement through governed self-service access at NTT DOCOMO</div>
+        </div>
+      </div>
+
+      <!-- Section 1: Core Concepts -->
+      <section id="section-1" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">1. Core Concepts and Definitions</h2>
+
+        <div id="section-1-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">1.1 Fundamental Definition</h3>
+
+          <div class="prose prose-lg max-w-none">
+            <p class="mb-6">Data governance represents a <strong>comprehensive strategic framework</strong> that establishes the organizational structures, policies, processes, and technologies necessary to manage enterprise data as a critical business asset <a href="#citation-557" class="citation">[557]</a>
+              <a href="#citation-594" class="citation">[594]</a>. At its essence, it is the exercise of decision-making and authority for data-related matters—a system of decision rights and accountabilities for information-related processes, executed according to agreed-upon models which describe who can take what actions with what information, and when, under what circumstances, using what methods <a href="#citation-557" class="citation">[557]</a>.
+            </p>
+
+            <div class="pull-quote">
+              &#34;Data governance has evolved from a compliance-focused, IT-centric function into a business-critical capability that directly enables digital transformation, artificial intelligence adoption, and data-driven competitive advantage.&#34;
+            </div>
+
+            <h4 class="font-semibold text-lg mb-4">&#34;Big G&#34; vs. &#34;Little g&#34; Governance</h4>
+
+            <p class="mb-6">The Data Governance Institute framework introduces a valuable conceptual distinction <a href="#citation-557" class="citation">[557]</a>:</p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+              <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
+                <h5 class="font-semibold mb-2">&#34;Big G&#34; Governance</h5>
+                <p class="text-sm">Formal, enterprise-wide programs with dedicated organizational structures: chartered governance councils, documented policies, specialized platforms, and executive sponsorship.</p>
+              </div>
+              <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-500">
+                <h5 class="font-semibold mb-2">&#34;Little g&#34; governance</h5>
+                <p class="text-sm">Distributed, often informal practices embedded within teams: data quality checks in pipelines, documentation standards followed by analytics groups, or access review processes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-1-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">1.2 Core Objectives and Value Proposition</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Ensuring Data Accuracy, Security, and Compliance</h4>
+
+            <p class="mb-6">The <strong>foundational objectives</strong> of data governance center on three interconnected pillars <a href="#citation-594" class="citation">[594]</a>
+              <a href="#citation-602" class="citation">[602]</a>:
+            </p>
+
+            <div class="space-y-6">
+              <div class="flex items-start space-x-4">
+                <div class="bg-blue-100 p-3 rounded-lg">
+                  <i class="fas fa-check-circle text-blue-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-semibold mb-2">Data Accuracy</h5>
+                  <p class="text-gray-700">Ensures information reflects reality with acceptable precision through measurement frameworks, quality rules, monitoring systems, and remediation workflows.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div class="bg-red-100 p-3 rounded-lg">
+                  <i class="fas fa-shield-alt text-red-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-semibold mb-2">Data Security</h5>
+                  <p class="text-gray-700">Protects information from unauthorized access, modification, or destruction through classification schemes, access control policies, encryption standards, and monitoring procedures.</p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div class="bg-green-100 p-3 rounded-lg">
+                  <i class="fas fa-balance-scale text-green-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-semibold mb-2">Regulatory Compliance</h5>
+                  <p class="text-gray-700">Ensures adherence to GDPR, CCPA/CPRA, HIPAA, SOX, Basel requirements, and emerging AI-specific regulations through policy translation, control implementation, and documentation.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-1-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">1.3 Key Components</h3>
+
+          <div class="grid md:grid-cols-2 gap-8">
+            <div>
+              <h4 class="font-semibold text-lg mb-4">Data Stewardship Roles</h4>
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Role</th>
+                    <th>Level</th>
+                    <th>Core Responsibilities</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="font-semibold">Data Owner</td>
+                    <td>Strategic</td>
+                    <td>Domain accountability, policy approval, risk acceptance</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Data Steward</td>
+                    <td>Operational</td>
+                    <td>Quality monitoring, issue resolution, metadata maintenance</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Data Custodian</td>
+                    <td>Technical</td>
+                    <td>Infrastructure management, security implementation</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Data Product Manager</td>
+                    <td>Emerging</td>
+                    <td>Product roadmap, consumer satisfaction, value optimization</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-lg mb-4">AI Governance Requirements</h4>
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Requirement</th>
+                    <th>Implementation Approach</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="font-semibold">Training Data Quality</td>
+                    <td>Bias detection, representativeness validation, labeling QA</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Model Transparency</td>
+                    <td>Explainability techniques, documentation of logic and limitations</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Lifecycle Management</td>
+                    <td>Versioning, performance monitoring, drift detection, retraining</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Privacy Protection</td>
+                    <td>Differential privacy, federated learning, data minimization</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 2: Organizational Frameworks -->
+      <section id="section-2" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">2. Organizational Frameworks and Implementation Models</h2>
+
+        <div id="section-2-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">2.1 Established Framework Approaches</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">DGI Data Governance Framework</h4>
+            <p class="mb-6">The <strong>Data Governance Institute (DGI) framework</strong> provides a comprehensive, vendor-neutral structure organized into ten interconnected components <a href="#citation-557" class="citation">[557]</a>:</p>
+
+            <ul class="space-y-3 mb-6">
+              <li class="flex items-start space-x-3">
+                <i class="fas fa-check text-green-600 mt-1"></i>
+                <span><strong>Mission, Goals, and Governance Metrics</strong> - establishing SMART objectives and measurement frameworks</span>
+              </li>
+              <li class="flex items-start space-x-3">
+                <i class="fas fa-check text-green-600 mt-1"></i>
+                <span><strong>Data Rules and Policy Definition</strong> - specifying what must, must not, and may be done with data</span>
+              </li>
+              <li class="flex items-start space-x-3">
+                <i class="fas fa-check text-green-600 mt-1"></i>
+                <span><strong>Decision Rights and Accountabilities</strong> - explicit attention to who has authority to make which decisions</span>
+              </li>
+              <li class="flex items-start space-x-3">
+                <i class="fas fa-check text-green-600 mt-1"></i>
+                <span><strong>Control Mechanisms and Enforcement Points</strong> - preventive, detective, and corrective controls throughout the data lifecycle</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-50 p-6 rounded-lg">
+              <h5 class="font-semibold mb-2">DAMA-DMBOK</h5>
+              <p class="text-sm text-gray-600">Situates data governance within eleven knowledge areas, positioning it as a coordinating function across data management disciplines <a href="#citation-557" class="citation">[557]</a>.</p>
+            </div>
+            <div class="bg-gray-50 p-6 rounded-lg">
+              <h5 class="font-semibold mb-2">COBIT Integration</h5>
+              <p class="text-sm text-gray-600">Provides IT governance integration particularly valuable for organizations with established risk and compliance frameworks <a href="#citation-557" class="citation">[557]</a>.</p>
+            </div>
+            <div class="bg-gray-50 p-6 rounded-lg">
+              <h5 class="font-semibold mb-2">DCAM Model</h5>
+              <p class="text-sm text-gray-600">Assessment-focused benchmarking across data management capabilities with industry-specific variants <a href="#citation-557" class="citation">[557]</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-2-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">2.2 Operating Models by Organizational Structure</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Centralized vs. Federated Governance</h4>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <div class="bg-blue-50 p-6 rounded-lg">
+                <h5 class="font-semibold mb-3"><i class="fas fa-building mr-2 text-blue-600"></i>Centralized Model</h5>
+                <p class="text-sm mb-4">Concentrates authority in a single team, creating maximum consistency and streamlined decision-making.</p>
+                <h6 class="font-semibold text-sm mb-2">Ideal for:</h6>
+                <ul class="text-sm space-y-1">
+                  <li>• Highly regulated industries</li>
+                  <li>• Smaller organizations</li>
+                  <li>• Early-stage governance programs</li>
+                  <li>• Strong hierarchical cultures</li>
+                </ul>
+              </div>
+
+              <div class="bg-green-50 p-6 rounded-lg">
+                <h5 class="font-semibold mb-3"><i class="fas fa-network-wired mr-2 text-green-600"></i>Federated Model</h5>
+                <p class="text-sm mb-4">Distributes responsibility to domain teams while maintaining central coordination.</p>
+                <h6 class="font-semibold text-sm mb-2">Benefits:</h6>
+                <ul class="text-sm space-y-1">
+                  <li>• Context-appropriate governance</li>
+                  <li>• Rapid innovation without bottlenecks</li>
+                  <li>• Strong ownership culture</li>
+                  <li>• Distributed expertise</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="pull-quote">
+            &#34;By 2026, industry consensus converges on hybrid models combining centralized and federated elements, balancing enterprise alignment with domain autonomy.&#34;
+          </div>
+        </div>
+
+        <div id="section-2-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">2.3 Governance Roles and Responsibilities</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Governance Council Structure</h4>
+            <p class="mb-6">The <strong>Data Governance Council</strong> provides strategic oversight and decision authority <a href="#citation-595" class="citation">[595]</a>. Effective councils feature:</p>
+
+            <div class="space-y-4">
+              <div class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
+                <div class="bg-blue-100 p-2 rounded-lg">
+                  <i class="fas fa-crown text-blue-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-semibold">Executive Sponsorship</h5>
+                  <p class="text-sm text-gray-600">Genuine decision-making power and resource commitment</p>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
+                <div class="bg-green-100 p-2 rounded-lg">
+                  <i class="fas fa-users text-green-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-semibold">Cross-functional Representation</h5>
+                  <p class="text-sm text-gray-600">Business, IT, legal, compliance, and domain expertise</p>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
+                <div class="bg-purple-100 p-2 rounded-lg">
+                  <i class="fas fa-chart-line text-purple-600"></i>
+                </div>
+                <div>
+                  <h5 class="font-semibold">Performance Metrics</h5>
+                  <p class="text-sm text-gray-600">Demonstrating value and guiding improvement</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-2-4" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">2.4 Implementation Roadmap</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Phased Implementation Approach</h4>
+
+            <div class="bg-gray-50 p-6 rounded-lg mb-6">
+              <p class="italic text-lg mb-4">&#34;You start off small with a small set of data and a small set of policies, and then eventually you mature out to more robust processes and tackle additional data domains.&#34;</p>
+              <p class="text-sm text-gray-600">— Matt Sullivan, Alation <a href="#citation-595" class="citation">[595]</a>
+                <a href="#citation-597" class="citation">[597]</a>
+              </p>
+            </div>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Phase</th>
+                  <th>Timeline</th>
+                  <th>Focus</th>
+                  <th>Key Deliverables</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Foundation</td>
+                  <td>Months 1-6</td>
+                  <td>Pilot domain, core policies, basic stewardship</td>
+                  <td>Governance structure, catalog deployment, initial wins</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Expansion</td>
+                  <td>Months 7-12</td>
+                  <td>3-5 additional domains, process integration, MDM</td>
+                  <td>Scaled coverage, automated workflows, audit readiness</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Optimization</td>
+                  <td>Months 13-18</td>
+                  <td>Enterprise coverage, advanced capabilities, self-service</td>
+                  <td>70%+ user self-service, embedded culture, AI/ML support</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p class="text-sm text-gray-600 mt-4">
+              <strong>Forrester research</strong> indicates organizations starting with targeted pilots succeed
+              <strong>4x more often</strong> than enterprise-wide rollouts <a href="#citation-396" class="citation">[396]</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 3: Technical Implementation -->
+      <section id="section-3" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">3. Technical Implementation and Architecture</h2>
+
+        <div id="section-3-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">3.1 Core Technical Capabilities</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Automated Metadata Harvesting</h4>
+
+            <p class="mb-6">Modern platforms address the <strong>scale imperative</strong> of contemporary data environments through automated harvesting <a href="#citation-593" class="citation">[593]</a>
+              <a href="#citation-604" class="citation">[604]</a>:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <div>
+                <h5 class="font-semibold mb-3">Key Capabilities</h5>
+                <ul class="space-y-2">
+                  <li class="flex items-start space-x-2">
+                    <i class="fas fa-database text-blue-600 mt-1 text-sm"></i>
+                    <span>Connect to <strong>80+ data sources</strong> including databases, warehouses, cloud storage, BI tools, and SaaS applications</span>
+                  </li>
+                  <li class="flex items-start space-x-2">
+                    <i class="fas fa-cogs text-green-600 mt-1 text-sm"></i>
+                    <span>Extract technical metadata automatically without manual documentation</span>
+                  </li>
+                  <li class="flex items-start space-x-2">
+                    <i class="fas fa-brain text-purple-600 mt-1 text-sm"></i>
+                    <span>ML-powered analysis of usage patterns and content similarity</span>
+                  </li>
+                  <li class="flex items-start space-x-2">
+                    <i class="fas fa-sync text-orange-600 mt-1 text-sm"></i>
+                    <span>Continuous synchronization as environments evolve</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h5 class="font-semibold mb-3">Business Impact</h5>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <p class="text-sm mb-3"><strong>Active metadata platforms</strong> like Alation combine automation efficiency with human curation, becoming the &#34;single pane of glass&#34; for data discovery and governance <a href="#citation-600" class="citation">[600]</a>.</p>
+                  <p class="text-sm">A global delivery service saved <strong>$500,000 per quarter</strong> by catching anomalies before production model deployment <a href="#citation-55" class="citation">[55]</a>.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-3-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">3.2 Cloud-Native Data Governance</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Multi-Cloud Governance Challenges</h4>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Challenge</th>
+                  <th>Mitigation Approach</th>
+                  <th>Implementation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Native capability variation</td>
+                  <td>Abstraction layers, third-party governance platforms</td>
+                  <td>Central policy definition, platform-specific translation</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Data sovereignty requirements</td>
+                  <td>Location-aware policy enforcement, residency tracking</td>
+                  <td>Geographic tagging, automated compliance checking</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Identity fragmentation</td>
+                  <td>Federated identity, unified access management</td>
+                  <td>SAML/OIDC integration, cross-cloud SSO</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="section-3-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">3.3 Data Architecture Patterns</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Data Mesh and Domain-Oriented Ownership</h4>
+
+            <p class="mb-6"><strong>Data mesh</strong> represents a paradigmatic shift from centralized platforms to distributed, domain-oriented architectures <a href="#citation-140" class="citation">[140]</a>
+              <a href="#citation-595" class="citation">[595]</a>:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <div>
+                <h5 class="font-semibold mb-3">Core Principles</h5>
+                <ol class="space-y-2 text-sm">
+                  <li><strong>1. Domain-oriented decentralized data ownership</strong></li>
+                  <li><strong>2. Data as a product</strong> - with customers, SLAs, and continuous improvement</li>
+                  <li><strong>3. Self-serve data infrastructure</strong> - enabling domain autonomy</li>
+                  <li><strong>4. Federated computational governance</strong> - automated policy enforcement</li>
+                </ol>
+              </div>
+
+              <div>
+                <h5 class="font-semibold mb-3">Governance Implications</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• Domains implement governance within enterprise standards</li>
+                  <li>• <strong>Data product managers</strong> replace traditional stewards</li>
+                  <li>• <strong>Data contracts</strong> formalize interfaces between domains</li>
+                  <li>• Requires mature domain teams with governance expertise</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-lg mt-6">
+              <p class="text-sm"><strong>⚠️ Success factor:</strong> Premature adoption risks governance gaps. Domains need both technical capabilities and governance maturity to succeed
+                <a href="#citation-595" class="citation">[595]</a>
+                <a href="#citation-601" class="citation">[601]</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-3-4" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">3.4 Automation and AI-Augmented Governance</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Intelligent Policy Recommendation Engines</h4>
+
+            <p class="mb-6">ML-driven policy development accelerates governance maturity <a href="#citation-86" class="citation">[86]</a>
+              <a href="#citation-594" class="citation">[594]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Application</th>
+                  <th>Function</th>
+                  <th>Benefit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Regulatory corpus analysis</td>
+                  <td>Identify relevant requirements, suggest policy language</td>
+                  <td>Faster, more complete policy coverage</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Peer benchmarking</td>
+                  <td>Compare policies against industry practice</td>
+                  <td>Identify gaps, justify investment</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Violation pattern analysis</td>
+                  <td>Detect policy weaknesses, recommend refinements</td>
+                  <td>Continuous improvement</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Automated translation</td>
+                  <td>Convert policy definitions to technical configurations</td>
+                  <td>Reduce implementation gap</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 4: Industry Use Cases -->
+      <section id="section-4" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">4. Industry-Specific Use Cases</h2>
+
+        <div id="section-4-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">4.1 Financial Services</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Regulatory Compliance Framework</h4>
+
+            <p class="mb-6">Financial services faces <strong>among the most stringent governance requirements globally</strong>
+              <a href="#citation-396" class="citation">[396]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Regulation</th>
+                  <th>Governance Focus</th>
+                  <th>Implementation Approach</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">SOX</td>
+                  <td>Financial reporting accuracy, internal controls</td>
+                  <td>Comprehensive lineage, change management, access logging</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Basel III/IV</td>
+                  <td>Risk data aggregation, reporting quality</td>
+                  <td>Data quality frameworks, BCBS 239 compliance, risk data dictionaries</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">CCAR/DFAST</td>
+                  <td>Stress testing data, model documentation</td>
+                  <td>Scenario data management, model lineage, audit trails</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">GDPR/CCPA</td>
+                  <td>Customer privacy, consent management</td>
+                  <td>PII identification, automated deletion, subject rights fulfillment</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="bg-green-50 p-4 rounded-lg mt-4">
+              <p class="text-sm"><strong>Success story:</strong> A financial firm achieving BCBS 239 compliance avoided regulatory fines that could have reached substantial amounts, with governance investment generating clear risk-adjusted returns <a href="#citation-396" class="citation">[396]</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-4-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">4.2 Healthcare and Life Sciences</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">HIPAA Compliance and Patient Data Protection</h4>
+
+            <p class="mb-6">Healthcare governance centers on patient privacy and data security <a href="#citation-86" class="citation">[86]</a>:</p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <div>
+                <h5 class="font-semibold mb-3">Core Requirements</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• <strong>Minimum necessary access</strong> - restricting PHI visibility to legitimate need</li>
+                  <li>• <strong>Comprehensive audit logging</strong> - tracking who accessed what patient data when</li>
+                  <li>• <strong>Breach notification</strong> - automated detection and rapid response</li>
+                  <li>• <strong>Business associate governance</strong> - extending controls to vendor relationships</li>
+                </ul>
+              </div>
+
+              <div>
+                <h5 class="font-semibold mb-3">Case Study: VillageCare</h5>
+                <div class="bg-blue-50 p-4 rounded-lg">
+                  <p class="text-sm mb-2">Surfacing <strong>quality alerts directly in the data catalog</strong> boosted catalog adoption by <strong>254% in a single year</strong>, eliminating steward tool-switching and accelerating issue resolution <a href="#citation-55" class="citation">[55]</a>.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-4-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">4.3 Retail and Consumer Goods</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Real-Time Inventory and Demand Forecasting</h4>
+
+            <p class="mb-6">AI-powered retail operations depend on <strong>high-velocity, high-quality data</strong>
+              <a href="#citation-55" class="citation">[55]</a>:
+            </p>
+
+            <div class="stats-grid mb-6">
+              <div class="stat-card">
+                <div class="stat-number">24→0.1h</div>
+                <div class="text-sm text-gray-600">RaceTrac&#39;s time-to-insight reduction through governed datasets</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">$500K</div>
+                <div class="text-sm text-gray-600">Quarterly savings for global delivery service via anomaly detection</div>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg">
+              <h5 class="font-semibold mb-3">Critical Success Factors</h5>
+              <ul class="space-y-2 text-sm">
+                <li>• <strong>Sensor data governance</strong> - IoT device data validation and integration</li>
+                <li>• <strong>Demand signal integration</strong> - combining point-of-sale, web analytics, and external signals</li>
+                <li>• <strong>Forecast model governance</strong> - ensuring training data quality and performance monitoring</li>
+                <li>• <strong>Automated replenishment</strong> - governance controls preventing over-automation risks</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-4-4" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">4.4 Manufacturing</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Predictive Maintenance Data Pipelines</h4>
+
+            <p class="mb-6">Predictive maintenance depends on <strong>reliable data integration from diverse sources</strong>
+              <a href="#citation-55" class="citation">[55]</a>:
+            </p>
+
+            <div class="bg-green-50 p-6 rounded-lg mb-6">
+              <h5 class="font-semibold mb-2">Case Study: Vattenfall</h5>
+              <p class="text-sm mb-3">Pairing data catalog with quality automation enabled stewards to:</p>
+              <ul class="text-sm space-y-1">
+                <li>• Generate validation rules <strong>10× faster</strong></li>
+                <li>• Improve over <strong>1,000 data objects monthly</strong></li>
+                <li>• Accelerate root cause analysis for equipment failures</li>
+              </ul>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <h5 class="font-semibold mb-3">Technical Requirements</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• <strong>Equipment data integration</strong> - normalizing signals from heterogeneous controllers</li>
+                  <li>• <strong>Maintenance history</strong> - structured records of interventions and outcomes</li>
+                  <li>• <strong>Failure mode analysis</strong> - governed datasets enabling root cause identification</li>
+                  <li>• <strong>Model governance</strong> - ensuring prediction reliability and confidence calibration</li>
+                </ul>
+              </div>
+
+              <div>
+                <h5 class="font-semibold mb-3">Industrial IoT Considerations</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• <strong>Edge governance</strong> - processing at source to manage central load</li>
+                  <li>• <strong>Time-series optimization</strong> - specialized storage and retention approaches</li>
+                  <li>• <strong>Device identity</strong> - authenticating machine-generated data</li>
+                  <li>• <strong>Anomaly detection</strong> - identifying equipment issues through pattern analysis</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-4-5" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">4.5 Public Sector</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Inter-Agency Data Sharing</h4>
+
+            <p class="mb-6">Cross-organizational collaboration requires <strong>governance that builds trust</strong>
+              <a href="#citation-10" class="citation">[10]</a>:
+            </p>
+
+            <div class="bg-blue-50 p-6 rounded-lg">
+              <h5 class="font-semibold mb-3">U.S. Department of Labor Model</h5>
+              <p class="text-sm mb-3">&#34;Component agencies as generators and owners of data,&#34; with coordination through &#34;consensus, collaboration, and increasingly more rigorous data management.&#34;</p>
+              <p class="text-sm">This <strong>federated approach</strong> enables appropriate autonomy while achieving enterprise objectives through representative governance bodies and stewardship networks <a href="#citation-10" class="citation">[10]</a>.</p>
+            </div>
+
+            <div class="mt-6">
+              <h5 class="font-semibold mb-3">Key Success Factors</h5>
+              <ul class="space-y-2 text-sm">
+                <li>• <strong>Open data initiatives</strong> - balancing transparency with privacy protection</li>
+                <li>• <strong>Citizen privacy protection</strong> - secure authentication and data minimization</li>
+                <li>• <strong>Inter-agency trust</strong> - governance frameworks enabling appropriate collaboration</li>
+                <li>• <strong>Transparency and accountability</strong> - clear communication of data practices</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 5: Organizational Size -->
+      <section id="section-5" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">5. Organizational Size Considerations</h2>
+
+        <div id="section-5-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">5.1 Enterprise-Scale Governance</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Managing Thousands of Data Sources</h4>
+
+            <p class="mb-6">Large enterprises face <strong>governance at scale challenges</strong>
+              <a href="#citation-86" class="citation">[86]</a>
+              <a href="#citation-595" class="citation">[595]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Challenge</th>
+                  <th>Scale Manifestation</th>
+                  <th>Mitigation Strategy</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Metadata volume</td>
+                  <td>Millions of tables, billions of columns</td>
+                  <td>Automated harvesting, ML-powered classification, intelligent prioritization</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Steward coverage</td>
+                  <td>Thousands of potential stewards, limited expertise</td>
+                  <td>Tiered stewardship, centralized expertise hubs, community-of-practice structures</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Policy consistency</td>
+                  <td>Hundreds of business units, varying maturity</td>
+                  <td>Minimum viable standards, exception processes, continuous monitoring</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Tool integration</td>
+                  <td>Heterogeneous legacy and modern platforms</td>
+                  <td>API-first architecture, gradual consolidation, abstraction layers</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="bg-green-50 p-4 rounded-lg mt-4">
+              <p class="text-sm"><strong>Success story:</strong> NTT DOCOMO&#39;s data catalog deployment with <strong>3,000+ users</strong> achieved <strong>10× analyst productivity improvement</strong> and <strong>30% workload reduction</strong> through safe, governed self-service access <a href="#citation-55" class="citation">[55]</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-5-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">5.2 Mid-Market Organizations</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Balancing Governance Maturity with Resource Constraints</h4>
+
+            <p class="mb-6">Mid-market organizations (typically $100M-$1B revenue) face <strong>governance imperatives without enterprise resources</strong>
+              <a href="#citation-595" class="citation">[595]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Priority</th>
+                  <th>Approach</th>
+                  <th>Expected Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Regulatory compliance</td>
+                  <td>Focused investment in highest-exposure domains</td>
+                  <td>Audit readiness, penalty avoidance</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Data quality for decisions</td>
+                  <td>Prioritized quality management for critical metrics</td>
+                  <td>Improved forecast accuracy, operational efficiency</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Analytics enablement</td>
+                  <td>Self-service governance with appropriate guardrails</td>
+                  <td>Faster insights, reduced IT backlog</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="grid md:grid-cols-3 gap-4 mt-6">
+              <div class="bg-blue-50 p-4 rounded-lg text-center">
+                <i class="fas fa-cloud text-blue-600 text-2xl mb-2"></i>
+                <h5 class="font-semibold text-sm">Cloud-Native</h5>
+                <p class="text-xs text-gray-600">Reduced infrastructure burden</p>
+              </div>
+              <div class="bg-green-50 p-4 rounded-lg text-center">
+                <i class="fas fa-handshake text-green-600 text-2xl mb-2"></i>
+                <h5 class="font-semibold text-sm">Managed Services</h5>
+                <p class="text-xs text-gray-600">Expertise without hiring</p>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg text-center">
+                <i class="fas fa-dollar-sign text-purple-600 text-2xl mb-2"></i>
+                <h5 class="font-semibold text-sm">SaaS Tools</h5>
+                <p class="text-xs text-gray-600">Predictable subscription pricing</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-5-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">5.3 Startups and Small Organizations</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Building a Scalable Foundation</h4>
+
+            <p class="mb-6">Early-stage organizations benefit from <strong>&#34;little g&#34; governance</strong> that scales with growth <a href="#citation-557" class="citation">[557]</a>
+              <a href="#citation-595" class="citation">[595]</a>:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <div>
+                <h5 class="font-semibold mb-3">Foundational Habits</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• <strong>Clear ownership assignment</strong> for each data domain</li>
+                  <li>• <strong>Consistent naming conventions</strong> and metadata practices</li>
+                  <li>• <strong>Version control</strong> for data models and transformation logic</li>
+                  <li>• <strong>Automated testing</strong> for data pipelines</li>
+                  <li>• <strong>Documentation discipline</strong> - README files, data dictionaries</li>
+                </ul>
+              </div>
+
+              <div>
+                <h5 class="font-semibold mb-3">Investment Priorities</h5>
+                <table class="comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Foundation Element</th>
+                      <th>Early Investment</th>
+                      <th>Future Benefit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="font-semibold">Cloud-native architecture</td>
+                      <td>Avoids legacy migration</td>
+                      <td>Seamless scaling</td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">API-first design</td>
+                      <td>Enables integration</td>
+                      <td>Ecosystem connectivity</td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">Documentation culture</td>
+                      <td>Reduces knowledge loss</td>
+                      <td>Faster onboarding</td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">Quality automation</td>
+                      <td>Prevents technical debt</td>
+                      <td>Sustainable growth</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="pull-quote mt-6">
+              &#34;Start small with a small set of data and a small set of policies, then mature out to more robust processes as the organization grows.&#34;
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 6: Popular Tools -->
+      <section id="section-6" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">6. Popular Tools and Service Providers</h2>
+
+        <div id="section-6-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">6.1 Enterprise Data Governance Platforms</h3>
+
+          <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <div class="bg-gray-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-lg mb-4">Collibra Data Intelligence Platform</h4>
+              <p class="text-sm mb-4">Comprehensive enterprise governance with strengths in business glossary, policy management, and data lineage <a href="#citation-48" class="citation">[48]</a>.</p>
+              <div class="flex items-center space-x-4 text-sm">
+                <span class="bg-blue-100 px-3 py-1 rounded-full">Large Enterprises</span>
+                <span class="bg-green-100 px-3 py-1 rounded-full">Mature Programs</span>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-lg mb-4">Informatica Axon and Data Governance Cloud</h4>
+              <p class="text-sm mb-4">Integrated governance with data integration heritage, combining Axon Data Governance with Data Quality and MDM <a href="#citation-48" class="citation">[48]</a>.</p>
+              <div class="flex items-center space-x-4 text-sm">
+                <span class="bg-purple-100 px-3 py-1 rounded-full">Informatica Shops</span>
+                <span class="bg-orange-100 px-3 py-1 rounded-full">Unified Management</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Alation Data Intelligence Platform</h4>
+
+            <p class="mb-6">Alation pioneered <strong>active metadata and behavioral analysis</strong>
+              <a href="#citation-48" class="citation">[48]</a>
+              <a href="#citation-600" class="citation">[600]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Differentiator</th>
+                  <th>Capability</th>
+                  <th>Business Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Behavioral analysis engine</td>
+                  <td>Automatically generates titles, identifies trusted datasets, recommends assets</td>
+                  <td>Reduces manual curation, improves discovery</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Query log analysis</td>
+                  <td>Surfaces popular and trustworthy data based on actual usage</td>
+                  <td>Data-driven trust signals</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Collaborative platform</td>
+                  <td>Combines automated harvesting with crowd-sourced curation</td>
+                  <td>Balances scale with accuracy</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Broad connectivity</td>
+                  <td>80+ data source connectors</td>
+                  <td>Comprehensive visibility</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="bg-blue-50 p-4 rounded-lg mt-4">
+              <p class="text-sm"><strong>Case Study:</strong> Sallie Mae made Alation the <strong>&#34;front door to data&#34;</strong>—enabling employees to find metadata, lineage, and collaboration without repeatedly pinging experts <a href="#citation-55" class="citation">[55]</a>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-6-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">6.2 Cloud-Native and Modern Solutions</h3>
+
+          <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <div class="bg-blue-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-lg mb-4">Microsoft Purview</h4>
+              <p class="text-sm mb-4">Unified data governance across Microsoft and multi-cloud environments with automated discovery, sensitive data scanning, and policy management <a href="#citation-48" class="citation">[48]</a>.</p>
+              <div class="bg-blue-100 p-3 rounded-lg">
+                <p class="text-xs"><strong>Strength:</strong> Deep Microsoft ecosystem integration</p>
+                <p class="text-xs"><strong>Consideration:</strong> Multi-cloud may need additional tooling</p>
+              </div>
+            </div>
+
+            <div class="bg-orange-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-lg mb-4">AWS Lake Formation</h4>
+              <p class="text-sm mb-4">Centralized data lake governance with fine-grained access control and Glue Data Catalog integration <a href="#citation-152" class="citation">[152]</a>
+                <a href="#citation-255" class="citation">[255]</a>.
+              </p>
+              <div class="bg-orange-100 p-3 rounded-lg">
+                <p class="text-xs"><strong>Strength:</strong> Native AWS service integration and performance</p>
+                <p class="text-xs"><strong>Consideration:</strong> Primarily AWS-focused architecture</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Databricks Unity Catalog</h4>
+
+            <p class="mb-6">Unified governance for <strong>lakehouse architectures</strong> combining data and AI governance <a href="#citation-255" class="citation">[255]</a>:</p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Capability</th>
+                  <th>Function</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Unified data and AI governance</td>
+                  <td>Single catalog for tables, models, notebooks, files</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Fine-grained access control</td>
+                  <td>Row-level and column-level security</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Lineage tracking</td>
+                  <td>End-to-end visibility across transformations</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Audit logging</td>
+                  <td>Comprehensive access and change tracking</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="section-6-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">6.3 Emerging and Specialized Tools</h3>
+
+          <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-lg mb-3">Atlan</h4>
+              <p class="text-sm mb-3">Next-generation active metadata platform with reverse metadata and collaborative workspace <a href="#citation-48" class="citation">[48]</a>.</p>
+              <span class="bg-purple-100 px-3 py-1 rounded-full text-sm">Modern Alternative</span>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-50 to-blue-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-lg mb-3">DataHub</h4>
+              <p class="text-sm mb-3">Open-source metadata platform from LinkedIn with extensible metadata model and real-time architecture <a href="#citation-48" class="citation">[48]</a>.</p>
+              <span class="bg-green-100 px-3 py-1 rounded-full text-sm">Open Source</span>
+            </div>
+
+            <div class="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-lg mb-3">Monte Carlo</h4>
+              <p class="text-sm mb-3">Data observability pioneer with automated anomaly detection and incident management <a href="#citation-48" class="citation">[48]</a>.</p>
+              <span class="bg-orange-100 px-3 py-1 rounded-full text-sm">Specialized</span>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Privacy-Focused Governance Platforms</h4>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Specialization</th>
+                  <th>Key Capabilities</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">BigID</td>
+                  <td>Data discovery and privacy automation</td>
+                  <td>ML-powered PII discovery, data subject rights automation, privacy risk scoring</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">OneTrust</td>
+                  <td>Comprehensive privacy, security, governance</td>
+                  <td>Consent management, privacy impact assessments, integrated GRC platform</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="section-6-4" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">6.4 Tool Selection Criteria</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Integration Evaluation Framework</h4>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Integration Dimension</th>
+                  <th>Evaluation Questions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Data sources</td>
+                  <td>Does the platform connect to our critical systems (databases, warehouses, lakes, SaaS)?</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">BI and analytics tools</td>
+                  <td>Can users access governance context in their existing tools (Tableau, Power BI, Looker)?</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Data pipeline tools</td>
+                  <td>Does integration with dbt, Airflow, Fivetran enable embedded governance?</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Identity systems</td>
+                  <td>Can we leverage existing SSO and identity management?</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Total Cost of Ownership Framework</h4>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <div>
+                <table class="comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Cost Dimension</th>
+                      <th>Considerations</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="font-semibold">License/subscription</td>
+                      <td>Per-user, per-data-source, or consumption-based pricing</td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">Implementation</td>
+                      <td>Professional services, internal resources, timeline</td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">Ongoing operations</td>
+                      <td>Administration, stewardship time, platform maintenance</td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">Scaling costs</td>
+                      <td>Price trajectory as data volume, user count, or source count grows</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <div class="bg-yellow-50 p-6 rounded-lg">
+                  <h5 class="font-semibold mb-3">Emerging Requirement: AI/ML Governance</h5>
+                  <p class="text-sm mb-3">Platforms must address model governance, feature stores, and AI-specific lineage <a href="#citation-86" class="citation">[86]</a>
+                    <a href="#citation-602" class="citation">[602]</a>:
+                  </p>
+                  <ul class="space-y-1 text-sm">
+                    <li>• Model versioning and lifecycle management</li>
+                    <li>• Training data documentation and quality tracking</li>
+                    <li>• Feature governance and reuse</li>
+                    <li>• Model performance monitoring integration</li>
+                    <li>• Explainability and bias detection support</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 7: Limitations and Challenges -->
+      <section id="section-7" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">7. Limitations and Challenges</h2>
+
+        <div id="section-7-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">7.1 Organizational and Cultural Barriers</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Lack of Executive Sponsorship</h4>
+
+            <p class="mb-6">The <strong>most common governance failure mode</strong> is treating governance as an IT project rather than a business imperative <a href="#citation-595" class="citation">[595]</a>.</p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+              <div class="bg-red-50 p-6 rounded-lg">
+                <h5 class="font-semibold mb-3 text-red-800"><i class="fas fa-exclamation-triangle mr-2"></i>Failure Symptoms</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• Insufficient budget allocation for sustained investment</li>
+                  <li>• Nominal steering committees without decision authority</li>
+                  <li>• Business unit disengagement from governance processes</li>
+                  <li>• Short-term focus on quick wins without foundation building</li>
+                </ul>
+              </div>
+
+              <div class="bg-green-50 p-6 rounded-lg">
+                <h5 class="font-semibold mb-3 text-green-800"><i class="fas fa-check-circle mr-2"></i>Mitigation Strategies</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• Secure C-level sponsor with genuine commitment</li>
+                  <li>• Establish business-value metrics demonstrating ROI</li>
+                  <li>• Embed governance in strategic initiatives</li>
+                  <li>• Position as business enabler, not separate program</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Departmental Resistance Patterns</h4>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Resistance Pattern</th>
+                  <th>Root Cause</th>
+                  <th>Response Strategy</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">&#34;Our data is different&#34;</td>
+                  <td>Fear of losing control, perceived irrelevance of central standards</td>
+                  <td>Domain-specific flexibility within enterprise guardrails</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">&#34;Governance slows us down&#34;</td>
+                  <td>Previous negative experience with bureaucratic processes</td>
+                  <td>Demonstrate enablement value, automate friction points</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">&#34;We already have our own solution&#34;</td>
+                  <td>Investment in local tools, pride of ownership</td>
+                  <td>Integration rather than replacement, shared services model</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">&#34;Compliance is not our job&#34;</td>
+                  <td>Misalignment of incentives, lack of consequences</td>
+                  <td>Performance integration, executive escalation</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="section-7-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">7.2 Technical and Operational Challenges</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Data Quality Issues at Scale</h4>
+
+            <p class="mb-6">Quality management at enterprise scale faces fundamental tensions <a href="#citation-594" class="citation">[594]</a>
+              <a href="#citation-595" class="citation">[595]</a>:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2">Detection vs. Prevention</h5>
+                  <p class="text-sm">Finding issues is easier than preventing them, but prevention delivers more value</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2">Automation vs. Judgment</h5>
+                  <p class="text-sm">Rules handle known patterns; novel issues require human insight</p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2">Coverage vs. Depth</h5>
+                  <p class="text-sm">Broad monitoring may miss subtle problems; deep analysis doesn&#39;t scale</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2">Speed vs. Thoroughness</h5>
+                  <p class="text-sm">Real-time needs conflict with comprehensive validation</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 p-6 rounded-lg mt-6">
+              <h5 class="font-semibold mb-3">Emerging Solution: ML-Augmented Quality Management</h5>
+              <p class="text-sm mb-3">Combines scale with sophistication through <strong>ML-augmented quality management</strong>
+                <a href="#citation-594" class="citation">[594]</a>:
+              </p>
+              <ul class="space-y-1 text-sm">
+                <li>• <strong>Predictive models</strong> forecast quality degradation before business impact</li>
+                <li>• <strong>Root cause analysis</strong> identifies systemic issues generating repeated problems</li>
+                <li>• <strong>Intelligent remediation</strong> suggests corrections with confidence scoring</li>
+                <li>• <strong>Continuous learning</strong> improves effectiveness through outcome feedback</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-7-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">7.3 Compliance and Regulatory Complexity</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Evolving Global Regulations</h4>
+
+            <p class="mb-6">Regulatory velocity exceeds governance adaptation capacity <a href="#citation-587" class="citation">[587]</a>:</p>
+
+            <div class="stats-grid mb-6">
+              <div class="stat-card">
+                <div class="stat-number">20+</div>
+                <div class="text-sm text-gray-600">US states with comprehensive privacy laws, more emerging</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">EU</div>
+                <div class="text-sm text-gray-600">AI Act adding algorithmic governance requirements</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">Multi</div>
+                <div class="text-sm text-gray-600">Sector-specific regulations multiplying</div>
+              </div>
+            </div>
+
+            <div class="bg-yellow-50 p-6 rounded-lg">
+              <h5 class="font-semibold mb-3">Adaptive Governance Requirements</h5>
+              <ul class="space-y-2 text-sm">
+                <li>• <strong>Legislative monitoring processes</strong> - tracking regulatory developments</li>
+                <li>• <strong>Modular policy architecture</strong> - enabling rapid updates</li>
+                <li>• <strong>Automated compliance checking</strong> - real-time validation</li>
+                <li>• <strong>Legal-technical collaboration</strong> - for interpretation and implementation</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-7-4" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">7.4 Program Sustainability Risks</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Governance as Static, One-Time Project</h4>
+
+            <div class="bg-red-50 p-6 rounded-lg mb-6">
+              <p class="italic text-lg mb-4">&#34;Data governance is not a one-time project but an ongoing process where new areas of focus may go through implementation steps while other governance-led efforts are well-established.&#34;</p>
+              <p class="text-sm text-gray-600">— DGI Framework <a href="#citation-557" class="citation">[557]</a>
+              </p>
+            </div>
+
+            <h5 class="font-semibold mb-4 text-red-800">⚠️ Failure Symptoms</h5>
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-3">
+                <div class="bg-red-100 p-3 rounded-lg text-sm">
+                  <strong>Outdated policies</strong> that don&#39;t reflect current business or regulatory reality
+                </div>
+                <div class="bg-red-100 p-3 rounded-lg text-sm">
+                  <strong>Stale metadata</strong> that erodes trust and utility over time
+                </div>
+              </div>
+              <div class="space-y-3">
+                <div class="bg-red-100 p-3 rounded-lg text-sm">
+                  <strong>Disengaged stewards</strong> who see governance as temporary assignment
+                </div>
+                <div class="bg-red-100 p-3 rounded-lg text-sm">
+                  <strong>Tool abandonment</strong> when platforms don&#39;t evolve with needs
+                </div>
+              </div>
+            </div>
+
+            <h5 class="font-semibold mb-4 text-green-800 mt-6">✅ Success Factors</h5>
+            <div class="bg-green-50 p-6 rounded-lg">
+              <ul class="space-y-2 text-sm">
+                <li>• Treat governance as <strong>living operating model</strong> with continuous refresh cycles</li>
+                <li>• Establish <strong>emerging issue response</strong> processes for new challenges</li>
+                <li>• Plan for <strong>capability evolution</strong> as organization matures</li>
+                <li>• Maintain <strong>executive engagement</strong> through demonstrated value</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Section 8: Future Outlook -->
+      <section id="section-8" class="mb-16">
+        <h2 class="font-tiempos text-3xl font-bold mb-8">8. Future Outlook and Emerging Trends</h2>
+
+        <div id="section-8-1" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">8.1 AI-Driven and Agentic Governance</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Autonomous Policy Enforcement and Remediation</h4>
+
+            <p class="mb-6">Agentic governance—AI systems that <strong>autonomously enforce policies and remediate issues</strong>—represents the next evolution <a href="#citation-86" class="citation">[86]</a>
+              <a href="#citation-594" class="citation">[594]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Capability Level</th>
+                  <th>Function</th>
+                  <th>Human Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Assisted</td>
+                  <td>AI recommends, human decides and acts</td>
+                  <td>Full control, AI as advisor</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Augmented</td>
+                  <td>AI executes routine, escalates exceptions</td>
+                  <td>Supervision, exception handling</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Autonomous</td>
+                  <td>AI monitors, decides, and acts within bounds</td>
+                  <td>Exception escalation, policy setting</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Self-improving</td>
+                  <td>AI learns from outcomes, suggests policy updates</td>
+                  <td>Strategic direction, value alignment</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="bg-blue-50 p-4 rounded-lg mt-6">
+              <p class="text-sm"><strong>Near-term reality:</strong> Most organizations will operate in <strong>augmented mode</strong>, with AI handling volume and pattern recognition while humans retain decision authority for exceptions and novel situations.</p>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Natural Language Interfaces for Governance</h4>
+
+            <p class="mb-6">Conversational governance reduces <strong>technical barriers to data discovery and understanding</strong>
+              <a href="#citation-55" class="citation">[55]</a>
+              <a href="#citation-86" class="citation">[86]</a>:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <p class="text-sm font-mono text-blue-600 mb-2">&#34;Find me customer churn data for Q3&#34;</p>
+                  <p class="text-sm">→ Catalog search with context-aware ranking</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <p class="text-sm font-mono text-green-600 mb-2">&#34;Who can access this dataset?&#34;</p>
+                  <p class="text-sm">→ Policy query with authorization visualization</p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <p class="text-sm font-mono text-purple-600 mb-2">&#34;What happens if I change this field?&#34;</p>
+                  <p class="text-sm">→ Lineage-based impact analysis</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <p class="text-sm font-mono text-orange-600 mb-2">&#34;Is this data AI-ready?&#34;</p>
+                  <p class="text-sm">→ Quality assessment against ML-specific criteria</p>
+                </div>
+              </div>
+            </div>
+
+            <p class="text-sm text-gray-600 mt-4">Leading vendors are embedding governance into conversational interfaces that let users query data in natural language while policies, lineage, and protection rules enforce automatically in the background <a href="#citation-55" class="citation">[55]</a>.</p>
+          </div>
+        </div>
+
+        <div id="section-8-2" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">8.2 Governance-as-Code and Automation</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Programmable Policy Definitions</h4>
+
+            <p class="mb-6">Policy-as-code enables <strong>software engineering practices for governance</strong>
+              <a href="#citation-595" class="citation">[595]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Practice</th>
+                  <th>Governance Application</th>
+                  <th>Benefit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Version control</td>
+                  <td>Policy change tracking, rollback capability</td>
+                  <td>Auditability, risk management</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Code review</td>
+                  <td>Peer validation of policy changes</td>
+                  <td>Quality assurance, knowledge sharing</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Automated testing</td>
+                  <td>Policy simulation before deployment</td>
+                  <td>Error reduction, faster iteration</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">CI/CD integration</td>
+                  <td>Policy deployment through pipelines</td>
+                  <td>Reliability, speed, consistency</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="bg-purple-50 p-6 rounded-lg mt-6">
+              <h5 class="font-semibold mb-3">&#34;Shift-Left&#34; Governance</h5>
+              <p class="text-sm mb-3">Governance embedded in development workflows:</p>
+              <ul class="space-y-1 text-sm">
+                <li>• <strong>Pre-commit hooks:</strong> Validate data contracts, check for sensitive data</li>
+                <li>• <strong>Build validation:</strong> Quality gates, schema compatibility checks</li>
+                <li>• <strong>Deployment approval:</strong> Automated policy verification, risk assessment</li>
+                <li>• <strong>Production monitoring:</strong> Continuous quality surveillance, anomaly alerting</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-8-3" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">8.3 Data Sovereignty and Geopolitical Considerations</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Regional Data Residency Requirements</h4>
+
+            <p class="mb-6">Sovereignty pressures intensify <a href="#citation-255" class="citation">[255]</a>
+              <a href="#citation-587" class="citation">[587]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Driver</th>
+                  <th>Manifestation</th>
+                  <th>Governance Response</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">National security</td>
+                  <td>Restrictions on critical infrastructure data</td>
+                  <td>Sovereign cloud, air-gapped environments</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Economic protection</td>
+                  <td>Local processing requirements</td>
+                  <td>Regional data centers, edge computing</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Privacy expectations</td>
+                  <td>Citizen data must stay domestic</td>
+                  <td>Geo-fencing, automated routing</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Regulatory enforcement</td>
+                  <td>Ability to audit and penalize</td>
+                  <td>Local legal entities, audit cooperation</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="mt-6">
+              <h5 class="font-semibold mb-3">Architectural Responses</h5>
+              <div class="grid md:grid-cols-2 gap-6">
+                <ul class="space-y-2 text-sm">
+                  <li>• <strong>Sovereign clouds</strong> - cloud regions with local operational control</li>
+                  <li>• <strong>Edge computing</strong> - processing at data source, minimizing central transfer</li>
+                </ul>
+                <ul class="space-y-2 text-sm">
+                  <li>• <strong>Confidential computing</strong> - encryption in use, enabling processing without exposure</li>
+                  <li>• <strong>Federated learning</strong> - model training without centralizing sensitive data</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-8-4" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">8.4 Convergence with Related Disciplines</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Unified Data and AI Governance Platforms</h4>
+
+            <p class="mb-6">Platform consolidation addresses <strong>fragmentation</strong>
+              <a href="#citation-86" class="citation">[86]</a>
+              <a href="#citation-602" class="citation">[602]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Traditional Silo</th>
+                  <th>Unified Platform Capability</th>
+                  <th>Benefit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Data catalog + ML metadata</td>
+                  <td>Single asset inventory for data and models</td>
+                  <td>Complete lineage, consistent discovery</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Data quality + model monitoring</td>
+                  <td>Integrated quality surveillance</td>
+                  <td>End-to-end reliability</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Access control + model authorization</td>
+                  <td>Unified permission management</td>
+                  <td>Simplified administration, reduced gaps</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Data privacy + AI ethics</td>
+                  <td>Combined risk assessment</td>
+                  <td>Comprehensive compliance</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Sustainability and ESG Data Governance</h4>
+
+            <p class="mb-6">Environmental, social, governance (ESG) reporting creates <strong>new governance requirements</strong>
+              <a href="#citation-86" class="citation">[86]</a>:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div class="bg-green-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2 text-green-800">Environmental</h5>
+                  <ul class="space-y-1 text-sm">
+                    <li>• Carbon footprint data accuracy</li>
+                    <li>• Energy consumption tracking</li>
+                    <li>• Sustainable sourcing validation</li>
+                  </ul>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2 text-blue-800">Social</h5>
+                  <ul class="space-y-1 text-sm">
+                    <li>• Diversity and inclusion metrics</li>
+                    <li>• Supply chain labor practices</li>
+                    <li>• Community impact measurement</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div class="bg-purple-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2 text-purple-800">Governance</h5>
+                  <ul class="space-y-1 text-sm">
+                    <li>• Board composition tracking</li>
+                    <li>• Ethical decision-making frameworks</li>
+                    <li>• Stakeholder engagement metrics</li>
+                  </ul>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg">
+                  <h5 class="font-semibold mb-2 text-orange-800">Regulatory</h5>
+                  <ul class="space-y-1 text-sm">
+                    <li>• Climate risk disclosure requirements</li>
+                    <li>• Sustainability reporting standards</li>
+                    <li>• Green finance regulations</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-8-5" class="mb-12">
+          <h3 class="font-tiempos text-2xl font-semibold mb-6">8.5 Evolution Toward Data Products and Mesh Architectures</h3>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Self-Service Governance for Domain Teams</h4>
+
+            <p class="mb-6">Democratized governance enables <strong>scale without central bottleneck</strong>
+              <a href="#citation-595" class="citation">[595]</a>
+              <a href="#citation-601" class="citation">[601]</a>:
+            </p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Governance Element</th>
+                  <th>Centralized</th>
+                  <th>Self-Service</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-semibold">Policy definition</td>
+                  <td>Enterprise standards</td>
+                  <td>Domain implementation within guardrails</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Quality monitoring</td>
+                  <td>Central surveillance</td>
+                  <td>Domain dashboards with escalation</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Access management</td>
+                  <td>Central approval</td>
+                  <td>Automated provisioning with audit</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">Issue resolution</td>
+                  <td>Central queue</td>
+                  <td>Domain ownership with support</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Data Contract Standardization</h4>
+
+            <p class="mb-6">Formal agreements between <strong>data producers and consumers</strong>
+              <a href="#citation-595" class="citation">[595]</a>
+              <a href="#citation-601" class="citation">[601]</a>:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <h5 class="font-semibold mb-3">Contract Components</h5>
+                <ul class="space-y-2 text-sm">
+                  <li>• <strong>Schema specifications</strong> - structure, types, constraints</li>
+                  <li>• <strong>Quality SLAs</strong> - accuracy, completeness, timeliness commitments</li>
+                  <li>• <strong>Availability guarantees</strong> - uptime, latency, recovery objectives</li>
+                  <li>• <strong>Change management</strong> - notification protocols, compatibility commitments</li>
+                </ul>
+              </div>
+              <div>
+                <h5 class="font-semibold mb-3">Standardization Efforts</h5>
+                <div class="bg-blue-50 p-4 rounded-lg">
+                  <p class="text-sm mb-2"><strong>Open Data Contract Standard</strong> emerging to enable interoperability and tooling</p>
+                  <p class="text-sm">Enables <strong>automated contract validation</strong> and <strong>cross-domain compatibility checking</strong></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <h4 class="font-semibold text-lg mb-4">Federated Computational Governance</h4>
+
+            <p class="mb-6">Automated policy enforcement across distributed domains <a href="#citation-140" class="citation">[140]</a>
+              <a href="#citation-595" class="citation">[595]</a>:
+            </p>
+
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+              <h5 class="font-semibold mb-4">The &#34;Governance at Scale&#34; Vision</h5>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h6 class="font-semibold mb-2 text-blue-800">Global Standards</h6>
+                  <p class="text-sm mb-4">Universal requirements encoded as executable policies</p>
+
+                  <h6 class="font-semibold mb-2 text-green-800">Automated Verification</h6>
+                  <p class="text-sm">Continuous compliance checking without manual review</p>
+                </div>
+                <div>
+                  <h6 class="font-semibold mb-2 text-purple-800">Local Implementation</h6>
+                  <p class="text-sm mb-4">Domain-specific adaptation within constraints</p>
+
+                  <h6 class="font-semibold mb-2 text-orange-800">Escalation Paths</h6>
+                  <p class="text-sm">Human intervention for exceptions and disputes</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-green-100 p-4 rounded-lg">
+              <p class="text-sm"><strong>✨ The Essential Balance:</strong> Domain autonomy with enterprise coherence—enabling the scale required for modern data architectures without sacrificing governance quality.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Citations -->
+      <div class="section-divider"></div>
+      <section class="mb-16">
+        <h2 class="font-tiempos text-2xl font-bold mb-8">References</h2>
+        <div class="grid gap-4 text-sm">
+          <div id="citation-10" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[10]</strong> U.S. Department of Labor. <a href="https://www.dol.gov/agencies/odg/data-governance" class="citation">Data Governance Framework</a>. 2024.
+          </div>
+          <div id="citation-48" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[48]</strong> AtScale. <a href="https://www.atscale.com/blog/best-data-governance-tools/" class="citation">Best Data Governance Tools: A Comprehensive Guide</a>. 2024.
+          </div>
+          <div id="citation-55" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[55]</strong> Alation. <a href="https://www.alation.com/blog/data-governance-use-cases/" class="citation">Data Governance Use Cases: Real-World Examples</a>. 2024.
+          </div>
+          <div id="citation-86" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[86]</strong> TrustCloud. <a href="https://community.trustcloud.ai/article/data-governance-in-2025-what-enterprises-need-to-know-today/" class="citation">Data Governance in 2025: What Enterprises Need to Know Today</a>. 2024.
+          </div>
+          <div id="citation-119" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[119]</strong> Alation. <a href="https://www.alation.com/blog/cloud-data-governance-2025/" class="citation">Cloud Data Governance 2025</a>. 2024.
+          </div>
+          <div id="citation-140" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[140]</strong> Murdio. <a href="https://murdio.com/insights/data-governance-trends/" class="citation">Data Governance Trends: The Future of Data Management</a>. 2024.
+          </div>
+          <div id="citation-152" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[152]</strong> AtScale. <a href="https://www.atscale.com/blog/best-data-governance-tools/" class="citation">Best Data Governance Tools for Cloud Environments</a>. 2024.
+          </div>
+          <div id="citation-153" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[153]</strong> Kiteworks. <a href="https://www.kiteworks.com/cybersecurity-risk-management/ai-data-governance-tools-2026/" class="citation">AI Data Governance Tools 2026</a>. 2024.
+          </div>
+          <div id="citation-161" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[161]</strong> Alation. <a href="https://www.alation.com/blog/data-governance-implementation/" class="citation">Data Governance Implementation: A Comprehensive Guide</a>. 2024.
+          </div>
+          <div id="citation-251" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[251]</strong> OvalEdge. <a href="https://www.ovaledge.com/blog/data-governance-best-practices" class="citation">Data Governance Best Practices</a>. 2024.
+          </div>
+          <div id="citation-255" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[255]</strong> Murdio. <a href="https://murdio.com/insights/data-governance-trends/" class="citation">Data Governance Trends: Cloud and Multi-Cloud Considerations</a>. 2024.
+          </div>
+          <div id="citation-396" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[396]</strong> SR Analytics. <a href="https://sranalytics.io/blog/data-governance-strategy/" class="citation">Data Governance Strategy: A Complete Guide</a>. 2024.
+          </div>
+          <div id="citation-435" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[435]</strong> SR Analytics. <a href="https://sranalytics.io/blog/data-governance-strategy/" class="citation">Data Governance Strategy: Implementation Success Stories</a>. 2024.
+          </div>
+          <div id="citation-48" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[48]</strong> AtScale. <a href="https://www.atscale.com/blog/best-data-governance-tools/" class="citation">Best Data Governance Tools: Comprehensive Guide</a>. 2024.
+          </div>
+          <div id="citation-533" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[533]</strong> TrustCloud. <a href="https://community.trustcloud.ai/article/data-governance-in-2025-what-enterprises-need-to-know-today/" class="citation">Data Governance in 2025: Implementation Strategies</a>. 2024.
+          </div>
+          <div id="citation-557" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[557]</strong> Data Governance Institute. <a href="https://datagovernance.com/the-dgi-data-governance-framework/" class="citation">The DGI Data Governance Framework</a>. 2024.
+          </div>
+          <div id="citation-581" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[581]</strong> Working Excellence. <a href="https://www.workingexcellence.com/post/data-governance-framework-2026" class="citation">Data Governance Framework 2026: Trends and Predictions</a>. 2024.
+          </div>
+          <div id="citation-587" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[587]</strong> VantagePoint. <a href="https://vantagepoint.io/blog/sf/blog/insights/data-privacy-2026-business-leaders-guide" class="citation">Data Privacy 2026: Business Leader&#39;s Guide</a>. 2024.
+          </div>
+          <div id="citation-593" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[593]</strong> Collate. <a href="https://www.getcollate.io/learning-center/alation-data-governance" class="citation">Alation Data Governance: Technical Deep Dive</a>. 2024.
+          </div>
+          <div id="citation-594" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[594]</strong> Alation. <a href="https://www.alation.com/blog/data-governance-best-practices/" class="citation">Data Governance Best Practices: A Complete Guide</a>. 2024.
+          </div>
+          <div id="citation-595" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[595]</strong> Alation. <a href="https://www.alation.com/blog/data-governance-framework/" class="citation">Data Governance Framework: Implementation Guide</a>. 2024.
+          </div>
+          <div id="citation-597" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[597]</strong> TechTarget. <a href="https://www.techtarget.com/searchbusinessanalytics/feature/Alation-How-to-develop-a-data-governance-framework" class="citation">Alation: How to Develop a Data Governance Framework</a>. 2024.
+          </div>
+          <div id="citation-600" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[600]</strong> Alation. <a href="https://www.alation.com/blog/data-dictionary-vs-business-glossary/" class="citation">Data Dictionary vs Business Glossary: Understanding the Difference</a>. 2024.
+          </div>
+          <div id="citation-601" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[601]</strong> Alation. <a href="https://www.alation.com/glossary/" class="citation">Data Governance Glossary: Key Terms and Concepts</a>. 2024.
+          </div>
+          <div id="citation-602" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[602]</strong> Alation. <a href="https://www.alation.com/glossary/data-governance/" class="citation">Data Governance: Definition and Key Concepts</a>. 2024.
+          </div>
+          <div id="citation-604" class="bg-gray-50 p-4 rounded-lg">
+            <strong>[604]</strong> Alation. <a href="https://www.alation.com/blog/what-is-a-data-catalog/" class="citation">What is a Data Catalog? Complete Guide</a>. 2024.
+          </div>
+        </div>
+      
+    </section></main>
+
+    <script>
+        // Initialize Mermaid with enhanced styling and better contrast
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                // Primary colors with good contrast
+                primaryColor: '#ffffff',
+                primaryTextColor: '#2c3e50',
+                primaryBorderColor: '#3498db',
+                lineColor: '#34495e',
+                
+                // Secondary colors
+                secondaryColor: '#ecf0f1',
+                secondaryTextColor: '#2c3e50',
+                secondaryBorderColor: '#95a5a6',
+                
+                // Tertiary colors
+                tertiaryColor: '#f8f9fa',
+                tertiaryTextColor: '#2c3e50',
+                tertiaryBorderColor: '#bdc3c7',
+                
+                // Background and text
+                background: '#ffffff',
+                mainBkg: '#ffffff',
+                secondBkg: '#ecf0f1',
+                tertiaryColor: '#f8f9fa',
+                
+                // Node colors with high contrast
+                cScale0: '#ffffff',
+                cScale1: '#ecf0f1', 
+                cScale2: '#f8f9fa',
+                
+                // Text colors for readability
+                taskBkgColor: '#ffffff',
+                taskTextColor: '#2c3e50',
+                activeTaskBkgColor: '#3498db',
+                activeTaskBorderColor: '#2980b9',
+                
+                // Grid and axis
+                gridColor: '#e0e0e0',
+                section0: '#ffffff',
+                section1: '#ecf0f1',
+                section2: '#f8f9fa',
+                section3: '#f5f5f5',
+                
+                // Additional contrast improvements
+                nodeBkg: '#ffffff',
+                nodeBorder: '#3498db',
+                clusterBkg: '#f8f9fa',
+                clusterBorder: '#95a5a6',
+                defaultLinkColor: '#34495e',
+                titleColor: '#2c3e50',
+                edgeLabelBackground: '#ffffff'
+            },
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: false,
+                wrap: true
+            },
+            gantt: {
+                useMaxWidth: false
+            }
+        });
+
+        // Initialize Mermaid Controls for zoom and pan
+        function initializeMermaidControls() {
+            const containers = document.querySelectorAll('.mermaid-container');
+
+            containers.forEach(container => {
+            const mermaidElement = container.querySelector('.mermaid');
+            let scale = 1;
+            let isDragging = false;
+            let startX, startY, translateX = 0, translateY = 0;
+
+            // 触摸相关状态
+            let isTouch = false;
+            let touchStartTime = 0;
+            let initialDistance = 0;
+            let initialScale = 1;
+            let isPinching = false;
+
+            // Zoom controls
+            const zoomInBtn = container.querySelector('.zoom-in');
+            const zoomOutBtn = container.querySelector('.zoom-out');
+            const resetBtn = container.querySelector('.reset-zoom');
+            const fullscreenBtn = container.querySelector('.fullscreen');
+
+            function updateTransform() {
+                mermaidElement.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+                if (scale > 1) {
+                container.classList.add('zoomed');
+                } else {
+                container.classList.remove('zoomed');
+                }
+
+                mermaidElement.style.cursor = isDragging ? 'grabbing' : 'grab';
+            }
+
+            if (zoomInBtn) {
+                zoomInBtn.addEventListener('click', () => {
+                scale = Math.min(scale * 1.25, 4);
+                updateTransform();
+                });
+            }
+
+            if (zoomOutBtn) {
+                zoomOutBtn.addEventListener('click', () => {
+                scale = Math.max(scale / 1.25, 0.3);
+                if (scale <= 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+                updateTransform();
+                });
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                scale = 1;
+                translateX = 0;
+                translateY = 0;
+                updateTransform();
+                });
+            }
+
+            if (fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', () => {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                }
+                });
+            }
+
+            // Mouse Events
+            mermaidElement.addEventListener('mousedown', (e) => {
+                if (isTouch) return; // 如果是触摸设备，忽略鼠标事件
+
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                mermaidElement.style.cursor = 'grabbing';
+                updateTransform();
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging && !isTouch) {
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                updateTransform();
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging && !isTouch) {
+                isDragging = false;
+                mermaidElement.style.cursor = 'grab';
+                updateTransform();
+                }
+            });
+
+            document.addEventListener('mouseleave', () => {
+                if (isDragging && !isTouch) {
+                isDragging = false;
+                mermaidElement.style.cursor = 'grab';
+                updateTransform();
+                }
+            });
+
+            // 获取两点之间的距离
+            function getTouchDistance(touch1, touch2) {
+                return Math.hypot(
+                touch2.clientX - touch1.clientX,
+                touch2.clientY - touch1.clientY
+                );
+            }
+
+            // Touch Events - 触摸事件处理
+            mermaidElement.addEventListener('touchstart', (e) => {
+                isTouch = true;
+                touchStartTime = Date.now();
+
+                if (e.touches.length === 1) {
+                // 单指拖动
+                isPinching = false;
+                isDragging = true;
+
+                const touch = e.touches[0];
+                startX = touch.clientX - translateX;
+                startY = touch.clientY - translateY;
+
+                } else if (e.touches.length === 2) {
+                // 双指缩放
+                isPinching = true;
+                isDragging = false;
+
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                initialDistance = getTouchDistance(touch1, touch2);
+                initialScale = scale;
+                }
+
+                e.preventDefault();
+            }, { passive: false });
+
+            mermaidElement.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isDragging && !isPinching) {
+                // 单指拖动
+                const touch = e.touches[0];
+                translateX = touch.clientX - startX;
+                translateY = touch.clientY - startY;
+                updateTransform();
+
+                } else if (e.touches.length === 2 && isPinching) {
+                // 双指缩放
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const currentDistance = getTouchDistance(touch1, touch2);
+
+                if (initialDistance > 0) {
+                    const newScale = Math.min(Math.max(
+                    initialScale * (currentDistance / initialDistance),
+                    0.3
+                    ), 4);
+                    scale = newScale;
+                    updateTransform();
+                }
+                }
+
+                e.preventDefault();
+            }, { passive: false });
+
+            mermaidElement.addEventListener('touchend', (e) => {
+                // 重置状态
+                if (e.touches.length === 0) {
+                isDragging = false;
+                isPinching = false;
+                initialDistance = 0;
+
+                // 延迟重置isTouch，避免鼠标事件立即触发
+                setTimeout(() => {
+                    isTouch = false;
+                }, 100);
+                } else if (e.touches.length === 1 && isPinching) {
+                // 从双指变为单指，切换为拖动模式
+                isPinching = false;
+                isDragging = true;
+
+                const touch = e.touches[0];
+                startX = touch.clientX - translateX;
+                startY = touch.clientY - translateY;
+                }
+
+                updateTransform();
+            });
+
+            mermaidElement.addEventListener('touchcancel', (e) => {
+                isDragging = false;
+                isPinching = false;
+                initialDistance = 0;
+
+                setTimeout(() => {
+                isTouch = false;
+                }, 100);
+
+                updateTransform();
+            });
+
+            // Enhanced wheel zoom with better center point handling
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const rect = container.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.min(Math.max(scale * delta, 0.3), 4);
+
+                // Adjust translation to zoom towards center
+                if (newScale !== scale) {
+                const scaleDiff = newScale / scale;
+                translateX = translateX * scaleDiff;
+                translateY = translateY * scaleDiff;
+                scale = newScale;
+
+                if (scale <= 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+
+                updateTransform();
+                }
+            });
+
+            // Initialize display
+            updateTransform();
+            });
+        }
+
+        // Call the function on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMermaidControls();
+        });
+
+        // Mobile TOC toggle
+        function toggleTOC() {
+            const sidebar = document.querySelector('.toc-sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Smooth scrolling for TOC links
+        document.querySelectorAll('.toc-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    const offset = window.innerWidth < 1024 ? 80 : 20;
+                    const targetPosition = targetElement.offsetTop - offset;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile TOC
+                    if (window.innerWidth < 1024) {
+                        document.querySelector('.toc-sidebar').classList.remove('open');
+                    }
+                }
+            });
+        });
+
+        // Highlight active section in TOC
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id], div[id]');
+            const tocLinks = document.querySelectorAll('.toc-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.classList.remove('text-blue-600', 'border-blue-600');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('text-blue-600', 'border-blue-600');
+                }
+            });
+        });
+    </script>
+  
+
+</body></html>

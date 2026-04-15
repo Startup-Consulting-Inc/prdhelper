@@ -7,10 +7,16 @@
 import { PublicLayout } from '../../../components/layout/PublicLayout';
 import { FileText, Target, Users, CheckCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SEO } from '../../../components/SEO';
 
 export default function BRDDocPage() {
   return (
     <PublicLayout>
+      <SEO
+        title="Business Requirements Document (BRD) – Complete Guide"
+        description="Learn what a BRD is, what it contains, and how to write one. A Business Requirements Document defines business goals and stakeholder needs before development begins."
+        path="/docs/brd"
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">

@@ -8,6 +8,7 @@ import { PublicLayout } from '../../components/layout/PublicLayout';
 import { Calendar, Clock, Users, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { trpc } from '../../lib/trpc';
+import { SEO } from '../../components/SEO';
 
 export default function ScheduleDemoPage() {
   const [formData, setFormData] = useState({
@@ -98,6 +99,11 @@ export default function ScheduleDemoPage() {
 
   return (
     <PublicLayout>
+      <SEO
+        title="Schedule a Demo – See Clearly in Action"
+        description="Book a personalized demo of Clearly, the AI-powered BRD and PRD generator. See how teams create professional requirements documents in minutes."
+        path="/schedule-demo"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left Column - Info */}

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Governance: Strategic Insights</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC; /* Slate 50 */
+            color: #1E293B; /* Slate 800 */
+        }
+        
+        /* Required Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Custom Scrollbar for better UI */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+
+        /* CSS based interactive elements */
+        .nav-link.active {
+            background-color: #0F766E; /* Teal 700 */
+            color: white;
+            font-weight: 600;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased flex h-screen overflow-hidden">
+
+    <!-- Chosen Palette: Warm Earthy Minimalist (Slate Gray, Soft Sand, Deep Teal, Indigo Accent) -->
+    <!-- Application Structure Plan: The SPA uses a dashboard-style layout with a fixed left sidebar for navigation and a dynamic main content area. This structure was chosen to allow users to non-linearly explore complex facets of Data Governance (Concepts, Use Cases, Challenges, Tools, Future) without losing context. Each section acts as a focused lens on the topic, combining explanatory text with interactive charts or HTML-based interactive components to facilitate learning and engagement. -->
+    <!-- Visualization & Content Choices: 
+         1. Overview -> Goal: Inform -> Viz: Donut Chart -> Interaction: Hover tooltips -> Justification: Shows proportion of drivers for DG initiatives. Library: Chart.js.
+         2. Use Cases -> Goal: Explore -> Viz: Interactive HTML List/Panel -> Interaction: Click list item to update detail panel -> Justification: Allows drilling down into specific scenarios without cluttering the screen.
+         3. Limitations -> Goal: Compare -> Viz: Horizontal Bar Chart -> Interaction: Hover tooltips -> Justification: Clearly ranks challenges by severity/frequency. Library: Chart.js.
+         4. Tools -> Goal: Organize -> Viz: HTML/CSS Grid with Tags -> Interaction: Hover effects -> Justification: Categorizes the ecosystem clearly without complex visualizations. 
+         5. Future -> Goal: Trend -> Viz: Line Chart -> Interaction: Hover tooltips -> Justification: Shows the trajectory of AI vs Manual governance over time. Library: Chart.js.
+         Confirming NO SVG/Mermaid, supporting the DESIGNED structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex-shrink-0 hidden md:flex flex-col shadow-xl z-20">
+        <div class="p-6 bg-slate-950">
+            <h1 class="text-2xl font-bold text-white tracking-tight">Data<span class="text-teal-400">Gov</span>Insights</h1>
+            <p class="text-xs mt-2 text-slate-400 uppercase tracking-widest">Executive Briefing</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <button data-target="overview" class="nav-link active w-full text-left px-6 py-3 hover:bg-slate-800 transition-colors flex items-center">
+                        <span class="mr-3 text-lg">&#9881;</span> Concept & Pillars
+                    </button>
+                </li>
+                <li>
+                    <button data-target="usecases" class="nav-link w-full text-left px-6 py-3 hover:bg-slate-800 transition-colors flex items-center">
+                        <span class="mr-3 text-lg">&#128188;</span> Key Use Cases
+                    </button>
+                </li>
+                <li>
+                    <button data-target="limitations" class="nav-link w-full text-left px-6 py-3 hover:bg-slate-800 transition-colors flex items-center">
+                        <span class="mr-3 text-lg">&#9888;</span> Limitations & Risks
+                    </button>
+                </li>
+                <li>
+                    <button data-target="tools" class="nav-link w-full text-left px-6 py-3 hover:bg-slate-800 transition-colors flex items-center">
+                        <span class="mr-3 text-lg">&#128296;</span> Tools & Ecosystem
+                    </button>
+                </li>
+                <li>
+                    <button data-target="future" class="nav-link w-full text-left px-6 py-3 hover:bg-slate-800 transition-colors flex items-center">
+                        <span class="mr-3 text-lg">&#128640;</span> Future Outlook
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        <div class="p-6 border-t border-slate-800">
+            <p class="text-xs text-slate-500">Q3 Industry Analysis Report</p>
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 text-white flex items-center justify-between px-4 z-30 shadow-md">
+        <h1 class="text-lg font-bold">Data<span class="text-teal-400">Gov</span>Insights</h1>
+        <select id="mobile-nav" class="bg-slate-800 border border-slate-700 text-white text-sm rounded-md focus:ring-teal-500 focus:border-teal-500 block p-2">
+            <option value="overview">Concept & Pillars</option>
+            <option value="usecases">Key Use Cases</option>
+            <option value="limitations">Limitations & Risks</option>
+            <option value="tools">Tools & Ecosystem</option>
+            <option value="future">Future Outlook</option>
+        </select>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0 relative">
+        <div class="max-w-6xl mx-auto p-6 md:p-10 pb-24">
+            
+            <!-- SECTION: Overview -->
+            <section id="overview" class="content-section fade-in">
+                <header class="mb-8 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">The Concept of Data Governance</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                        This section outlines the foundational principles of Data Governance. It explores what it is, why organizations prioritize it, and the core pillars required for a successful implementation. Understanding this baseline is critical for evaluating downstream tools and strategies.
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4">What is Data Governance?</h3>
+                        <p class="text-slate-600 mb-6 leading-relaxed">
+                            Data Governance is the framework of policies, processes, roles, and metrics that ensure the effective and efficient use of information in enabling an organization to achieve its goals. It transforms data from a byproduct of business operations into a managed, strategic asset.
+                        </p>
+                        
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">The 4 Pillars of Governance</h4>
+                            <ul class="space-y-4">
+                                <li class="flex items-start">
+                                    <span class="flex-shrink-0 h-6 w-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs mt-0.5">&#10003;</span>
+                                    <div class="ml-3">
+                                        <h5 class="font-semibold text-slate-800">Data Quality</h5>
+                                        <p class="text-sm text-slate-500">Ensuring data is accurate, complete, and reliable.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mt-0.5">&#10003;</span>
+                                    <div class="ml-3">
+                                        <h5 class="font-semibold text-slate-800">Data Security & Privacy</h5>
+                                        <p class="text-sm text-slate-500">Protecting sensitive information and complying with regulations (GDPR, CCPA).</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="flex-shrink-0 h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs mt-0.5">&#10003;</span>
+                                    <div class="ml-3">
+                                        <h5 class="font-semibold text-slate-800">Data Architecture</h5>
+                                        <p class="text-sm text-slate-500">Structuring data assets conceptually, logically, and physically.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="flex-shrink-0 h-6 w-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs mt-0.5">&#10003;</span>
+                                    <div class="ml-3">
+                                        <h5 class="font-semibold text-slate-800">Data Stewardship</h5>
+                                        <p class="text-sm text-slate-500">Assigning accountability for data domains to specific business owners.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col items-center">
+                        <h3 class="text-xl font-semibold text-slate-800 mb-2 w-full text-center">Primary Drivers for Governance</h3>
+                        <p class="text-sm text-slate-500 mb-6 text-center">Percentage of enterprises citing motivation (Global Survey 2023)</p>
+                        <div class="chart-container w-full">
+                            <canvas id="driversChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Use Cases -->
+            <section id="usecases" class="content-section hidden fade-in">
+                <header class="mb-8 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Key Use Cases & Business Value</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                        This section highlights the practical applications of Data Governance. By interacting with the list below, you can explore specific scenarios where governance directly translates to measurable business value, risk mitigation, and operational efficiency.
+                    </p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[500px]">
+                    <!-- Interactive List -->
+                    <div class="lg:col-span-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200">
+                            <h3 class="font-semibold text-slate-800">Select a Use Case</h3>
+                        </div>
+                        <ul class="flex-1 overflow-y-auto" id="useCaseList">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Detail Panel -->
+                    <div class="lg:col-span-2 bg-slate-900 rounded-xl shadow-lg p-8 text-white relative overflow-hidden flex flex-col justify-center">
+                        <!-- Decorative background element (CSS only) -->
+                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+                        <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+                        
+                        <div class="relative z-10" id="useCaseDetail">
+                            <div class="text-teal-400 text-sm font-bold tracking-widest uppercase mb-2">Interactive Explorer</div>
+                            <h3 class="text-3xl font-bold mb-4">Select a scenario from the left</h3>
+                            <p class="text-slate-300 text-lg leading-relaxed">
+                                Discover how Data Governance solves real-world business challenges across compliance, AI readiness, and operational analytics.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Limitations -->
+            <section id="limitations" class="content-section hidden fade-in">
+                <header class="mb-8 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Limitations & Implementation Roadblocks</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                        While the benefits are clear, implementing data governance is notoriously difficult. This section examines the core limitations, cultural friction, and technical hurdles organizations face, providing quantitative insights into where initiatives most frequently fail.
+                    </p>
+                </header>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">Top Challenges Hindering Data Governance</h3>
+                    <p class="text-sm text-slate-500 mb-6">Based on self-reported enterprise data capability assessments.</p>
+                    <div class="chart-container">
+                        <canvas id="challengesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-red-50 rounded-xl p-6 border border-red-100">
+                        <div class="text-red-700 text-xl mb-3">&#10007; The "Red Tape" Perception</div>
+                        <p class="text-slate-700 text-sm leading-relaxed">
+                            A major limitation is the perception that governance is merely a bureaucratic exercise designed to restrict data access. If implemented purely as a defensive measure (compliance only) rather than an offensive one (enablement), business users will actively bypass governance protocols.
+                        </p>
+                    </div>
+                    <div class="bg-orange-50 rounded-xl p-6 border border-orange-100">
+                        <div class="text-orange-700 text-xl mb-3">&#9888; Cost and ROI Demonstration</div>
+                        <p class="text-slate-700 text-sm leading-relaxed">
+                            Data Governance programs require significant upfront investment in tools and dedicated personnel (stewards). Demonstrating immediate ROI is difficult, as the benefits (avoided fines, improved decision quality) are often intangible or long-term, leading to premature budget cuts.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Tools -->
+            <section id="tools" class="content-section hidden fade-in">
+                <header class="mb-8 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Popular Tools & Ecosystem</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                        The market for Data Governance software is fragmented and rapidly evolving. This section categorizes the ecosystem into core functional areas and highlights leading platforms, helping clarify how technology supports governance policies.
+                    </p>
+                </header>
+
+                <!-- Tool Categories Interactive HTML Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Category 1 -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:border-teal-500 transition-colors metric-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-slate-800">Data Catalogs</h3>
+                            <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded font-mono">Discovery</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4 h-16">Centralized inventory of data assets, enabling users to search, discover, and understand data context via metadata.</p>
+                        <div class="border-t border-slate-100 pt-4">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Key Players</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2 py-1 bg-teal-50 text-teal-700 text-xs rounded-md font-medium">Alation</span>
+                                <span class="px-2 py-1 bg-teal-50 text-teal-700 text-xs rounded-md font-medium">Collibra</span>
+                                <span class="px-2 py-1 bg-teal-50 text-teal-700 text-xs rounded-md font-medium">Atlan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category 2 -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:border-indigo-500 transition-colors metric-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-slate-800">Data Quality (DQ)</h3>
+                            <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded font-mono">Health</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4 h-16">Tools to profile, cleanse, validate, and monitor data against defined rules to ensure accuracy and completeness.</p>
+                        <div class="border-t border-slate-100 pt-4">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Key Players</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-md font-medium">Informatica</span>
+                                <span class="px-2 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-md font-medium">Talend</span>
+                                <span class="px-2 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-md font-medium">Monte Carlo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category 3 -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:border-blue-500 transition-colors metric-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-slate-800">Cloud Provider Native</h3>
+                            <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded font-mono">Integrated</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4 h-16">Governance capabilities built directly into major cloud platforms, offering tight integration with their native storage/compute.</p>
+                        <div class="border-t border-slate-100 pt-4">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Key Players</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium">MS Purview</span>
+                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium">AWS Glue DataBrew</span>
+                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium">GCP Dataplex</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-8 bg-slate-100 rounded-xl p-6 text-center border border-slate-200">
+                    <p class="text-slate-700 font-medium">Important Note on Tooling</p>
+                    <p class="text-sm text-slate-500 mt-2 max-w-2xl mx-auto">
+                        Tools do not equal governance. The most common pitfall is purchasing an expensive Data Catalog before defining the internal processes, roles (stewards), and policies. Technology is an enabler of a governance framework, not a substitute for one.
+                    </p>
+                </div>
+            </section>
+
+            <!-- SECTION: Future Outlook -->
+            <section id="future" class="content-section hidden fade-in">
+                <header class="mb-8 border-b border-slate-200 pb-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Future Outlook & Trends</h2>
+                    <p class="text-lg text-slate-600 leading-relaxed max-w-4xl">
+                        Data Governance is transitioning from a manual, IT-driven constraint to an automated, AI-assisted business enabler. This section projects the shift toward "Active Governance" and the impact of decentralized architectures like Data Mesh.
+                    </p>
+                </header>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">The Shift to Automation & Augmented Governance</h3>
+                    <p class="text-sm text-slate-500 mb-6">Projection of manual vs. AI-assisted metadata tagging and quality resolution.</p>
+                    <div class="chart-container">
+                        <canvas id="futureChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white border-l-4 border-teal-500 p-5 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2">AI-Driven Automation</h4>
+                        <p class="text-sm text-slate-600">LLMs and ML will automate data classification, PII detection, and generation of business glossaries, reducing the manual burden on data stewards by over 60%.</p>
+                    </div>
+                    <div class="bg-white border-l-4 border-indigo-500 p-5 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2">Data Mesh Integration</h4>
+                        <p class="text-sm text-slate-600">Governance will become "federated computationally." Central teams set global policies, but domain teams execute them automatically via "governance-as-code" APIs.</p>
+                    </div>
+                    <div class="bg-white border-l-4 border-purple-500 p-5 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2">AI Governance (GenAI)</h4>
+                        <p class="text-sm text-slate-600">As GenAI adoption surges, data governance will expand to include "Model Governance"—tracking lineage of training data, monitoring bias, and controlling LLM prompt data access.</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data Storage ---
+        
+        // Data for Use Cases section
+        const useCasesData = [
+            {
+                id: 'compliance',
+                title: 'Regulatory Compliance & Audit',
+                icon: '&#128203;',
+                detailTitle: 'Streamlining Compliance (GDPR, CCPA, HIPAA)',
+                detailContent: 'Data governance provides the auditing, data lineage, and access controls required to prove to regulators that sensitive PII (Personally Identifiable Information) is handled legally. <strong>Impact:</strong> Avoidance of massive regulatory fines (e.g., up to 4% of global revenue for GDPR) and protection of brand reputation.',
+                metrics: 'Reduces audit preparation time by up to 75%.'
+            },
+            {
+                id: 'ai-readiness',
+                title: 'AI & Machine Learning Readiness',
+                icon: '&#129302;',
+                detailTitle: 'Fueling AI with Trusted Data',
+                detailContent: 'Generative AI and ML models are only as good as the data they are trained on ("Garbage in, garbage out"). Governance ensures training datasets are unbiased, accurate, and properly versioned. <strong>Impact:</strong> Prevents AI hallucinations, ensures ethical AI usage, and dramatically increases the ROI of data science initiatives.',
+                metrics: 'Increases data scientist productivity (less time wrangling data) by 40%.'
+            },
+            {
+                id: 'self-service',
+                title: 'Enable Self-Service Analytics',
+                icon: '&#128200;',
+                detailTitle: 'Democratizing Data Access Safely',
+                detailContent: 'By establishing a well-governed Data Catalog, business users (marketing, sales, ops) can independently find, understand, and trust data for their own reporting without waiting for IT. <strong>Impact:</strong> Faster time-to-insight and increased organizational agility.',
+                metrics: 'Increases analytics adoption across non-technical teams by 3x.'
+            },
+            {
+                id: 'mdm',
+                title: 'Master Data Management (Customer 360)',
+                icon: '&#128101;',
+                detailTitle: 'Creating a Single Source of Truth',
+                detailContent: 'Governance resolves conflicts when customer data is scattered across CRM, billing, and support systems. It dictates which system is the "master" for specific fields. <strong>Impact:</strong> Enables accurate personalized marketing, better customer service, and accurate cross-departmental reporting.',
+                metrics: 'Reduces duplicate customer records by >90%.'
+            }
+        ];
+
+        // --- State Management ---
+        let chartsInitialized = {
+            overview: false,
+            limitations: false,
+            future: false
+        };
+        let chartInstances = {};
+
+        // --- Chart Configuration Functions ---
+        
+        function initOverviewChart() {
+            if (chartsInitialized.overview) return;
+            const ctx = document.getElementById('driversChart').getContext('2d');
+            chartInstances.drivers = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Regulatory Compliance', 'Enable Better Analytics/AI', 'Operational Efficiency', 'Data Security/Breach Prevention', 'Other'],
+                    datasets: [{
+                        data: [35, 30, 15, 15, 5],
+                        backgroundColor: [
+                            '#0F766E', // Teal 700
+                            '#4F46E5', // Indigo 600
+                            '#3B82F6', // Blue 500
+                            '#64748B', // Slate 500
+                            '#CBD5E1'  // Slate 300
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: { family: 'Inter', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+            chartsInitialized.overview = true;
+        }
+
+        function initLimitationsChart() {
+            if (chartsInitialized.limitations) return;
+            const ctx = document.getElementById('challengesChart').getContext('2d');
+            chartInstances.challenges = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'Cultural Resistance / Lack of Adoption',
+                        'Lack of Executive Sponsorship',
+                        'Siloed Organization Structure',
+                        'Poor Data Quality Baseline',
+                        'Difficulty Proving ROI',
+                        'Lack of Technical Tools'
+                    ],
+                    datasets: [{
+                        label: '% of Organizations Citing as Major Challenge',
+                        data: [68, 55, 52, 45, 41, 28],
+                        backgroundColor: '#F59E0B', // Amber 500
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Horizontal bar chart
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#F1F5F9' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter', size: 12 } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.x + '% of orgs';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            chartsInitialized.limitations = true;
+        }
+
+        function initFutureChart() {
+            if (chartsInitialized.future) return;
+            const ctx = document.getElementById('futureChart').getContext('2d');
+            chartInstances.future = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['2020', '2022', '2024', '2026 (Est.)', '2028 (Est.)', '2030 (Est.)'],
+                    datasets: [
+                        {
+                            label: 'Manual Governance Activities',
+                            data: [90, 80, 65, 45, 25, 10],
+                            borderColor: '#64748B', // Slate 500
+                            backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'AI-Automated Governance',
+                            data: [10, 20, 35, 55, 75, 90],
+                            borderColor: '#8B5CF6', // Violet 500
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: '% of Total Governance Effort', font: { family: 'Inter' } },
+                            grid: { color: '#F1F5F9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Inter' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            chartsInitialized.future = true;
+        }
+
+        // --- UI Interaction Logic ---
+
+        // Navigation Handling
+        function switchTab(targetId) {
+            // Update Nav Styles
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('data-target') === targetId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Sync mobile select
+            const mobileSelect = document.getElementById('mobile-nav');
+            if(mobileSelect.value !== targetId) {
+                mobileSelect.value = targetId;
+            }
+
+            // Hide all sections, show target
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('fade-in'); // reset animation
+            });
+            
+            const activeSection = document.getElementById(targetId);
+            activeSection.classList.remove('hidden');
+            // Force reflow for animation
+            void activeSection.offsetWidth;
+            activeSection.classList.add('fade-in');
+
+            // Initialize/Resize Charts based on visibility
+            if (targetId === 'overview') {
+                initOverviewChart();
+            } else if (targetId === 'limitations') {
+                initLimitationsChart();
+            } else if (targetId === 'future') {
+                initFutureChart();
+            }
+        }
+
+        // Use Case Panel Interactivity
+        function renderUseCases() {
+            const listContainer = document.getElementById('useCaseList');
+            
+            useCasesData.forEach((uc, index) => {
+                const li = document.createElement('li');
+                li.className = `p-4 border-b border-slate-100 cursor-pointer hover:bg-teal-50 transition-colors ${index === 0 ? 'bg-teal-50 border-l-4 border-teal-500' : 'border-l-4 border-transparent'}`;
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">${uc.icon}</span>
+                        <span class="font-medium text-slate-800">${uc.title}</span>
+                    </div>
+                `;
+                
+                li.addEventListener('click', () => {
+                    // Update styling
+                    listContainer.querySelectorAll('li').forEach(el => {
+                        el.classList.remove('bg-teal-50', 'border-teal-500');
+                        el.classList.add('border-transparent');
+                    });
+                    li.classList.remove('border-transparent');
+                    li.classList.add('bg-teal-50', 'border-teal-500');
+                    
+                    // Update detail panel
+                    updateUseCaseDetail(uc);
+                });
+                
+                listContainer.appendChild(li);
+            });
+            
+            // Init first item
+            if(useCasesData.length > 0) {
+                updateUseCaseDetail(useCasesData[0]);
+            }
+        }
+
+        function updateUseCaseDetail(data) {
+            const detailContainer = document.getElementById('useCaseDetail');
+            
+            // Add slight fade out/in effect
+            detailContainer.style.opacity = '0';
+            
+            setTimeout(() => {
+                detailContainer.innerHTML = `
+                    <div class="text-teal-400 text-sm font-bold tracking-widest uppercase mb-4 flex items-center">
+                        <span class="text-2xl mr-2">${data.icon}</span> Business Value
+                    </div>
+                    <h3 class="text-3xl font-bold mb-6">${data.detailTitle}</h3>
+                    <p class="text-slate-200 text-lg leading-relaxed mb-8">
+                        ${data.detailContent}
+                    </p>
+                    <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4 inline-block">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Key Metric</div>
+                        <div class="text-teal-300 font-medium">${data.metrics}</div>
+                    </div>
+                `;
+                detailContainer.style.transition = 'opacity 0.3s ease';
+                detailContainer.style.opacity = '1';
+            }, 150);
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup Desktop Nav Clicks
+            document.querySelectorAll('.nav-link').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const target = e.currentTarget.getAttribute('data-target');
+                    switchTab(target);
+                });
+            });
+
+            // Setup Mobile Nav Change
+            document.getElementById('mobile-nav').addEventListener('change', (e) => {
+                switchTab(e.target.value);
+            });
+
+            // Initialize Use Cases
+            renderUseCases();
+
+            // Initialize default view (Overview) chart
+            initOverviewChart();
+            
+            // Handle window resize to ensure charts resize properly within constraints
+            window.addEventListener('resize', () => {
+                Object.values(chartInstances).forEach(chart => {
+                    if(chart) chart.resize();
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>

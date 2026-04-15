@@ -421,7 +421,30 @@ app.get('/health', async (_req: Request, res: Response) => {
 
 // All remaining requests return the React app (only if serving static files)
 if (clientDistExists) {
-  app.get('*', (_req: Request, res: Response) => {
+  // Load prerender manifest if available
+  const prerenderManifestPath = path.join(clientDistPath, 'prerendered', '_manifest.json');
+  let prerenderedRoutes: Map<string, string> = new Map();
+  try {
+    const manifest = JSON.parse(fs.readFileSync(prerenderManifestPath, 'utf-8')) as Array<{ url: string; file: string }>;
+    for (const entry of manifest) {
+      prerenderedRoutes.set(entry.url, path.join(clientDistPath, 'prerendered', entry.file));
+    }
+    logger.info({ count: prerenderedRoutes.size }, 'Loaded prerender manifest');
+  } catch {
+    // No prerender manifest — serve SPA for all routes
+  }
+
+  // Regex matching known AI/search bot User-Agents
+  const BOT_REGEX = /bot|crawler|spider|GPTBot|ChatGPT-User|PerplexityBot|ClaudeBot|anthropic-ai|Google-Extended|Googlebot|Bingbot|YandexBot|DuckDuckBot|Slurp|AhrefsBot|SemrushBot|MJ12bot/i;
+
+  app.get('*', (req: Request, res: Response) => {
+    const ua = req.headers['user-agent'] ?? '';
+    const isBot = BOT_REGEX.test(ua);
+
+    if (isBot && prerenderedRoutes.has(req.path)) {
+      return res.sendFile(prerenderedRoutes.get(req.path)!);
+    }
+
     res.sendFile(path.join(clientDistPath, 'index.html'));
   });
 }

@@ -8,6 +8,7 @@ import { PublicLayout } from '../../components/layout/PublicLayout';
 import { Mail, MessageSquare, Clock, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { trpc } from '../../lib/trpc';
+import { SEO } from '../../components/SEO';
 import { FileUpload, UploadedFile } from '../../components/common/FileUpload';
 
 type InquiryType = 'GENERAL' | 'QUESTION' | 'BUG_REPORT' | 'DEMO' | 'FEATURE_REQUEST' | 'OTHER';
@@ -113,6 +114,11 @@ export default function ContactUsPage() {
 
   return (
     <PublicLayout>
+      <SEO
+        title="Contact Clearly – Get in Touch"
+        description="Have questions about Clearly? Contact our team for support, sales inquiries, or feature requests. We're here to help you create better requirements documents."
+        path="/contact"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left Column - Info */}

@@ -57,6 +57,36 @@
   </url>
   <!-- Pillar blog posts (high priority) -->
   <url>
+    <loc>https://www.clearlyreqs.com/blog/responsible-ai-guide</loc>
+    <lastmod>2026-04-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.clearlyreqs.com/blog/data-governance-ai-era</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.clearlyreqs.com/blog/agentic-ai-guide</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.clearlyreqs.com/blog/cs-degree-ai-era</loc>
+    <lastmod>2026-06-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.clearlyreqs.com/blog/database-landscape-ai-era</loc>
+    <lastmod>2026-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.clearlyreqs.com/blog/defining-the-right-problem-ai-era</loc>
     <lastmod>2026-03-25</lastmod>
     <changefreq>monthly</changefreq>
