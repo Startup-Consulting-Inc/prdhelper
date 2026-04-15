@@ -413,7 +413,7 @@ export function BlogPostLayout({
                 Generate a complete BRD or PRD in 15 minutes. AI-guided, structured, export-ready.
               </p>
               <Link
-                to="/login"
+                to="/brd-generator"
                 className="inline-flex items-center gap-2 px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-semibold transition-colors"
               >
                 Start Free — No Credit Card
@@ -422,7 +422,7 @@ export function BlogPostLayout({
             </div>
           </article>
 
-          {/* ── Sticky sidebar — xl only ── */}
+          {/* ── Sticky sidebar ── xl only ── */}
           <aside className="hidden xl:block">
             <div className="sticky top-24 space-y-6">
               {/* Table of contents */}
@@ -452,6 +452,57 @@ export function BlogPostLayout({
                   </ul>
                 </nav>
               )}
+
+              {/* Quick Links — internal SEO linking */}
+              <nav
+                className="rounded-xl border border-gray-200 dark:border-gray-700 p-4"
+                aria-label="Quick links"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
+                  Quick Links
+                </p>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link
+                      to="/"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
+                    >
+                      AI BRD & PRD Generator
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/brd-generator"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
+                    >
+                      Free BRD Generator
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/prd-generator"
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
+                    >
+                      Free PRD Generator
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
+
+              {/* Sidebar CTA */}
+              <div className="rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 p-5 text-white">
+                <p className="text-sm font-semibold mb-2">Try Clearly Free</p>
+                <p className="text-xs text-white/90 mb-4">
+                  Generate a complete BRD or PRD in 15–30 minutes with AI.
+                </p>
+                <Link
+                  to="/brd-generator"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-primary-600 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Start Free Trial
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
 
               {/* Share buttons */}
               <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
