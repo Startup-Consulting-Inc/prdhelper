@@ -1,0 +1,57 @@
+# Production Deployment via Google Cloud Build
+#
+# Triggers on push to main branch.
+# Authenticates to GCP using Workload Identity Federation (keyless).
+# Delegates all build/deploy logic to cloudbuild.prod.yaml.
+#
+# Prerequisites (one-time GCP setup):
+#   See scripts/setup-github-wif.sh for Workload Identity Federation configuration.
+
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/clearly-478614/locations/global/workloadIdentityPools/github-actions/providers/github-provider'
+          service_account: '1019651592490-compute@developer.gserviceaccount.com'
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Submit build to Cloud Build
+        run: |
+          gcloud builds submit \
+            --config=cloudbuild.prod.yaml \
+            --project=clearly-478614 \
+            .
+
+      - name: Print deployment info
+        if: success()
+        run: |
+          echo "Deployment successful!"
+          echo "Service URL: https://www.clearlyreqs.com"
+          echo ""
+          echo "View logs:    gcloud run services logs read clearly --region=us-west1"
+          echo "Check status: gcloud run services describe clearly --region=us-west1"
