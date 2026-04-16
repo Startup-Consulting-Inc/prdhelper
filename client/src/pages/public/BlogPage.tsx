@@ -54,6 +54,28 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 28,
+      slug: 'ai-interview-transformation-2026',
+      title: 'The AI-Driven Interview: How Tech Hiring Was Rebuilt from Scratch',
+      excerpt:
+        '70% of companies now use AI in hiring. 80% of candidates use LLMs despite prohibitions. From NLP resume parsing to permissive AI coding rounds, every stage of the tech interview has been transformed.',
+      author: 'Jaehee Song',
+      date: '2026-04-15',
+      readTime: '14 min read',
+      category: 'AI & Education',
+    },
+    {
+      id: 27,
+      slug: 'entry-level-tech-2026',
+      title: 'The New Rules of Entry-Level Tech: What Changed Between 2018 and 2026',
+      excerpt:
+        'In 2018, knowing algorithms was enough. In 2026, that knowledge is table stakes — with 73% fewer entry-level jobs and AI rewriting every role. A comprehensive analysis of how AI disruption transformed junior developer hiring.',
+      author: 'Jaehee Song',
+      date: '2026-04-15',
+      readTime: '12 min read',
+      category: 'AI & Education',
+    },
+    {
       id: 26,
       slug: 'responsible-ai-guide',
       title: 'Responsible AI: The Complete Guide to Ethical AI Development and Governance in 2026',
