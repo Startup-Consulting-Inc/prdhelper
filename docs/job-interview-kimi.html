@@ -1,0 +1,1463 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The AI-Driven Transformation of Tech Industry Job Interviews</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tiempos+Headline:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --sage: #9CA986;
+            --ocean: #4A5C6A;
+            --coral: #FF6B6B;
+            --cream: #F5F3F0;
+            --charcoal: #2D3748;
+            --warm-white: #FEFCFA;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--warm-white) 0%, var(--cream) 100%);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        
+        .serif-display {
+            font-family: 'Tiempos Headline', serif;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, var(--ocean) 0%, var(--sage) 50%, var(--coral) 100%);
+        }
+        
+        .text-sage { color: var(--sage); }
+        .text-ocean { color: var(--ocean); }
+        .text-coral { color: var(--coral); }
+        .bg-sage { background-color: var(--sage); }
+        .bg-ocean { background-color: var(--ocean); }
+        .bg-coral { background-color: var(--coral); }
+        
+        .toc-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid #E2E8F0;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        
+        .section-anchor {
+            scroll-margin-top: 2rem;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 2rem;
+            height: 70vh;
+            margin-bottom: 3rem;
+        }
+        
+        .bento-hero {
+            grid-row: 1 / -1;
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        
+        .bento-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .quote-highlight {
+            border-left: 4px solid var(--coral);
+            padding-left: 1.5rem;
+            font-style: italic;
+            margin: 2rem 0;
+        }
+        
+        .citation-link {
+            color: var(--coral);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .citation-link:hover {
+            color: var(--ocean);
+            text-decoration: underline;
+        }
+        
+        .data-highlight {
+            background: linear-gradient(135deg, var(--sage), var(--ocean));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin: 2rem 0;
+        }
+        
+        .toc-link {
+            transition: all 0.2s ease;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+        }
+        
+        .toc-link:hover {
+            background: var(--cream);
+            transform: translateX(4px);
+        }
+        
+        .toc-link.active {
+            background: var(--sage);
+            color: white;
+        }
+        
+        /* Mermaid chart styling */
+        .mermaid-container {
+            display: flex;
+            justify-content: center;
+            min-height: 300px;
+            max-height: 800px;
+            background: var(--warm-white);
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mermaid-container .mermaid {
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            cursor: grab;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none; /* 防止触摸设备上的默认行为 */
+            -webkit-user-select: none; /* 防止文本选择 */
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .mermaid-container .mermaid svg {
+            max-width: 100%;
+            height: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .mermaid-container .mermaid:active {
+            cursor: grabbing;
+        }
+
+        .mermaid-container.zoomed .mermaid {
+            height: 100%;
+            width: 100%;
+            cursor: grab;
+        }
+
+        .mermaid-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mermaid-control-btn {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #374151;
+            font-size: 14px;
+            min-width: 36px;
+            height: 36px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mermaid-control-btn:hover {
+            background: #f8fafc;
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        .mermaid-control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Mermaid theme customization for better contrast */
+        .mermaid .node rect,
+        .mermaid .node circle,
+        .mermaid .node ellipse,
+        .mermaid .node polygon {
+            fill: var(--warm-white) !important;
+            stroke: var(--ocean) !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .node .label {
+            color: var(--charcoal) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+        }
+        
+        .mermaid .edgePath .path {
+            stroke: var(--sage) !important;
+            stroke-width: 2px !important;
+        }
+        
+        .mermaid .edgeLabel {
+            background-color: var(--warm-white) !important;
+            color: var(--charcoal) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+        }
+        
+        .mermaid .cluster rect {
+            fill: var(--cream) !important;
+            stroke: var(--sage) !important;
+            stroke-width: 2px !important;
+            stroke-dasharray: 5,5 !important;
+        }
+        
+        /* Enhanced contrast for different node types */
+        .mermaid .node.startNode rect,
+        .mermaid .node.startNode circle {
+            fill: var(--ocean) !important;
+            stroke: var(--ocean) !important;
+        }
+        
+        .mermaid .node.startNode .label {
+            color: white !important;
+            font-weight: 600 !important;
+        }
+        
+        .mermaid .node.endNode rect,
+        .mermaid .node.endNode circle {
+            fill: var(--coral) !important;
+            stroke: var(--coral) !important;
+        }
+        
+        .mermaid .node.endNode .label {
+            color: white !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Default text color for all mermaid text elements */
+        .mermaid text {
+            fill: var(--charcoal) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        
+        .mermaid .node text {
+            fill: var(--charcoal) !important;
+        }
+        
+        .mermaid .edgeLabel text {
+            fill: var(--charcoal) !important;
+        }
+        
+        .mermaid .cluster text {
+            fill: var(--charcoal) !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Responsive adjustments for mermaid controls */
+        @media (max-width: 1024px) {
+            .mermaid-control-btn:not(.reset-zoom) {
+                display: none;
+            }
+            .mermaid-controls {
+                top: auto;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    @media (max-width: 768px) {
+      .toc-fixed {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .bento-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      .bento-hero h1 {
+        font-size: 2.5rem;
+        line-height: 1.2;
+      }
+      .bento-hero p {
+        font-size: 1rem;
+      }
+      .mermaid-container {
+        padding: 15px;
+      }
+    }
+    </style>
+  <base target="_blank">
+</head>
+
+  <body>
+    <!-- Table of Contents -->
+    <nav class="toc-fixed">
+      <div class="mb-6">
+        <h3 class="serif-display text-xl font-bold text-ocean mb-4">Contents</h3>
+      </div>
+
+      <div class="space-y-1">
+        <a href="#executive-summary" class="toc-link block text-sm hover:text-ocean transition-colors">Executive Summary</a>
+        <a href="#company-integration" class="toc-link block text-sm hover:text-ocean transition-colors">Company AI Integration</a>
+        <div class="ml-4 space-y-1">
+          <a href="#ai-interviews" class="toc-link block text-xs text-gray-600 hover:text-ocean transition-colors">AI-Assisted Interviews</a>
+          <a href="#technical-assessments" class="toc-link block text-xs text-gray-600 hover:text-ocean transition-colors">Technical Assessments</a>
+          <a href="#candidate-screening" class="toc-link block text-xs text-gray-600 hover:text-ocean transition-colors">Candidate Screening</a>
+          <a href="#countermeasures" class="toc-link block text-xs text-gray-600 hover:text-ocean transition-colors">Anti-Cheating Measures</a>
+        </div>
+        <a href="#candidate-preparation" class="toc-link block text-sm hover:text-ocean transition-colors">Candidate AI Preparation</a>
+        <a href="#case-studies" class="toc-link block text-sm hover:text-ocean transition-colors">Case Studies</a>
+        <a href="#trends-statistics" class="toc-link block text-sm hover:text-ocean transition-colors">Trends & Statistics</a>
+        <a href="#critical-assessment" class="toc-link block text-sm hover:text-ocean transition-colors">Critical Assessment</a>
+        <a href="#strategic-guidance" class="toc-link block text-sm hover:text-ocean transition-colors">Strategic Guidance</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero Section -->
+      <section class="bento-grid px-8 py-12">
+        <div class="bento-hero hero-gradient flex items-center justify-center relative">
+          <div class="absolute inset-0 opacity-20">
+            <img src="https://kimi-img.moonshot.cn/pub/icon/spinner.svg" alt="AI-human collaboration in a tech interview setting" class="w-full h-full object-cover" size="wallpaper" aspect="wide" style="photo" query="AI human interview collaboration" referrerpolicy="no-referrer" />
+          </div>
+          <div class="relative z-10 text-center text-white p-8">
+            <h1 class="serif-display text-5xl font-bold mb-6 leading-tight">
+              <em>The AI-Driven Transformation</em>
+              <br>
+              of Tech Industry Job Interviews
+            </h1>
+            <p class="text-xl opacity-90 max-w-2xl mx-auto">
+              How artificial intelligence is reshaping technical assessment from knowledge testing to collaboration evaluation
+            </p>
+          </div>
+        </div>
+
+        <div class="bento-stats">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="data-highlight text-3xl font-bold">70%</div>
+            <p class="text-sm text-gray-600">Companies using AI in hiring by 2025</p>
+          </div>
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="data-highlight text-3xl font-bold">80%</div>
+            <p class="text-sm text-gray-600">Candidates using LLMs despite prohibitions</p>
+          </div>
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="data-highlight text-3xl font-bold">3x</div>
+            <p class="text-sm text-gray-600">Increase in cheating attempts 2022-2025</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Executive Summary -->
+      <section id="executive-summary" class="section-anchor px-8 py-12 max-w-6xl">
+        <h2 class="serif-display text-4xl font-bold text-ocean mb-8">Executive Summary: The New Interview Landscape</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <div class="lg:col-span-2">
+            <h3 class="serif-display text-2xl font-semibold mb-4 text-sage">Paradigm Shift from Knowledge Testing to AI Collaboration Assessment</h3>
+            <p class="mb-6">
+              The tech industry job interview process has undergone its most significant transformation in decades, driven by the rapid advancement and widespread adoption of large language models (LLMs) and generative AI tools. <strong>The fundamental shift is from evaluating what candidates know in isolation to assessing how effectively they collaborate with AI systems</strong>—a change that mirrors the actual working conditions of modern software engineering <a href="https://www.hackerrank.com/writing/ai-coding-interviews-what-recruiters-should-know" class="citation-link">[328]</a>
+              <a href="https://karat.com/technical-interviews-ai-era/" class="citation-link">[437]</a>.
+            </p>
+
+            <p class="mb-6">
+              Traditional technical interviews emphasized rote memorization of algorithms, syntax recall, and solitary problem-solving under artificial constraints. This model has become increasingly misaligned with professional reality: <span class="data-highlight">83% of developers now complete projects faster with generative AI tools</span>, and <span class="data-highlight">90% of Fortune 100 companies have adopted GitHub Copilot</span>
+              <a href="https://www.hackerrank.com/writing/ai-coding-interviews-what-recruiters-should-know" class="citation-link">[328]</a>. When AI systems can generate correct code, plausible architectures, and coherent explanations, the distinguishing characteristics of effective engineers have evolved from "knowing more facts" to "making better judgments" <a href="https://karat.com/technical-interviews-ai-era/" class="citation-link">[437]</a>.
+            </p>
+
+            <div class="quote-highlight">
+              "AI literacy has become a core competency equivalent to data structures or system design. Companies now evaluate problem decomposition, prompt formulation, critical evaluation of AI-generated outputs, and clear articulation of collaborative decisions."
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="font-semibold text-ocean mb-3">Key Transformation Drivers</h4>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-center"><i class="fas fa-robot text-sage mr-2"></i>AI tool adoption in development</li>
+                <li class="flex items-center"><i class="fas fa-users text-sage mr-2"></i>Changing workforce expectations</li>
+                <li class="flex items-center"><i class="fas fa-shield-alt text-sage mr-2"></i>Integrity challenges</li>
+                <li class="flex items-center"><i class="fas fa-chart-line text-sage mr-2"></i>Efficiency demands</li>
+              </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="font-semibold text-ocean mb-3">New Assessment Focus</h4>
+              <ul class="space-y-2 text-sm">
+                <li>• Prompt engineering skill</li>
+                <li>• Critical validation of AI outputs</li>
+                <li>• Problem decomposition</li>
+                <li>• Transparent reasoning</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+          <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Dual Forces: Company Adaptations and Candidate Empowerment</h3>
+
+          <p class="mb-6">
+            The transformation operates through two interconnected dynamics. <strong>On the company side</strong>, organizations are racing to deploy AI-powered tools across the hiring funnel—from resume screening through final-round assessments—while simultaneously grappling with how to maintain integrity when candidates have access to the same technologies <a href="https://karat.com/technical-interviews-ai-era/" class="citation-link">[437]</a>. Responses vary dramatically: <span class="data-highlight">67% of startups report AI has meaningfully changed their interview processes</span>, while <span class="data-highlight">0% of FAANG-adjacent companies reported similar changes</span> as of late 2024, though this is beginning to shift <a href="https://interviewing.io/blog/how-is-ai-changing-interview-processes-not-much-and-a-whole-lot" class="citation-link">[267]</a>
+            <a href="https://interviewing.io/blog/how-is-ai-changing-interview-processes-not-much-and-a-whole-lot" class="citation-link">[396]</a>.
+          </p>
+
+          <p class="mb-6">
+            <strong>On the candidate side</strong>, AI has democratized access to interview preparation previously available only through expensive coaching. Candidates now generate unlimited practice problems, receive immediate feedback, and simulate company-specific scenarios. However, this empowerment carries risks: <span class="data-highlight">80% of candidates use LLMs on code tests despite explicit prohibitions</span>, and sophisticated cheating tools have created a shadow economy of interview assistance <a href="https://www.softwareseni.com/how-ai-tools-broke-technical-interviews-the-mechanics-and-scale-of-interview-cheating/" class="citation-link">[393]</a>
+            <a href="https://github.com/aishwaryanr/awesome-generative-ai-guide/blob/main/interview_prep/60_gen_ai_questions.md" class="citation-link">[428]</a>.
+          </p>
+
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <p class="text-sm text-gray-600">
+              <i class="fas fa-lightbulb text-coral mr-2"></i>
+              <strong>Key Insight:</strong> The interaction between these forces creates a co-evolutionary arms race where companies adjust assessment methods in response to observed candidate behaviors, while candidates rapidly adapt to new formats and detection methods.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Company Integration Section -->
+      <section id="company-integration" class="section-anchor px-8 py-12 max-w-6xl">
+        <h2 class="serif-display text-4xl font-bold text-ocean mb-8">How Companies Are Integrating AI into the Interview Process</h2>
+
+        <div id="ai-interviews" class="section-anchor mb-12">
+          <h3 class="serif-display text-3xl font-semibold mb-6 text-sage">AI-Assisted and AI-Conducted Interviews</h3>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div>
+              <h4 class="text-xl font-semibold mb-4 text-ocean">Voice-Based AI Interviewers</h4>
+              <p class="mb-4">
+                Fully automated AI interviewers have transitioned from experimental novelty to operational reality, with approximately <span class="data-highlight">25% of companies now using AI interviewers</span> for at least some hiring stages <a href="https://www.linkedin.com/posts/andrei-kurtuy_interviewed-by-an-ai-heres-how-to-beat-activity-7435331280512335873-XxTz" class="citation-link">[294]</a>. These systems leverage advances in natural language processing and speech synthesis to conduct structured conversations at scale.
+              </p>
+
+              <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                <h5 class="font-semibold text-blue-800 mb-2">Case Study: PSG Global Solutions' "Anna"</h5>
+                <p class="text-sm text-blue-700">
+                  The voice-based AI interview bot addresses critical funnel leakage where connection rates drop from 85% (within one minute) to 35% (after fifteen minutes), enabling thousands of parallel interviews without proportional staffing increases <a href="https://www.npr.org/2025/11/07/nx-s1-5600127/recruiting-companies-are-starting-to-hold-job-interviews-using-ai" class="citation-link">[417]</a>.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-semibold mb-4 text-ocean">Real-Time AI Scoring</h4>
+              <p class="mb-4">
+                AI systems increasingly provide real-time analytical support to human interviewers, augmenting rather than replacing human judgment. Platforms like Metaview audio-record interviews, automatically transcribe them, and extract insights to improve quality and consistency <a href="https://techrseries.com/ai-automation/11-groundbreaking-implementations-of-ai-in-recruitment-in-2023/" class="citation-link">[415]</a>.
+              </p>
+
+              <div class="bg-green-50 p-4 rounded-lg">
+                <h5 class="font-semibold text-green-800 mb-2">Signal Contribution Breakdown</h5>
+                <ul class="text-sm text-green-700 space-y-1">
+                  <li><strong>NLP models:</strong> 35% (content relevance, coherence)</li>
+                  <li><strong>Speech emotion recognition:</strong> 20% (vocal tone, confidence)</li>
+                  <li><strong>Facial expression analysis:</strong> 15%</li>
+                  <li><strong>Behavioral analysis:</strong> 10% (response patterns)</li>
+                  <li><strong>Integrated decision system:</strong> 20%</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <h4 class="text-xl font-semibold mb-4 text-ocean">Hybrid Human-AI Interview Models</h4>
+            <p class="mb-4">
+              The emerging consensus favors hybrid models that combine human judgment with AI consistency. Karat's NextGen platform exemplifies this approach: "expert, certified interviewers lead the interview, actively engaging with candidates throughout," while AI tools provide environmental realism and analytical support <a href="https://karat.com/technical-interviews-ai-era/" class="citation-link">[437]</a>.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-sage bg-opacity-10 p-4 rounded-lg">
+                <h5 class="font-semibold text-sage mb-2">AI Advantages</h5>
+                <ul class="text-sm space-y-1">
+                  <li>• Consistent criteria application</li>
+                  <li>• Elimination of interviewer fatigue</li>
+                  <li>• Large-scale pattern recognition</li>
+                  <li>• 24/7 availability</li>
+                </ul>
+              </div>
+              <div class="bg-ocean bg-opacity-10 p-4 rounded-lg">
+                <h5 class="font-semibold text-ocean mb-2">Human Contributions</h5>
+                <ul class="text-sm space-y-1">
+                  <li>• Contextual judgment</li>
+                  <li>• Creative probing</li>
+                  <li>• Relationship-building</li>
+                  <li>• Final decision authority</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="technical-assessments" class="section-anchor mb-12">
+          <h3 class="serif-display text-3xl font-semibold mb-6 text-sage">AI-Enabled Technical Assessments</h3>
+
+          <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+            <h4 class="text-xl font-semibold mb-4 text-ocean">Permissive AI Coding Interviews</h4>
+            <p class="mb-6">
+              The most dramatic transformation in technical interviewing is the explicit permission and encouragement of AI tool use—a complete inversion from traditional prohibition. <strong>Canva's June 2025 announcement</strong> exemplifies this shift: they "now expect Backend, Machine Learning and Frontend engineering candidates to use AI tools like Copilot, Cursor, and Claude during our technical interviews" <a href="https://www.canva.dev/blog/engineering/yes-you-can-use-ai-in-our-interviews/" class="citation-link">[438]</a>.
+            </p>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p class="text-sm text-yellow-800">
+                <i class="fas fa-quote-left mr-2"></i>
+                "I don't want you to use AI, 100%. I want you to use it, 90-95%" — Shopify's Head of Engineering Farhan Thawar <a href="https://newsletter.pragmaticengineer.com/p/the-pulse-146" class="citation-link">[237]</a>
+              </p>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="border border-gray-300 p-3 text-left">Evaluation Dimension</th>
+                    <th class="border border-gray-300 p-3 text-center">Traditional Weight</th>
+                    <th class="border border-gray-300 p-3 text-center">AI-Era Weight</th>
+                    <th class="border border-gray-300 p-3 text-left">Assessment Focus</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="border border-gray-300 p-3 font-medium">Code correctness</td>
+                    <td class="border border-gray-300 p-3 text-center">40%</td>
+                    <td class="border border-gray-300 p-3 text-center data-highlight">15%</td>
+                    <td class="border border-gray-300 p-3">Final output verification</td>
+                  </tr>
+                  <tr class="bg-gray-50">
+                    <td class="border border-gray-300 p-3 font-medium">Algorithmic efficiency</td>
+                    <td class="border border-gray-300 p-3 text-center">30%</td>
+                    <td class="border border-gray-300 p-3 text-center data-highlight">10%</td>
+                    <td class="border border-gray-300 p-3">Complexity awareness</td>
+                  </tr>
+                  <tr>
+                    <td class="border border-gray-300 p-3 font-medium">Problem decomposition</td>
+                    <td class="border border-gray-300 p-3 text-center">15%</td>
+                    <td class="border border-gray-300 p-3 text-center data-highlight">20%</td>
+                    <td class="border border-gray-300 p-3">Strategic AI delegation</td>
+                  </tr>
+                  <tr class="bg-gray-50">
+                    <td class="border border-gray-300 p-3 font-medium">Prompt engineering</td>
+                    <td class="border border-gray-300 p-3 text-center">0%</td>
+                    <td class="border border-gray-300 p-3 text-center data-highlight">20%</td>
+                    <td class="border border-gray-300 p-3">Clarity, context, iteration</td>
+                  </tr>
+                  <tr>
+                    <td class="border border-gray-300 p-3 font-medium">Output validation</td>
+                    <td class="border border-gray-300 p-3 text-center">10%</td>
+                    <td class="border border-gray-300 p-3 text-center data-highlight">20%</td>
+                    <td class="border border-gray-300 p-3">Critical evaluation of AI</td>
+                  </tr>
+                  <tr class="bg-gray-50">
+                    <td class="border border-gray-300 p-3 font-medium">Explanation depth</td>
+                    <td class="border border-gray-300 p-3 text-center">5%</td>
+                    <td class="border border-gray-300 p-3 text-center data-highlight">15%</td>
+                    <td class="border border-gray-300 p-3">Articulation of reasoning</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="text-xl font-semibold mb-4 text-ocean">AI-Assisted Debugging Evaluations</h4>
+              <p class="mb-4 text-sm">
+                As engineering shifts from writing code to validating AI-generated output, debugging assessments have emerged as a distinct evaluation focus. A Series B legal-tech company pioneered this format: candidates receive "a full stack AI chat app riddled with bugs" with the task of systematic repair <a href="https://formation.dev/blog/how-technical-interviews-are-evolving-with-ai/" class="citation-link">[439]</a>.
+              </p>
+              <div class="bg-blue-50 p-3 rounded text-xs">
+                <strong>Advantages:</strong> Directly tests AI-augmented engineering skills, naturally resistant to simple AI cheating, provides rich signal through verbalized reasoning.
+              </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="text-xl font-semibold mb-4 text-ocean">LLM-Integrated System Design</h4>
+              <p class="mb-4 text-sm">
+                System design interviews have evolved to make AI integration explicit. At a Series A AI content platform, candidates design systems that "take user input and use a third-party service to generate images with an LLM" <a href="https://formation.dev/blog/how-technical-interviews-are-evolving-with-ai/" class="citation-link">[439]</a>.
+              </p>
+              <div class="bg-green-50 p-3 rounded text-xs">
+                <strong>Key Considerations:</strong> Token throughput, rate limiting, model fallback, prompt injection prevention, token economics.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="candidate-screening" class="section-anchor mb-12">
+          <h3 class="serif-display text-3xl font-semibold mb-6 text-sage">AI for Candidate Screening and Evaluation</h3>
+
+          <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+            <h4 class="text-xl font-semibold mb-4 text-ocean">Resume Screening and Ranking Algorithms</h4>
+            <p class="mb-6">
+              AI-powered resume screening is the most mature AI hiring application, with <span class="data-highlight">82% of companies reporting current use</span>
+              <a href="https://www.fastcompany.com/91220282/70-of-companies-will-use-ai-for-hiring-in-2025-says-new-study" class="citation-link">[416]</a>. Modern systems employ sophisticated semantic understanding beyond keyword matching—recognizing equivalent skills in different terminology, inferring skill depth from project descriptions, and predicting role fit from career trajectory patterns.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div class="text-center p-4 bg-sage bg-opacity-10 rounded-lg">
+                <div class="data-highlight text-2xl font-bold">78%</div>
+                <div class="text-sm text-gray-600">Reduction in screening time</div>
+              </div>
+              <div class="text-center p-4 bg-ocean bg-opacity-10 rounded-lg">
+                <div class="data-highlight text-2xl font-bold">92%</div>
+                <div class="text-sm text-gray-600">Accuracy in interview-to-hire prediction</div>
+              </div>
+              <div class="text-center p-4 bg-coral bg-opacity-10 rounded-lg">
+                <div class="data-highlight text-2xl font-bold">$3.2M</div>
+                <div class="text-sm text-gray-600">Annual savings (Fortune 500 firm)</div>
+              </div>
+            </div>
+
+            <div class="bg-red-50 border-l-4 border-red-400 p-4">
+              <h5 class="font-semibold text-red-800 mb-2">Risks and Concerns</h5>
+              <p class="text-sm text-red-700">
+                <span class="data-highlight">Half of companies use AI tools to reject applicants exclusively during early-stage review</span>, and <span class="data-highlight">21% cut candidates at any stage without human involvement</span>—raising both ethical concerns about accountability and practical concerns about false negatives <a href="https://www.fastcompany.com/91220282/70-of-companies-will-use-ai-for-hiring-in-2025-says-new-study" class="citation-link">[416]</a>.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="text-xl font-semibold mb-4 text-ocean">Behavioral Analysis via NLP</h4>
+              <p class="mb-4 text-sm">
+                NLP techniques analyze candidate communications for behavioral indicators throughout hiring. Named Entity Recognition extracts skills, dependency parsing assesses coherence, and topic modeling identifies whether responses address intended themes <a href="https://rjpn.org/jetnr/papers/JETNR2504016.pdf" class="citation-link">[431]</a>.
+              </p>
+              <div class="bg-purple-50 p-3 rounded text-xs">
+                <strong>Multi-modal Analysis:</strong> Text sentiment analysis, speech emotion recognition, and video-based facial expression analysis combine for comprehensive behavioral assessment.
+              </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="text-xl font-semibold mb-4 text-ocean">Video Interview Analysis</h4>
+              <p class="mb-4 text-sm">
+                Computer vision analysis of nonverbal behavior has proliferated, with <span class="data-highlight">40% of video interview AI tools incorporating facial expression, gaze, posture, and gesture analysis</span>
+                <a href="https://careertrainer.ai/en/reports/ai-interview-training-statistics/" class="citation-link">[385]</a>.
+              </p>
+              <div class="bg-orange-50 p-3 rounded text-xs">
+                <strong>Regulatory Response:</strong> Maryland prohibits facial recognition software during interviews without consent; broader restrictions are under consideration <a href="https://iapp.org/news/a/how-the-us-is-handling-ai-driven-hiring-practices" class="citation-link">[301]</a>.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="countermeasures" class="section-anchor mb-12">
+          <h3 class="serif-display text-3xl font-semibold mb-6 text-sage">Countermeasures Against AI-Assisted Cheating</h3>
+
+          <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+            <h4 class="text-xl font-semibold mb-4 text-ocean">Resurgence of In-Person Interviews</h4>
+            <p class="mb-6">
+              The most visible structural response to AI-assisted cheating has been partial return to pre-pandemic formats. <strong>Google</strong> has "brought back onsite interviews" with explicit rationale that in-person assessment makes real-time AI assistance more difficult <a href="https://www.softwareseni.com/how-ai-tools-broke-technical-interviews-the-mechanics-and-scale-of-interview-cheating/" class="citation-link">[393]</a>. <strong>McKinsey</strong> similarly requires in-person final rounds <a href="https://blog.theinterviewguys.com/72-of-companies-are-fighting-ai-fraud/" class="citation-link">[369]</a>.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div class="text-center p-6 bg-blue-50 rounded-lg">
+                <div class="data-highlight text-3xl font-bold">24% → 38%</div>
+                <div class="text-sm text-gray-600 mb-2">In-person interview prevalence</div>
+                <div class="text-xs text-blue-600">+58% relative increase (2022-2025)</div>
+              </div>
+              <div class="text-center p-6 bg-green-50 rounded-lg">
+                <div class="data-highlight text-3xl font-bold">62%</div>
+                <div class="text-sm text-gray-600 mb-2">Remain remote or hybrid</div>
+                <div class="text-xs text-green-600">Practical constraints limit full reversal</div>
+              </div>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-lg">
+              <p class="text-sm text-yellow-800">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Accessibility Concerns:</strong> Travel requirements may disadvantage candidates with geographic, financial, or disability-related barriers <a href="https://www.softwareseni.com/how-ai-tools-broke-technical-interviews-the-mechanics-and-scale-of-interview-cheating/" class="citation-link">[393]</a>.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="text-xl font-semibold mb-4 text-ocean">AI Proctoring Technologies</h4>
+              <p class="mb-4 text-sm">
+                Technical countermeasures have proliferated in sophistication, employing multiple detection vectors. Sherlock AI exemplifies comprehensive monitoring with claimed <span class="data-highlight">85% detection accuracy</span>
+                <a href="https://www.withsherlock.ai/blog/how-to-detect-prevent-ai-interview-cheating" class="citation-link">[228]</a>.
+              </p>
+              <div class="bg-red-50 p-3 rounded text-xs">
+                <strong>Detection Methods:</strong> Browser lockdown, video/audio monitoring, keystroke dynamics, screen recording, behavioral telemetry, content analysis.
+              </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="text-xl font-semibold mb-4 text-ocean">Pattern Recognition for LLM-Generated Responses</h4>
+              <p class="mb-4 text-sm">
+                Post-hoc content analysis identifies AI-generated responses through statistical and stylistic patterns. Methods include perplexity analysis, watermark detection, and behavioral pattern recognition <a href="https://www.softwareseni.com/how-ai-tools-broke-technical-interviews-the-mechanics-and-scale-of-interview-cheating/" class="citation-link">[393]</a>.
+              </p>
+              <div class="bg-purple-50 p-3 rounded text-xs">
+                <strong>Probing Techniques:</strong> Detailed follow-up questions, rapid-fire questioning, consistency checking, explicit thought process articulation requirements.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Candidate Preparation Section -->
+      <section id="candidate-preparation" class="section-anchor px-8 py-12 max-w-6xl">
+        <h2 class="serif-display text-4xl font-bold text-ocean mb-8">How Candidates Are Leveraging AI for Interview Preparation</h2>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+          <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">AI-Powered Mock Interviews and Simulation</h3>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div>
+              <h4 class="text-xl font-semibold mb-4 text-ocean">Realistic Conversation Flow</h4>
+              <p class="mb-4">
+                Generative AI has transformed interview preparation from resource-constrained to on-demand and scalable. ChatGPT and similar tools simulate interviews with remarkable flexibility, adapting to specified roles, seniority levels, and company characteristics <a href="https://www.tealhq.com/post/chatgpt-job-interview-prompts" class="citation-link">[420]</a>.
+              </p>
+
+              <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                <h5 class="font-semibold text-blue-800 mb-2">Advanced Prompting Example</h5>
+                <p class="text-sm text-blue-700 italic">
+                  "Act as a hiring manager at [company] interviewing for [role]. Ask follow-up questions based on my responses and adjust difficulty based on my performance."
+                </p>
+              </div>
+
+              <p class="text-sm">
+                Platforms like Remasto enable "company twin" creation: processing job descriptions, public documents, recent launches, and tech stacks to "generate realistic scenarios and a scoring rubric fully aligned to the specific role" <a href="https://interviewfocus.com/how-ai-is-changing-job-interview-prep-and-how-to-use-it-to-your-advantage/" class="citation-link">[349]</a>.
+              </p>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-semibold mb-4 text-ocean">Immediate Feedback Mechanisms</h4>
+              <p class="mb-4">
+                Instant evaluation accelerates skill development dramatically. Candidates submit drafted answers with requests for specific improvement, receiving structured critique addressing clarity, conciseness, relevance, and impact <a href="https://www.dice.com/career-advice/using-generative-ai-for-interview-prep" class="citation-link">[426]</a>.
+              </p>
+
+              <div class="bg-green-50 p-4 rounded-lg mb-4">
+                <h5 class="font-semibold text-green-800 mb-2">Documented Success Case</h5>
+                <p class="text-sm text-green-700">
+                  A 15-year experienced director discovered through AI analysis that she tilted her head at technical queries, seemed unsure of questions she understood, and took 90 seconds for responses that should require 35 seconds. After 12 practice rounds addressing these specific issues, she secured a $95K position <a href="https://interviewfocus.com/how-ai-is-changing-job-interview-prep-and-how-to-use-it-to-your-advantage/" class="citation-link">[253]</a>.
+                </p>
+              </div>
+
+              <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                <p class="text-xs text-yellow-800">
+                  <strong>Caution:</strong> Always double-check AI outputs for accuracy before incorporation, as confident errors remain a significant risk <a href="https://www.dice.com/career-advice/using-generative-ai-for-interview-prep" class="citation-link">[426]</a>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h4 class="text-lg font-semibold mb-4 text-ocean">24/7 Availability and Accessibility Benefits</h4>
+            <p class="mb-4">
+              Accessibility advantages are transformative. Candidates in non-traditional situations—preparing outside business hours, in different time zones, without established networks—gain resources previously available only to privileged candidates. This democratization represents genuine progress toward meritocratic evaluation.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center p-3 bg-white rounded">
+                <i class="fas fa-clock text-coral text-2xl mb-2"></i>
+                <div class="text-sm font-semibold">Anytime Practice</div>
+              </div>
+              <div class="text-center p-3 bg-white rounded">
+                <i class="fas fa-globe text-sage text-2xl mb-2"></i>
+                <div class="text-sm font-semibold">Global Access</div>
+              </div>
+              <div class="text-center p-3 bg-white rounded">
+                <i class="fas fa-users text-ocean text-2xl mb-2"></i>
+                <div class="text-sm font-semibold">Network Independence</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="serif-display text-xl font-semibold mb-4 text-sage">Technical Interview Preparation</h3>
+
+            <div class="space-y-4">
+              <div>
+                <h4 class="font-semibold text-ocean mb-2">Coding Practice</h4>
+                <p class="text-sm mb-2">
+                  Unlimited problem generation enables extensive, targeted practice. AI serves as collaborative problem-solving partner, providing hints, explaining concepts, and helping debug <a href="https://www.hackerrank.com/writing/ai-coding-interviews-what-recruiters-should-know" class="citation-link">[328]</a>.
+                </p>
+                <div class="bg-blue-50 p-2 rounded text-xs">
+                  <strong>Effective Practice:</strong> Genuine effort before AI consultation, with AI reserved for stuck points or post-solution refinement.
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-ocean mb-2">System Design Simulation</h4>
+                <p class="text-sm mb-2">
+                  AI tools generate practice problems at specified scale levels, evaluate proposed architectures, suggest alternative approaches, and simulate interviewer probing <a href="https://systemdesigntrainer.com/blog/how-ai-is-changing-system-design-interview-prep" class="citation-link">[75]</a>.
+                </p>
+                <div class="bg-green-50 p-2 rounded text-xs">
+                  <strong>Key Focus:</strong> Reasoning through tradeoffs and defending decisions under questioning—skills resisting AI substitution.
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-ocean mb-2">Debugging Practice</h4>
+                <p class="text-sm mb-2">
+                  AI generates buggy code with specified error types, explains error patterns, and guides systematic diagnosis <a href="https://formation.dev/blog/how-technical-interviews-are-evolving-with-ai/" class="citation-link">[439]</a>.
+                </p>
+                <div class="bg-purple-50 p-2 rounded text-xs">
+                  <strong>Emerging Focus:</strong> Debugging AI-generated code—identifying when AI fixes address symptoms versus root causes.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="serif-display text-xl font-semibold mb-4 text-sage">Behavioral Interview Enhancement</h3>
+
+            <div class="space-y-4">
+              <div>
+                <h4 class="font-semibold text-ocean mb-2">STAR Method Refinement</h4>
+                <p class="text-sm mb-2">
+                  AI tools support generation of potential stories from resume content, structuring raw experiences into STAR format, and refinement for impact <a href="https://novoresume.com/career-blog/chatgpt-job-interview-prompts" class="citation-link">[421]</a>.
+                </p>
+                <div class="bg-yellow-50 p-2 rounded text-xs">
+                  <strong>Critical Verification:</strong> Candidates must validate AI-suggested metrics for accuracy—inflated claims detected in interviews create catastrophic credibility loss.
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-ocean mb-2">Company-Specific Preparation</h4>
+                <p class="text-sm mb-2">
+                  AI enables rapid research synthesis by analyzing company public communications—engineering blogs, conference presentations, product announcements—to infer technical priorities <a href="https://www.tealhq.com/post/chatgpt-job-interview-prompts" class="citation-link">[420]</a>.
+                </p>
+                <div class="bg-orange-50 p-2 rounded text-xs">
+                  <strong>Risk Mitigation:</strong> Combine company-specific intelligence with robust general skills, enabling strong performance even when specific predictions fail.
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-ocean mb-2">Role-Playing Scenarios</h4>
+                <p class="text-sm mb-2">
+                  Extended role-play builds fluency in professional self-presentation, transition management, and recovery from unexpected questions <a href="https://www.dice.com/career-advice/using-generative-ai-for-interview-prep" class="citation-link">[426]</a>.
+                </p>
+                <div class="bg-red-50 p-2 rounded text-xs">
+                  <strong>Variation Strategy:</strong> Request different interviewer styles—"be skeptical and probe aggressively" versus "be encouraging but vague"—to build adaptability.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+          <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Strategic AI Use During Live Interviews</h3>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-blue-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-blue-800 mb-3">Real-Time Prompt Engineering</h4>
+              <p class="text-sm text-blue-700 mb-3">
+                In permissive AI interview formats, prompt engineering quality becomes directly evaluated. Strong candidates demonstrate clear problem decomposition, precise contextualized prompts, and iterative refinement <a href="https://karat.com/technical-interviews-ai-era/" class="citation-link">[437]</a>.
+              </p>
+              <ul class="text-xs text-blue-600 space-y-1">
+                <li>• Rapid context assembly</li>
+                <li>• Specific output format specification</li>
+                <li>• Iterative refinement discipline</li>
+                <li>• Parallel processing strategies</li>
+              </ul>
+            </div>
+
+            <div class="bg-green-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-green-800 mb-3">Code Explanation & Validation</h4>
+              <p class="text-sm text-green-700 mb-3">
+                Critical differentiator: ability to explain and validate AI-generated code through systematic verification, edge case testing, and complexity analysis <a href="https://karat.com/technical-interviews-ai-era/" class="citation-link">[437]</a>.
+              </p>
+              <ul class="text-xs text-green-600 space-y-1">
+                <li>• Manual trace-through verification</li>
+                <li>• Edge case identification</li>
+                <li>• Independent complexity analysis</li>
+                <li>• Recognition of AI limitations</li>
+              </ul>
+            </div>
+
+            <div class="bg-purple-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-purple-800 mb-3">Ethical Boundaries</h4>
+              <p class="text-sm text-purple-700 mb-3">
+                Navigating AI use boundaries requires explicit attention to company policies and norms, with transparency building credibility <a href="https://sloanreview.mit.edu/article/when-candidates-use-generative-ai-for-the-interview/" class="citation-link">[427]</a>.
+              </p>
+              <ul class="text-xs text-purple-600 space-y-1">
+                <li>• Policy compliance strategies</li>
+                <li>• Transparent disclosure practices</li>
+                <li>• Conservative interpretation approach</li>
+                <li>• Professional integrity maintenance</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h4 class="text-lg font-semibold mb-4 text-ocean">Pipelining Workflow for Maximum Efficiency</h4>
+            <p class="mb-4">
+              The "pipelining" workflow maximizes efficiency: request small AI implementations (one or two functions); review previous output while AI generates; paste after verification; run assertions; iterate. This parallel processing eliminates idle time and maintains engagement <a href="https://www.coditioning.com/blog/13/meta-ai-enabled-coding-interview-guide" class="citation-link">[258]</a>.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-2 text-center">
+              <div class="p-2 bg-white rounded">
+                <div class="text-coral font-bold text-lg">1</div>
+                <div class="text-xs">Request</div>
+              </div>
+              <div class="p-2 bg-white rounded">
+                <div class="text-sage font-bold text-lg">2</div>
+                <div class="text-xs">Review</div>
+              </div>
+              <div class="p-2 bg-white rounded">
+                <div class="text-ocean font-bold text-lg">3</div>
+                <div class="text-xs">Verify</div>
+              </div>
+              <div class="p-2 bg-white rounded">
+                <div class="text-coral font-bold text-lg">4</div>
+                <div class="text-xs">Test</div>
+              </div>
+              <div class="p-2 bg-white rounded">
+                <div class="text-sage font-bold text-lg">5</div>
+                <div class="text-xs">Iterate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Case Studies Section -->
+      <section id="case-studies" class="section-anchor px-8 py-12 max-w-6xl">
+        <h2 class="serif-display text-4xl font-bold text-ocean mb-8">Practical Examples and Case Studies</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Company-Specific Implementations</h3>
+
+            <div class="space-y-6">
+              <div class="border-l-4 border-coral pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Rippling: AI-Tool Permissive Coding</h4>
+                <p class="text-sm mb-2">
+                  Abandoned LeetCode questions because "AI is very good at solving those" and "they quite literally have nothing to do with what engineers face on a day to day basis." Replaced with "very realistic scenarios, pretty much exactly what our engineers had to do" <a href="https://www.linkedin.com/posts/lehonigul_a-couple-of-months-ago-we-completely-revamped-activity-7379565891232915456-UjRE" class="citation-link">[351]</a>.
+                </p>
+                <div class="bg-green-50 p-2 rounded text-xs">
+                  <strong>Result:</strong> "We are getting way better hiring signals after this change"
+                </div>
+              </div>
+
+              <div class="border-l-4 border-sage pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Meta: AI Assistant Experiments</h4>
+                <p class="text-sm mb-2">
+                  2025 pilot includes AI-generated question variations, real-time interviewer guidance, and post-interview analysis for consistency and bias detection <a href="https://interviewing.io/blog/how-is-ai-changing-interview-processes-not-much-and-a-whole-lot" class="citation-link">[231]</a>.
+                </p>
+                <div class="bg-blue-50 p-2 rounded text-xs">
+                  <strong>Strategic Approach:</strong> Preserving validated assessment components while experimenting with AI integration
+                </div>
+              </div>
+
+              <div class="border-l-4 border-ocean pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Google: Return to Onsite</h4>
+                <p class="text-sm mb-2">
+                  CEO Sundar Pichai announced requirement for at least one round of in-person interviews for certain roles to ensure candidates have mastered "the fundamentals" <a href="https://blog.theinterviewguys.com/72-of-companies-are-fighting-ai-fraud/" class="citation-link">[369]</a>.
+                </p>
+                <div class="bg-yellow-50 p-2 rounded text-xs">
+                  <strong>Structure:</strong> 2 virtual interviews followed by 3-4 in-person interviews at major engineering sites
+                </div>
+              </div>
+
+              <div class="border-l-4 border-purple-500 pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Canva: Explicit AI Requirement</h4>
+                <p class="text-sm mb-2">
+                  "Now expect Backend, Machine Learning and Frontend engineering candidates to use AI tools like Copilot, Cursor, and Claude during our technical interviews" <a href="https://www.canva.dev/blog/engineering/yes-you-can-use-ai-in-our-interviews/" class="citation-link">[438]</a>.
+                </p>
+                <div class="bg-purple-50 p-2 rounded text-xs">
+                  <strong>Evaluation Focus:</strong> How candidates use AI tools thoughtfully, debug AI-suggested code, and pair with their own judgment
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Startup and Scale-Up Innovations</h3>
+
+            <div class="space-y-6">
+              <div class="border-l-4 border-teal-500 pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Seed-Stage iPaaS: Prompt Visibility</h4>
+                <p class="text-sm mb-2">
+                  Radical transparency requirement: candidates must show their prompts in real-time, with assessment focusing explicitly on prompt quality and evolution <a href="https://formation.dev/blog/how-technical-interviews-are-evolving-with-ai/" class="citation-link">[439]</a>.
+                </p>
+                <div class="bg-teal-50 p-2 rounded text-xs">
+                  <strong>Innovation Significance:</strong> Makes typically invisible cognitive work visible for evaluation
+                </div>
+              </div>
+
+              <div class="border-l-4 border-indigo-500 pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Series B Legal-Tech: Debugging Focus</h4>
+                <p class="text-sm mb-2">
+                  Pioneered debugging-focused format: candidates receive "a full stack AI chat app riddled with bugs" with task of systematic repair <a href="https://formation.dev/blog/how-technical-interviews-are-evolving-with-ai/" class="citation-link">[439]</a>.
+                </p>
+                <div class="bg-indigo-50 p-2 rounded text-xs">
+                  <strong>Format Advantages:</strong> Naturally resistant to simple AI cheating, provides rich signal through verbalized reasoning
+                </div>
+              </div>
+
+              <div class="border-l-4 border-pink-500 pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Series A AI Platform: LLM Integration</h4>
+                <p class="text-sm mb-2">
+                  Makes AI integration explicit in system design interviews: candidates design systems that "take user input and use a third-party service to generate images with an LLM" <a href="https://formation.dev/blog/how-technical-interviews-are-evolving-with-ai/" class="citation-link">[439]</a>.
+                </p>
+                <div class="bg-pink-50 p-2 rounded text-xs">
+                  <strong>Similar Implementations:</strong> Apple's AI video generation application design, global fintech chatbot architecture
+                </div>
+              </div>
+
+              <div class="border-l-4 border-lime-500 pl-4">
+                <h4 class="font-semibold text-ocean mb-2">Karat NextGen: Hybrid Platform</h4>
+                <p class="text-sm mb-2">
+                  Systematically developed hybrid response: human interviewers lead evaluation while AI provides multi-file codebase environments, VS Code-based IDE, and built-in AI assistant <a href="https://karat.com/technical-interviews-ai-era/" class="citation-link">[437]</a>.
+                </p>
+                <div class="bg-lime-50 p-2 rounded text-xs">
+                  <strong>Endorsed by:</strong> Docusign CTO Sagnik Nandy: "Exactly the kind of solution organizations need"
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+          <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Candidate Success Patterns and Pitfalls</h3>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <h4 class="text-xl font-semibold mb-4 text-green-700">Effective AI Collaboration Patterns</h4>
+              <div class="space-y-3">
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-green-800 text-sm mb-1">Strategic Decomposition</h5>
+                  <p class="text-xs text-green-700">Breaking complex problems into AI-appropriate sub-problems demonstrates architectural thinking</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-green-800 text-sm mb-1">Precise Prompting</h5>
+                  <p class="text-xs text-green-700">Clear, contextualized prompts with appropriate constraints show efficiency and communication skill</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-green-800 text-sm mb-1">Active Validation</h5>
+                  <p class="text-xs text-green-700">Systematic verification of AI outputs before integration reveals critical judgment and quality ownership</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-green-800 text-sm mb-1">Transparent Reasoning</h5>
+                  <p class="text-xs text-green-700">Explicit articulation of AI collaboration decisions enables interviewer evaluation of understanding</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-green-800 text-sm mb-1">Graceful Recovery</h5>
+                  <p class="text-xs text-green-700">Effective handling when AI outputs are incorrect demonstrates resilience and independent capability</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="text-xl font-semibold mb-4 text-red-700">Pitfalls of Over-Reliance</h4>
+              <div class="space-y-3">
+                <div class="bg-red-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-red-800 text-sm mb-1">Blind Acceptance</h5>
+                  <p class="text-xs text-red-700">Incorporating AI output without verification indicates superficial reliance and no quality ownership</p>
+                </div>
+                <div class="bg-red-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-red-800 text-sm mb-1">Inability to Explain</h5>
+                  <p class="text-xs text-red-700">Cannot articulate what generated code does or why, revealing lack of genuine comprehension</p>
+                </div>
+                <div class="bg-red-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-red-800 text-sm mb-1">Prompt Laziness</h5>
+                  <p class="text-xs text-red-700">Vague, underspecified requests wasting iteration cycles show poor communication and problem analysis</p>
+                </div>
+                <div class="bg-red-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-red-800 text-sm mb-1">Collapse on Extension</h5>
+                  <p class="text-xs text-red-700">Cannot modify or adapt AI-generated solutions, demonstrating shallow engagement with output</p>
+                </div>
+                <div class="bg-red-50 p-3 rounded-lg">
+                  <h5 class="font-semibold text-red-800 text-sm mb-1">Detected Dishonesty</h5>
+                  <p class="text-xs text-red-700">Concealed AI use in prohibited contexts violates professional integrity and typically results in disqualification</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trends and Statistics Section -->
+      <section id="trends-statistics" class="section-anchor px-8 py-12 max-w-6xl">
+        <h2 class="serif-display text-4xl font-bold text-ocean mb-8">Post-2023 Trends and Statistics</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Adoption Metrics</h3>
+
+            <div class="space-y-6">
+              <div class="text-center p-6 bg-gradient-to-r from-sage to-ocean text-white rounded-lg">
+                <div class="text-4xl font-bold mb-2">70%</div>
+                <div class="text-sm opacity-90">Companies using AI in hiring by 2025</div>
+                <div class="text-xs opacity-75 mt-1">Near-universal large-organization adoption <a href="https://www.fastcompany.com/91220282/70-of-companies-will-use-ai-for-hiring-in-2025-says-new-study" class="citation-link text-white">[416]</a>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                  <div class="text-2xl font-bold text-blue-600">65% YoY</div>
+                  <div class="text-xs text-blue-600">AI adoption growth in HR</div>
+                  <div class="text-xs text-gray-600 mt-1">2024-2025 acceleration</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                  <div class="text-2xl font-bold text-green-600">61%</div>
+                  <div class="text-xs text-green-600">Top HR tech investment</div>
+                  <div class="text-xs text-gray-600 mt-1">Strategic priority confirmation</div>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span class="text-sm font-medium">North American AI HR adoption</span>
+                  <span class="data-highlight font-bold">76%</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span class="text-sm font-medium">European AI HR adoption</span>
+                  <span class="data-highlight font-bold">36%</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span class="text-sm font-medium">AI in HR functions overall</span>
+                  <span class="data-highlight font-bold">88%</span>
+                </div>
+              </div>
+
+              <div class="bg-yellow-50 p-4 rounded-lg">
+                <p class="text-sm text-yellow-800">
+                  <i class="fas fa-chart-line mr-2"></i>
+                  <strong>Key Insight:</strong> AI adoption in hiring has transitioned from competitive differentiator to operational necessity, with near-saturation in large technology organizations likely within 2-3 years <a href="https://www.herohunt.ai/blog/ai-adoption-in-recruiting-2025-year-in-review/" class="citation-link">[231]</a>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">AI-Assisted Cheating Prevalence</h3>
+
+            <div class="space-y-6">
+              <div class="text-center p-6 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg">
+                <div class="text-4xl font-bold mb-2">80%</div>
+                <div class="text-sm opacity-90">Candidates using LLMs despite prohibitions</div>
+                <div class="text-xs opacity-75 mt-1">India-based code tests <a href="https://www.softwareseni.com/how-ai-tools-broke-technical-interviews-the-mechanics-and-scale-of-interview-cheating/" class="citation-link text-white">[393]</a>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                  <div class="text-2xl font-bold text-red-600">81%</div>
+                  <div class="text-xs text-red-600">Interviewers suspecting cheating</div>
+                  <div class="text-xs text-gray-600 mt-1">Big Tech and New Big Tech</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                  <div class="text-2xl font-bold text-orange-600">38.5%</div>
+                  <div class="text-xs text-orange-600">Overall cheating flag rate</div>
+                  <div class="text-xs text-gray-600 mt-1">Substantial integrity challenge</div>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span class="text-sm font-medium">Technical role cheating rate</span>
+                  <span class="data-highlight font-bold">48%</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span class="text-sm font-medium">Cheating attempt increase (2022-2025)</span>
+                  <span class="data-highlight font-bold">3x</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <span class="text-sm font-medium">Flagged cheaters passing undetected</span>
+                  <span class="data-highlight font-bold">61%</span>
+                </div>
+              </div>
+
+              <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                <p class="text-sm text-red-800">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>
+                  <strong>Critical Interpretation:</strong> When 80% violate explicit prohibitions, prohibition-based approaches are operationally unenforceable, driving strategic shift toward permissive formats or structural countermeasures <a href="https://fabrichq.ai/blogs/state-of-ai-interview-cheating-in-2026-insights-from-19-368-interviews" class="citation-link">[394]</a>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+          <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Interview Format Evolution</h3>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="text-center p-6 bg-gradient-to-b from-blue-500 to-blue-600 text-white rounded-lg">
+              <i class="fas fa-building text-3xl mb-3 opacity-75"></i>
+              <div class="text-2xl font-bold mb-2">24% → 38%</div>
+              <div class="text-sm opacity-90">In-person interviews</div>
+              <div class="text-xs opacity-75 mt-1">+58% increase (2022-2025)</div>
+              <div class="text-xs opacity-75">Anti-cheating driver <a href="https://www.interviewquery.com/p/ai-interview-trends-tech-hiring-2025" class="citation-link text-white">[107]</a>
+                <a href="https://www.interviewquery.com/p/ai-interview-trends-tech-hiring-2025" class="citation-link text-white">[245]</a>
+              </div>
+            </div>
+
+            <div class="text-center p-6 bg-gradient-to-b from-green-500 to-green-600 text-white rounded-lg">
+              <i class="fas fa-laptop text-3xl mb-3 opacity-75"></i>
+              <div class="text-2xl font-bold mb-2">76% → 62%</div>
+              <div class="text-sm opacity-90">Remote/AI-assisted</div>
+              <div class="text-xs opacity-75 mt-1">-18% decrease</div>
+              <div class="text-xs opacity-75">Partial retrenchment</div>
+            </div>
+
+            <div class="text-center p-6 bg-gradient-to-b from-purple-500 to-purple-600 text-white rounded-lg">
+              <i class="fas fa-robot text-3xl mb-3 opacity-75"></i>
+              <div class="text-2xl font-bold mb-2">55%</div>
+              <div class="text-sm opacity-90">AI simulations/tests</div>
+              <div class="text-xs opacity-75 mt-1">New category</div>
+              <div class="text-xs opacity-75">Skills assessment evolution</div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <p class="mb-4">
+              <strong>Strategic Implications:</strong> The in-person resurgence is explicitly driven by integrity concerns rather than collaboration preferences. However, 62% remote persistence indicates practical constraints—geographic talent access, scheduling efficiency, candidate experience—limit full reversal.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center p-3 bg-white rounded">
+                <i class="fas fa-shield-alt text-coral text-2xl mb-2"></i>
+                <div class="text-sm font-semibold">Integrity Focus</div>
+                <div class="text-xs text-gray-600">Primary driver</div>
+              </div>
+              <div class="text-center p-3 bg-white rounded">
+                <i class="fas fa-globe text-sage text-2xl mb-2"></i>
+                <div class="text-sm font-semibold">Global Access</div>
+                <div class="text-xs text-gray-600">Talent pool expansion</div>
+              </div>
+              <div class="text-center p-3 bg-white rounded">
+                <i class="fas fa-clock text-ocean text-2xl mb-2"></i>
+                <div class="text-sm font-semibold">Efficiency</div>
+                <div class="text-xs text-gray-600">Scheduling optimization</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-lg shadow-lg">
+          <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Performance and Outcome Data</h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="text-center p-6 bg-gradient-to-b from-sage to-green-600 text-white rounded-lg">
+              <div class="text-3xl font-bold mb-2">40-70%</div>
+              <div class="text-sm opacity-90">Time-to-hire reduction</div>
+              <div class="text-xs opacity-75">Dramatic efficiency gain <a href="https://www.apollotechnical.com/statistics-on-ai-in-recruiting/" class="citation-link text-white">[225]</a>
+              </div>
+            </div>
+
+            <div class="text-center p-6 bg-gradient-to-b from-ocean to-blue-600 text-white rounded-lg">
+              <div class="text-3xl font-bold mb-2">43%</div>
+              <div class="text-sm opacity-90">Quality of hire improvement</div>
+              <div class="text-xs opacity-75">Firms reporting effectiveness <a href="https://www.apollotechnical.com/statistics-on-ai-in-recruiting/" class="citation-link text-white">[225]</a>
+              </div>
+            </div>
+
+            <div class="text-center p-6 bg-gradient-to-b from-coral to-red-600 text-white rounded-lg">
+              <div class="text-3xl font-bold mb-2">55%</div>
+              <div class="text-sm opacity-90">Diversity improvement</div>
+              <div class="text-xs opacity-75">Companies reporting DEI impact <a href="https://www.apollotechnical.com/statistics-on-ai-in-recruiting/" class="citation-link text-white">[225]</a>
+              </div>
+            </div>
+
+            <div class="text-center p-6 bg-gradient-to-b from-purple-500 to-purple-600 text-white rounded-lg">
+              <div class="text-3xl font-bold mb-2">$300K+</div>
+              <div class="text-sm opacity-90">Annual savings</div>
+              <div class="text-xs opacity-75">Large tech teams <a href="https://www.apollotechnical.com/statistics-on-ai-in-recruiting/" class="citation-link text-white">[225]</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-gray-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-ocean mb-4">Additional Performance Metrics</h4>
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Recruiter screening time reduction</span>
+                  <span class="data-highlight font-bold">Up to 75%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">AI-picked candidate pass rate improvement</span>
+                  <span class="data-highlight font-bold">14%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">New-hire turnover reduction</span>
+                  <span class="data-highlight font-bold">10% lower</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Signal clarity (hybrid models)</span>
+                  <span class="data-highlight font-bold">33% improvement</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 p-6 rounded-lg">
+              <h4 class="font-semibold text-blue-800 mb-4">Synthesis and Implications</h4>
+              <p class="text-sm text-blue-700 mb-3">
+                AI-integrated interviews deliver substantial, measurable benefits across efficiency, quality, and diversity dimensions. However, benefits are not automatic—they depend on thoughtful implementation, continuous validation, and appropriate human-AI role allocation.
+              </p>
+              <div class="bg-white p-3 rounded">
+                <p class="text-xs text-blue-600">
+                  <i class="fas fa-lightbulb mr-2"></i>
+                  <strong>Key Success Factor:</strong> Portfolio strategies combining remote AI-enabled screening, permissive AI assessments, and in-person verification for high-stakes decisions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Critical Assessment Section -->
+      <section id="critical-assessment" class="section-anchor px-8 py-12 max-w-6xl">
+        <h2 class="serif-display text-4xl font-bold text-ocean mb-8">Critical Assessment: Strengths, Risks, and Unintended Consequences</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Advantages of AI-Integrated Interviews</h3>
+
+            <div class="space-y-6">
+              <div class="border-l-4 border-green-500 pl-4">
+                <h4 class="font-semibold text-green-700 mb-2">Scalability and Efficiency Gains</h4>
+                <p class="text-sm mb-2">
+                  Primary driver of AI adoption: ability to process candidate volumes impossible with human resources alone. <span class="data-highlight">40-70% time-to-hire reduction</span> and <span class="data-highlight">75% recruiter screening time reduction</span> enable responsiveness in competitive talent markets <a href="https://www.apollotechnical.com/statistics-on-ai-in-recruiting/" class="citation-link">[225]</a>
+                  <a href="https://careertrainer.ai/en/reports/ai-interview-training-statistics/" class="citation-link">[213]</a>.
+                </p>
+                <div class="bg-green-50 p-2 rounded text-xs">
+                  <strong>Financial Impact:</strong> $300K+ annual savings for large teams provides compelling justification
+                </div>
+              </div>
+
+              <div class="border-l-4 border-blue-500 pl-4">
+                <h4 class="font-semibold text-blue-700 mb-2">Reduced Unconscious Bias Potential</h4>
+                <p class="text-sm mb-2">
+                  Theoretical advantage: AI systems apply consistent criteria, eliminating human variability from fatigue, mood, and implicit associations. <span class="data-highlight">Unilever's 16% diversity increase</span> with AI-integrated hiring illustrates potential <a href="https://www.lockedinai.com/blog/ai-in-behavioral-interviews-how-it-works" class="citation-link">[250]</a>.
+                </p>
+                <div class="bg-blue-50 p-2 rounded text-xs">
+                  <strong>Critical Caveat:</strong> Bias reduction is not automatic—requires diverse training data, ongoing auditing, and human oversight
+                </div>
+              </div>
+
+              <div class="border-l-4 border-purple-500 pl-4">
+                <h4 class="font-semibold text-purple-700 mb-2">Enhanced Candidate Experience</h4>
+                <p class="text-sm mb-2">
+                  Democratization of preparation: AI tools provide high-quality practice previously available only through expensive coaching. <span class="data-highlight">25% of job seekers use AI for interview preparation</span>, with <span class="data-highlight">15% confidence increases</span> reported <a href="https://www.cnbc.com/2025/02/28/nearly-two-thirds-of-job-candidates-are-using-ai-in-their-applications-report-says.html" class="citation-link">[383]</a>
+                  <a href="https://careertrainer.ai/en/reports/ai-interview-training-statistics/" class="citation-link">[213]</a>.
+                </p>
+                <div class="bg-purple-50 p-2 rounded text-xs">
+                  <strong>Accessibility Benefits:</strong> Candidates outside major tech hubs, with caregiving responsibilities, or without established networks gain resources that reduce structural disadvantages
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-8 rounded-lg shadow-lg">
+            <h3 class="serif-display text-2xl font-semibold mb-6 text-sage">Risks and Challenges</h3>
+
+            <div class="space-y-6">
+              <div class="border-l-4 border-red-500 pl-4">
+                <h4 class="font-semibold text-red-700 mb-2">Erosion of Signal Validity</h4>
+                <p class="text-sm mb-2">
+                  Fundamental risk: when AI assistance enables performance without underlying competence, hiring decisions become less predictive of job success. <span class="data-highlight">61% of flagged cheaters would pass without detection</span>—indicating substantial false positive risk <a href="https://fabrichq.ai/blogs/state-of-ai-interview-cheating-in-2026-insights-from-19-368-interviews" class="citation-link">[394]</a>.
+                </p>
+                <div class="bg-red-50 p-2 rounded text-xs">
+                  <strong>Validation Gap:</strong> Correlation between AI-assisted interview performance and unaided job capability remains inadequately validated
+                </div>
+              </div>
+
+              <div class="border-l-4 border-orange-500 pl-4">
+                <h4 class="font-semibold text-orange-700 mb-2">AI-Induced Bias Concerns</h4>
+                <p class="text-sm mb-2">
+                  Documented risks: resume screening algorithms disadvantage employment gaps and non-traditional paths; sentiment analysis encodes cultural variation as deficiency; video analysis misinterprets neurodivergent behavior.
+                </p>
+                <div class="bg-orange-50 p-2 rounded text-xs">
+                  <strong>Regulatory Response:</strong> NYC AEDT law requires bias audits; EU AI Act restricts high-risk applications; Illinois AI Video Interview Act mandates notification and consent <a href="https://iapp.org/news/a/how-the-us-is-handling-ai-driven-hiring-practices" class="citation-link">[301]</a>
+                </div>
+              </div>
+
+              <div class="border-l-4 border-yellow-500 pl-4">
+                <h4 class="font-semibold text-yellow-700 mb-2">Privacy and Data Security</h4>
+                <p class="text-sm mb-2">
+                  Comprehensive data collection: video recordings, voice samples, behavioral patterns, detailed performance metrics. <span class="data-highlight">45% of organizations cite data privacy and security as biggest AI adoption inhibitor</span>
+                  <a href="https://careertrainer.ai/en/reports/ai-interview-training-statistics/" class="citation-link">[115]</a>.
+                </p>
+                <div class="bg-yellow-50 p-2 rounded text-xs">
+                  <strong>Responsible Implementation:</strong> Requires explicit disclosure, retention limits, access controls, and candidate rights to review and deletion
+                </div>
+              </div>
+
+              <div class="border-l-4 border-gray-500 pl-4">
+                <h4 class="font-semibold text-gray-700 mb-2">Candidate Distrust</h4>
+                <p class="text-sm mb-2">
+                  Substantial skepticism: <span class="data-highlight">only 8% of U.S. job seekers believe AI improves hiring fairness</span>; <span class="data-highlight">46% report declining trust in hiring processes</span>, with <span class="data-highlight">42% attributing this to AI automation</span>
+                  <a href="https://high5test.com/ai-in-recruiting-statistics/" class="citation-link">[177]</a>.
+                </p>
+                <div class="bg-gray-50 p-2 rounded text-xs">
+                  <strong>Consequences:</strong> Reduced application completion rates, damaged employer brand, competitive disadvantage in talent markets
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-8 rounded-lg">
+          <h3 class="serif-display text-2xl font-semibold mb-6 text-sage text-center">The Fundamental Tension: Assessment Authenticity vs. Real-World AI Usage</h3>
+
+          <p class="text-center mb-8 max-w-4xl mx-auto">
+            The central challenge in AI-era interview design: <strong>creating assessments that predict job performance</strong> (which increasingly requires AI collaboration) <strong>while maintaining sufficient structure to enable valid, fair evaluation</strong>.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+              <h4 class="font-semibold text-ocean mb-3">Prohibition with Detection</h4>
+              <div class="text-sm space-y-2">
+                <div class="text-green-600"><strong>Rationale:</strong> Preserves traditional evaluation; prevents unfair advantage</div>
+                <div class="text-red-600"><strong>Risk:</strong> Unenforceable at scale; misaligns with work reality</div>
+              </div>
+            </div>
+
+            <div c

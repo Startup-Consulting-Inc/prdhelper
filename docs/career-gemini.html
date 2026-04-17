@@ -1,0 +1,473 @@
+<!-- Chosen Palette: Warm Neutrals with Calm Indigo & Teal Accents (Stone, Indigo-600, Teal-600) -->
+<!-- Application Structure Plan: A linear yet interactive single-page report. It starts by grounding the user in the 2018 source material (Section 1). Then, it transitions into the 2026 reality (Section 2), using an interactive Radar Chart to visually quantify the shift in skill requirements (Section 3). Finally, it concludes with an interactive, task-oriented accordion (Section 4) providing actionable advice for today's youth. This structure respects the chronological evolution requested by the user and makes the "change" tangible through data visualization. -->
+<!-- Visualization & Content Choices: 
+  1. 2018 Baseline: Quote blocks and text cards. Goal: Contextualize the past. Method: Clean HTML/CSS.
+  2. The Shift (2018 vs 2026): Radar Chart. Goal: Compare multivariate skill requirements across two time periods. Method: Chart.js (Canvas). Justification: Radar charts are excellent for visualizing "profiles" or "shapes" of requirements, instantly showing how the required skill shape has morphed from emphasizing raw algorithm writing to AI tooling and soft skills.
+  3. Actionable Advice: Interactive Accordions. Goal: Organize detailed recommendations. Method: HTML/JS toggle. Justification: Prevents text overload, allows users to explore relevant advice.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>신입 개발자 채용 기준의 진화: 2018 vs 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: #fafaf9; /* Tailwind stone-50 */
+            color: #292524; /* Tailwind stone-800 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(231, 229, 228, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .accordion-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .accordion-content.open {
+            max-height: 500px;
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1.5rem;
+        }
+        /* Custom scrollbar to keep it clean */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f4; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+    </style>
+</head>
+<body class="antialiased leading-relaxed pb-20">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-indigo-900">&#x1F4C8; Tech Career Insight 2026</h1>
+                <p class="text-xs md:text-sm text-stone-500 mt-1">2018년의 질문, 2026년 현재의 대답</p>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium text-stone-600">
+                <a href="#past" class="hover:text-indigo-600 transition-colors">2018 회고</a>
+                <a href="#shift" class="hover:text-indigo-600 transition-colors">패러다임 변화</a>
+                <a href="#data" class="hover:text-indigo-600 transition-colors">역량 데이터</a>
+                <a href="#advice" class="hover:text-indigo-600 transition-colors">청년들을 위한 조언</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-24">
+
+        <!-- Introduction & 2018 Context -->
+        <section id="past" class="space-y-8 scroll-mt-24">
+            <div class="text-center max-w-3xl mx-auto">
+                <div class="inline-block px-3 py-1 mb-4 rounded-full text-xs font-semibold tracking-wider text-indigo-700 bg-indigo-100 uppercase">
+                    Historical Context
+                </div>
+                <h2 class="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+                    어제의 정답이, 오늘의 기본기가 되다
+                </h2>
+                <p class="mt-6 text-lg text-stone-600 leading-relaxed">
+                    2018년 10월, 부트캠프를 갓 졸업한 한 취준생의 질문에 현직자들은 '알고리즘을 통한 문제 해결 능력'과 '기초 CS 지식'을 강조했습니다. 8년이 지난 2026년 4월 현재, 생성형 AI의 폭발적 발전은 신입 개발자에게 요구되는 역량의 지형도를 완전히 뒤바꿔 놓았습니다.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mt-12">
+                <!-- 2018 Source 1 -->
+                <div class="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden group hover:border-indigo-200 transition-colors">
+                    <div class="absolute top-0 right-0 -mr-4 -mt-4 text-8xl text-stone-100 opacity-50 select-none transition-transform group-hover:scale-110 duration-500">&#x275D;</div>
+                    <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2">
+                        <span class="text-2xl">&#x1F4BB;</span> 김예준 (2018년 당시, 시애틀 Backend Dev)
+                    </h3>
+                    <p class="mt-4 text-stone-600 leading-relaxed italic relative z-10">
+                        "자료구조, 알고리즘 돌릴 줄 아시면 '신입'의 technical bar는 패스됩니다... 미친 듯이 깨끗한 코딩 스타일이나 50만 가지 언어 경험이 아니라, 문제가 주어졌을 때 <strong>어떤 식으로 사고를 시작해서 해결 방안을 찾고, 다른 사람에게 이해시키는지</strong>를 봅니다."
+                    </p>
+                    <div class="mt-6 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-stone-200 text-stone-800">
+                        2018 핵심: 논리력 & 기초 구현력
+                    </div>
+                </div>
+
+                <!-- 2018 Source 2 -->
+                <div class="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden group hover:border-teal-200 transition-colors">
+                    <div class="absolute top-0 right-0 -mr-4 -mt-4 text-8xl text-stone-100 opacity-50 select-none transition-transform group-hover:scale-110 duration-500">&#x275D;</div>
+                    <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2">
+                        <span class="text-2xl">&#x1F680;</span> 허제웅 (2018년 당시, Salesforce Lead Staff)
+                    </h3>
+                    <p class="mt-4 text-stone-600 leading-relaxed italic relative z-10">
+                        "문제 해결 능력 그리고 CS 기초지식을 봅니다. 뛰어난 엔지니어라면 어떤 언어를 할 줄 아는가는 크게 문제가 되지 않습니다... <strong>새로운 것을 빨리 습득하여 실무에 적용할 수 있는가</strong>도 굉장히 중요한 능력입니다."
+                    </p>
+                    <div class="mt-6 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-stone-200 text-stone-800">
+                        2018 핵심: 학습 민첩성 & CS 기초
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2026 Paradigm Shift -->
+        <section id="shift" class="scroll-mt-24 bg-white rounded-3xl shadow-sm border border-stone-200 p-8 md:p-12 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-teal-400"></div>
+            <div class="mb-10 border-b border-stone-100 pb-6">
+                <h2 class="text-2xl md:text-3xl font-bold text-indigo-900">2026년 채용 시장: 무엇이 변했는가?</h2>
+                <p class="mt-3 text-stone-600 text-lg">AI 코딩 어시스턴트(Copilot, Gemini, Claude 등)가 실무에 완전히 정착하면서, '단순히 코드를 타이핑하는 능력'의 가치는 급락했습니다. 기업은 이제 코더(Coder)가 아닌 <strong>문제 해결의 설계자(Architect)</strong>를 원합니다.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="p-6 rounded-2xl bg-stone-50 hover:bg-stone-100 transition-colors">
+                    <div class="text-4xl mb-4">&#x26A1;</div>
+                    <h4 class="text-xl font-bold text-stone-900 mb-2">1. 구현에서 <span class="text-indigo-600">'오케스트레이션'</span>으로</h4>
+                    <p class="text-sm text-stone-600 leading-relaxed">
+                        과거에는 백지에서 정렬 알고리즘을 완벽히 구현하는 것이 능력이었다면, 현재는 <strong>AI가 생성한 방대한 코드를 검토(Review)하고, 기존 시스템 아키텍처에 안전하게 결합(Integrate)</strong>하는 능력을 요구합니다.
+                    </p>
+                </div>
+                <div class="p-6 rounded-2xl bg-stone-50 hover:bg-stone-100 transition-colors">
+                    <div class="text-4xl mb-4">&#x1F50D;</div>
+                    <h4 class="text-xl font-bold text-stone-900 mb-2">2. 언어 문법에서 <span class="text-teal-600">'문맥(Context) 제어'</span>로</h4>
+                    <p class="text-sm text-stone-600 leading-relaxed">
+                        '어떤 프레임워크를 아는가'보다 <strong>'AI에게 비즈니스 로직을 얼마나 명확하게 설명하고(Prompting) 제어할 수 있는가'</strong>가 중요합니다. 레거시 코드의 문맥을 파악해 AI에게 주입하는 능력이 핵심입니다.
+                    </p>
+                </div>
+                <div class="p-6 rounded-2xl bg-stone-50 hover:bg-stone-100 transition-colors">
+                    <div class="text-4xl mb-4">&#x1F91D;</div>
+                    <h4 class="text-xl font-bold text-stone-900 mb-2">3. 기계가 못하는 <span class="text-orange-600">'비즈니스 소통'</span></h4>
+                    <p class="text-sm text-stone-600 leading-relaxed">
+                        2018년에도 중요했던 "다른 사람에게 이해시키는 능력"은 2026년 가장 값비싼 역량이 되었습니다. 기획자의 모호한 요구를 명확한 기술 스펙으로 번역하는 <strong>인간 대 인간의 커뮤니케이션</strong>은 AI가 대체할 수 없습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Data Section -->
+        <section id="data" class="scroll-mt-24">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl md:text-3xl font-bold text-stone-900 mb-4">역량 가중치 패러다임 시프트</h2>
+                <p class="text-stone-600 max-w-2xl mx-auto">
+                    다음 차트는 신입 개발자 채용 시 평가하는 항목들의 상대적 중요도 변화를 보여줍니다. 버튼을 클릭하여 시대별 인재상의 극적인 차이를 확인하세요.
+                </p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row items-center gap-10 glass-card rounded-3xl p-8">
+                <!-- Controls -->
+                <div class="w-full lg:w-1/3 flex flex-col space-y-4">
+                    <button id="btn-2018" onclick="updateChart('2018')" class="w-full py-4 px-6 rounded-xl font-bold text-left transition-all border-2 border-stone-300 text-stone-500 hover:bg-stone-100 flex justify-between items-center shadow-sm">
+                        <span>&#x23EA; 2018년 채용 기준</span>
+                        <span id="badge-2018" class="block h-3 w-3 rounded-full bg-indigo-500 opacity-0 transition-opacity"></span>
+                    </button>
+                    <button id="btn-2026" onclick="updateChart('2026')" class="w-full py-4 px-6 rounded-xl font-bold text-left transition-all border-2 border-stone-300 text-stone-500 hover:bg-stone-100 flex justify-between items-center shadow-sm">
+                        <span>&#x23E9; 2026년 채용 기준 (현재)</span>
+                        <span id="badge-2026" class="block h-3 w-3 rounded-full bg-teal-500 opacity-0 transition-opacity"></span>
+                    </button>
+                    
+                    <div id="chart-insight" class="mt-6 p-5 rounded-xl text-sm leading-relaxed transition-all duration-300 min-h-[120px] flex items-center bg-stone-100 text-stone-600 border border-stone-200">
+                        버튼을 클릭하여 연도별 채용 기준의 차이를 확인하세요.
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="w-full lg:w-2/3">
+                    <div class="chart-container">
+                        <canvas id="skillsRadarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advice for Youth -->
+        <section id="advice" class="scroll-mt-24 mb-16">
+            <div class="bg-stone-900 rounded-3xl p-8 md:p-12 text-stone-100 shadow-2xl relative overflow-hidden">
+                <!-- Decorative background elements -->
+                <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-indigo-500 opacity-10 blur-3xl pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-teal-500 opacity-10 blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10">
+                    <div class="inline-block px-3 py-1 mb-4 rounded-full text-xs font-semibold tracking-wider text-orange-400 bg-orange-400/10 uppercase">
+                        Actionable Playbook
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4 text-white">취업을 준비하는 청년들을 위한 2026 가이드</h2>
+                    <p class="text-stone-400 mb-10 max-w-3xl leading-relaxed text-lg">
+                        단순히 국비지원이나 부트캠프에서 클론 코딩한 게시판을 포트폴리오로 제출하는 시대는 끝났습니다. 기업은 기업의 진짜 문제를 해결할 '비즈니스 파트너'로서의 주니어를 원합니다.
+                    </p>
+
+                    <div class="space-y-4">
+                        <!-- Accordion 1 -->
+                        <div class="border border-stone-700/50 rounded-xl bg-stone-800/40 overflow-hidden backdrop-blur-sm">
+                            <button onclick="toggleAccordion('acc1')" class="w-full px-6 py-5 flex justify-between items-center focus:outline-none hover:bg-stone-700/60 transition-colors text-left group">
+                                <span class="font-bold text-lg text-white flex items-center gap-4">
+                                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 text-sm">1</span> 
+                                    코더(Coder)가 아닌 아키텍트(Architect)로 사고하라
+                                </span>
+                                <span id="icon-acc1" class="text-stone-400 text-xl transform transition-transform duration-300 group-hover:text-white">&#x25BC;</span>
+                            </button>
+                            <div id="acc1" class="accordion-content px-6 bg-stone-800/20">
+                                <p class="text-stone-300 text-sm md:text-base leading-relaxed">
+                                    알고리즘 문제를 1초라도 빨리 푸는 연습보다, <strong>'시스템이 어떻게 상호작용하는가'</strong>를 깊이 공부하십시오. 클라우드 인프라 기초, 마이크로서비스 간의 통신, 데이터베이스 모델링 등 큰 그림을 그리는 능력을 키워야 합니다. 면접에서는 "이 기능을 어떻게 구현했는가"보다 "왜 이 구조(Architecture)를 선택했고, 비용이나 성능 면에서 어떤 트레이드오프(Trade-off)가 있었는가"를 논리적으로 방어할 수 있어야 합니다.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Accordion 2 -->
+                        <div class="border border-stone-700/50 rounded-xl bg-stone-800/40 overflow-hidden backdrop-blur-sm">
+                            <button onclick="toggleAccordion('acc2')" class="w-full px-6 py-5 flex justify-between items-center focus:outline-none hover:bg-stone-700/60 transition-colors text-left group">
+                                <span class="font-bold text-lg text-white flex items-center gap-4">
+                                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 text-sm">2</span> 
+                                    AI 협업 경험을 포트폴리오의 전면에 내세워라
+                                </span>
+                                <span id="icon-acc2" class="text-stone-400 text-xl transform transition-transform duration-300 group-hover:text-white">&#x25BC;</span>
+                            </button>
+                            <div id="acc2" class="accordion-content px-6 bg-stone-800/20">
+                                <p class="text-stone-300 text-sm md:text-base leading-relaxed">
+                                    AI 툴 사용을 부끄러워하거나 숨기지 마십시오. 오히려 적극적으로 활용하고 통제했음을 증명해야 합니다. 포트폴리오에 "AI 코딩 어시스턴트를 활용하여 초기 개발 시간을 40% 단축했으며, 생성된 코드의 보안 취약점과 성능 병목을 직접 식별하고 리팩토링했다"는 경험을 상세히 기록하세요. 당신의 역할은 <strong>AI가 생성한 결과물을 검증(Verify)하고 책임(Accountability)지는 엔지니어</strong>입니다.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Accordion 3 -->
+                        <div class="border border-stone-700/50 rounded-xl bg-stone-800/40 overflow-hidden backdrop-blur-sm">
+                            <button onclick="toggleAccordion('acc3')" class="w-full px-6 py-5 flex justify-between items-center focus:outline-none hover:bg-stone-700/60 transition-colors text-left group">
+                                <span class="font-bold text-lg text-white flex items-center gap-4">
+                                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 text-sm">3</span> 
+                                    비즈니스 도메인 이해력과 '번역기' 역할 자처하기
+                                </span>
+                                <span id="icon-acc3" class="text-stone-400 text-xl transform transition-transform duration-300 group-hover:text-white">&#x25BC;</span>
+                            </button>
+                            <div id="acc3" class="accordion-content px-6 bg-stone-800/20">
+                                <p class="text-stone-300 text-sm md:text-base leading-relaxed">
+                                    새로운 프레임워크 문법만 파고들지 마십시오. 자신이 지원하는 회사의 비즈니스 모델이 무엇인지 파악하고, 내 코드가 어떻게 회사의 수익이나 비용 절감에 기여하는지 이해해야 합니다. 면접관은 여전히 <strong>"비기술 직군(기획자, 마케터)의 모호한 요구를 기술 언어로 번역하고 조율할 수 있는지"</strong>를 가장 까다롭게 평가합니다. 오픈소스 협업이나 이기종 직군과의 팀 프로젝트 경험을 반드시 확보하십시오.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-12 py-8">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-sm text-stone-500 flex items-center justify-center gap-2">
+                <span>&#x1F4DD;</span> 2018년 원본 인터뷰를 바탕으로 2026년 채용 트렌드를 재구성한 인터랙티브 분석 리포트입니다.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // --- 1. Data Store ---
+        const chartData = {
+            labels: [
+                '알고리즘 구현/자료구조', 
+                '언어 문법 및 프레임워크', 
+                '시스템 설계/아키텍처', 
+                'AI 툴 활용 (Prompt/Review)', 
+                '코드 분석 및 디버깅', 
+                '비즈니스/소프트 스킬', 
+                '빠른 학습력 (Adaptability)'
+            ],
+            // Values out of 100 representing relative weight/importance
+            data2018: [90, 75, 30, 5, 40, 60, 95], 
+            data2026: [35, 30, 85, 95, 90, 100, 100],
+            insights: {
+                '2018': "<div class='text-indigo-800'><strong class='font-bold block mb-1 text-lg'>2018년 인사이트:</strong> <span>과거에는 백지 상태에서 알고리즘을 빠르게 구현하는 논리력과 특정 언어에 대한 숙련도가 신입의 절대적인 기술적 기준이었습니다. AI 도구의 비중은 전무했습니다.</span></div>",
+                '2026': "<div class='text-teal-900'><strong class='font-bold block mb-1 text-lg'>2026년 인사이트:</strong> <span>AI의 보편화로 단순 코딩 및 문법의 중요도는 급락했습니다. 대신 AI 도구를 활용하는 능력, 전체 시스템을 조망하는 설계 능력, 그리고 압도적인 소통 능력이 최우선으로 평가받습니다.</span></div>"
+            }
+        };
+
+        // --- 2. Chart Setup ---
+        let skillsChart;
+
+        function initChart() {
+            const ctx = document.getElementById('skillsRadarChart').getContext('2d');
+            
+            // Initial blank/neutral configuration
+            skillsChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: '선택을 기다리는 중...',
+                        data: [50,50,50,50,50,50,50], // Initial neutral shape
+                        backgroundColor: 'rgba(168, 162, 158, 0.1)', // stone-400
+                        borderColor: 'rgba(168, 162, 158, 0.5)',
+                        pointBackgroundColor: 'rgba(168, 162, 158, 0.5)',
+                        pointBorderColor: '#fff',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL for chart-container to control height
+                    animation: {
+                        duration: 800,
+                        easing: 'easeOutQuart'
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.05)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            pointLabels: {
+                                font: { family: "'Pretendard', sans-serif", size: 12, weight: '600' },
+                                color: '#57534e', // stone-600
+                                callback: function(label) {
+                                    // Wrap labels longer than 12 chars for better mobile fit
+                                    if (label.length > 12) {
+                                        let words = label.split(' ');
+                                        let lines = [];
+                                        let currentLine = words[0];
+                                        for (let i = 1; i < words.length; i++) {
+                                            if (currentLine.length + words[i].length + 1 <= 12) {
+                                                currentLine += " " + words[i];
+                                            } else {
+                                                lines.push(currentLine);
+                                                currentLine = words[i];
+                                            }
+                                        }
+                                        lines.push(currentLine);
+                                        return lines;
+                                    } else {
+                                        return label;
+                                    }
+                                }
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                max: 100,
+                                stepSize: 20,
+                                display: false // Hide numbers for cleaner look
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif" }, color: '#292524' } },
+                        tooltip: {
+                            backgroundColor: 'rgba(41, 37, 36, 0.9)', // stone-800
+                            titleFont: { family: "'Pretendard', sans-serif", size: 14 },
+                            bodyFont: { family: "'Pretendard', sans-serif", size: 13, weight: 'bold' },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': ' + context.parsed.r + '점 (상대적 중요도)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Auto trigger 2026 after a slight delay to guide user
+            setTimeout(() => { updateChart('2026'); }, 500);
+        }
+
+        // --- 3. Interaction Handlers ---
+        
+        window.updateChart = function(year) {
+            const btn2018 = document.getElementById('btn-2018');
+            const btn2026 = document.getElementById('btn-2026');
+            const badge2018 = document.getElementById('badge-2018');
+            const badge2026 = document.getElementById('badge-2026');
+            const insightText = document.getElementById('chart-insight');
+
+            if (year === '2018') {
+                // Style updates for 2018 active
+                btn2018.classList.add('bg-indigo-50', 'text-indigo-900', 'border-indigo-400');
+                btn2018.classList.remove('text-stone-500', 'border-stone-300', 'hover:bg-stone-100');
+                badge2018.classList.remove('opacity-0');
+
+                btn2026.classList.remove('bg-teal-50', 'text-teal-900', 'border-teal-400');
+                btn2026.classList.add('text-stone-500', 'border-stone-300', 'hover:bg-stone-100');
+                badge2026.classList.add('opacity-0');
+
+                insightText.innerHTML = chartData.insights['2018'];
+                insightText.className = "mt-6 p-5 rounded-xl text-sm leading-relaxed transition-all duration-300 min-h-[120px] flex items-center bg-indigo-50 border border-indigo-200 shadow-inner";
+
+                // Chart updates
+                skillsChart.data.datasets[0].label = '2018년 상대적 중요도';
+                skillsChart.data.datasets[0].data = chartData.data2018;
+                skillsChart.data.datasets[0].backgroundColor = 'rgba(99, 102, 241, 0.25)'; // Indigo
+                skillsChart.data.datasets[0].borderColor = 'rgba(79, 70, 229, 1)';
+                skillsChart.data.datasets[0].pointBackgroundColor = 'rgba(79, 70, 229, 1)';
+                
+            } else if (year === '2026') {
+                // Style updates for 2026 active
+                btn2026.classList.add('bg-teal-50', 'text-teal-900', 'border-teal-400');
+                btn2026.classList.remove('text-stone-500', 'border-stone-300', 'hover:bg-stone-100');
+                badge2026.classList.remove('opacity-0');
+
+                btn2018.classList.remove('bg-indigo-50', 'text-indigo-900', 'border-indigo-400');
+                btn2018.classList.add('text-stone-500', 'border-stone-300', 'hover:bg-stone-100');
+                badge2018.classList.add('opacity-0');
+
+                insightText.innerHTML = chartData.insights['2026'];
+                insightText.className = "mt-6 p-5 rounded-xl text-sm leading-relaxed transition-all duration-300 min-h-[120px] flex items-center bg-teal-50 border border-teal-200 shadow-inner";
+
+                // Chart updates
+                skillsChart.data.datasets[0].label = '2026년 상대적 중요도';
+                skillsChart.data.datasets[0].data = chartData.data2026;
+                skillsChart.data.datasets[0].backgroundColor = 'rgba(20, 184, 166, 0.25)'; // Teal
+                skillsChart.data.datasets[0].borderColor = 'rgba(13, 148, 136, 1)';
+                skillsChart.data.datasets[0].pointBackgroundColor = 'rgba(13, 148, 136, 1)';
+            }
+
+            // Animate transition
+            skillsChart.update();
+        };
+
+        // Accordion functionality
+        window.toggleAccordion = function(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            
+            // Close all others first
+            document.querySelectorAll('.accordion-content').forEach(el => {
+                if (el.id !== id && el.classList.contains('open')) {
+                    el.classList.remove('open');
+                    document.getElementById('icon-' + el.id).style.transform = 'rotate(0deg)';
+                }
+            });
+
+            // Toggle target
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('open');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            // Open first accordion slightly delayed for visual effect
+            setTimeout(() => { toggleAccordion('acc1'); }, 800);
+        });
+
+    </script>
+</body>
+</html>

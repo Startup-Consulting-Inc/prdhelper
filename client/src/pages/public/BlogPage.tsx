@@ -54,6 +54,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 29,
+      slug: 'hermes-llm-wiki',
+      title: 'Hermes LLM Wiki: Building a Self-Hosted AI Knowledge Base',
+      excerpt:
+        'A deep dive into Hermes — a self-hosted wiki where three specialized AI agents (Ingest, Summarize, Link) automatically transform any URL into connected, searchable Markdown pages stored in Git.',
+      author: 'Jaehee Song',
+      date: '2026-04-16',
+      readTime: '10 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 28,
       slug: 'ai-interview-transformation-2026',
       title: 'The AI-Driven Interview: How Tech Hiring Was Rebuilt from Scratch',

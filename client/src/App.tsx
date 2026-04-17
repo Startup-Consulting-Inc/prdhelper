@@ -76,6 +76,7 @@ const DataGovernanceAIEraPost = lazyWithRetry(() => import('./pages/public/blog/
 const ResponsibleAIGuidePost = lazyWithRetry(() => import('./pages/public/blog/ResponsibleAIGuidePost'));
 const EntryLevelTech2026Post = lazyWithRetry(() => import('./pages/public/blog/EntryLevelTech2026Post'));
 const AIInterviewTransformationPost = lazyWithRetry(() => import('./pages/public/blog/AIInterviewTransformationPost'));
+const HermesLLMWikiPost = lazyWithRetry(() => import('./pages/public/blog/HermesLLMWikiPost'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -323,6 +324,7 @@ function App() {
         <Route path="/blog/responsible-ai-guide" element={<ResponsibleAIGuidePost />} />
         <Route path="/blog/entry-level-tech-2026" element={<EntryLevelTech2026Post />} />
         <Route path="/blog/ai-interview-transformation-2026" element={<AIInterviewTransformationPost />} />
+        <Route path="/blog/hermes-llm-wiki" element={<HermesLLMWikiPost />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />

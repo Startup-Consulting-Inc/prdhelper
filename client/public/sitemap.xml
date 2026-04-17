@@ -57,6 +57,12 @@
   </url>
   <!-- Pillar blog posts (high priority) -->
   <url>
+    <loc>https://www.clearlyreqs.com/blog/hermes-llm-wiki</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.clearlyreqs.com/blog/ai-interview-transformation-2026</loc>
     <lastmod>2026-04-15</lastmod>
     <changefreq>monthly</changefreq>
