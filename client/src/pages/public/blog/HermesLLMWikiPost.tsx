@@ -45,29 +45,39 @@ export default function HermesLLMWikiPost() {
       date="2026-04-16"
       readTime="10 min read"
       category="AI & Development"
-      excerpt="A deep dive into Hermes — a self-hosted wiki where three specialized AI agents (Ingest, Summarize, Link) automatically transform any URL into connected, searchable Markdown pages stored in Git."
+      excerpt="I built Andrej Karpathy's LLM Wiki with Claude Code and Obsidian — but it only ran locally. Rather than pay for Obsidian Sync, I built Hermes: a web-based LLM Wiki where three AI agents turn any URL into connected Markdown, accessible from any browser."
       slug="hermes-llm-wiki"
       coverImage="HW"
       coverGradient="from-slate-700 via-cyan-700 to-teal-600"
       faqItems={FAQ_ITEMS}
     >
       <p>
-        Every developer I know has the same problem: knowledge is everywhere and connected nowhere.
-        Browser bookmarks you'll never revisit. Notion pages that go stale. Slack threads that
-        disappear into the archive. The research you did six months ago that you have to redo because
-        you can't find it.
+        At Visa, I worked as a knowledge management engineer for our engineering and operations teams
+        for quite some time. We used SharePoint as our main KM framework. Since then, I have used
+        various tools and services to manage my knowledge — Medium, Brunch, my own blog site, Google
+        Drive, OneNote, and even the Notes app on my Mac. Each one solved part of the problem and
+        none of them solved all of it.
       </p>
 
       <p>
-        I wanted a wiki that would do the filing for me — one where I could paste a URL and get back
-        a summarized, linked page that slots into everything else I've read. So I built Hermes.
+        Recently, I added <strong>Obsidian</strong> as a personal knowledge management (PKM) tool.
+        Then I came across{' '}
+        <strong>Andrej Karpathy's LLM Wiki</strong> — a concept for an AI-assisted wiki that
+        automatically summarizes and links content. I implemented it using Claude Code and Obsidian,
+        and it worked well. The catch: it only runs inside my local Obsidian instance on my Mac.
       </p>
 
       <p>
-        Hermes is a self-hosted knowledge base backed by three specialized AI agents. It ingests
-        URLs, summarizes their content with an LLM, and automatically links new pages to related
-        entries already in the wiki. Everything is stored as plain Markdown files in a Git
-        repository. No proprietary database. No SaaS subscriptions. Full ownership.
+        I could subscribe to Obsidian Sync to access it from anywhere, but I'm self-employed and
+        don't yet have income — even a few dollars a month feels like a burden right now. And yet I
+        wanted my wiki available on the web, not locked to a single machine.
+      </p>
+
+      <p>
+        That gap led me to build <strong>Hermes</strong> — a web-based LLM Wiki using Hermes Agents.
+        No Obsidian dependency. No sync subscription. A self-hosted system where three specialized
+        AI agents (Ingest, Summarize, Link) transform any URL into a connected, searchable Markdown
+        page stored in Git — accessible from any browser, anywhere.
       </p>
 
       <h2>The Architecture</h2>

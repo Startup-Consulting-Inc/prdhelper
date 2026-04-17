@@ -58,7 +58,7 @@ export default function BlogPage() {
       slug: 'hermes-llm-wiki',
       title: 'Hermes LLM Wiki: Building a Self-Hosted AI Knowledge Base',
       excerpt:
-        'A deep dive into Hermes — a self-hosted wiki where three specialized AI agents (Ingest, Summarize, Link) automatically transform any URL into connected, searchable Markdown pages stored in Git.',
+        "I built Andrej Karpathy's LLM Wiki with Claude Code and Obsidian — but it only ran locally. Rather than pay for Obsidian Sync, I built Hermes: a web-based LLM Wiki where three AI agents turn any URL into connected Markdown, accessible from any browser.",
       author: 'Jaehee Song',
       date: '2026-04-16',
       readTime: '10 min read',
