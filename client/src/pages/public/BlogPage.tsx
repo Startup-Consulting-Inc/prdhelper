@@ -54,6 +54,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 30,
+      slug: 'llm-wiki-hermes-agent',
+      title: 'How I Built a Web-Based LLM Wiki with Hermes Agent (And Why I Skipped Obsidian)',
+      excerpt:
+        "Andrej Karpathy proposed a better way to use AI — a persistent wiki that compounds your knowledge instead of resetting each session. Here's how I built it as a web app on a $6/month VPS, without Obsidian or a sync subscription.",
+      author: 'Jaehee Song',
+      date: '2026-04-16',
+      readTime: '9 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 29,
       slug: 'hermes-llm-wiki',
       title: 'Hermes LLM Wiki: Building a Self-Hosted AI Knowledge Base',

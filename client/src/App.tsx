@@ -77,6 +77,7 @@ const ResponsibleAIGuidePost = lazyWithRetry(() => import('./pages/public/blog/R
 const EntryLevelTech2026Post = lazyWithRetry(() => import('./pages/public/blog/EntryLevelTech2026Post'));
 const AIInterviewTransformationPost = lazyWithRetry(() => import('./pages/public/blog/AIInterviewTransformationPost'));
 const HermesLLMWikiPost = lazyWithRetry(() => import('./pages/public/blog/HermesLLMWikiPost'));
+const LLMWikiHermesAgentPost = lazyWithRetry(() => import('./pages/public/blog/LLMWikiHermesAgentPost'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -325,6 +326,7 @@ function App() {
         <Route path="/blog/entry-level-tech-2026" element={<EntryLevelTech2026Post />} />
         <Route path="/blog/ai-interview-transformation-2026" element={<AIInterviewTransformationPost />} />
         <Route path="/blog/hermes-llm-wiki" element={<HermesLLMWikiPost />} />
+        <Route path="/blog/llm-wiki-hermes-agent" element={<LLMWikiHermesAgentPost />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />
