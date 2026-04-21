@@ -56,12 +56,12 @@ export default function BlogPage() {
     {
       id: 31,
       slug: 'graphify-wiki-build',
-      title: 'I Built a Web-Based Wiki Through Telegram',
+      title: 'From Scattered Notes to a Living Knowledge Graph: Building LLM Wiki + Graphify',
       excerpt:
-        'It took a few restarts, some log-diving, and an AI agent on the other end of a chat thread. But it works — and it replaced Obsidian. A case study: FastAPI + Graphify + D3.js, $5/month, zero lines of human code.',
+        'My digital life was fragmented across Google Drive, OneNote, Apple Notes, Slack, and Brunch. I built a self-hosted wiki where an AI agent ingests anything and Graphify maps the connections — $5/month, zero lines of human code.',
       author: 'Jaehee Song',
-      date: '2026-04-20',
-      readTime: '8 min read',
+      date: '2026-04-21',
+      readTime: '10 min read',
       category: 'AI & Development',
     },
     {

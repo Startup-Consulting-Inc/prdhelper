@@ -1,40 +1,40 @@
 /**
  * Blog Post: I Built a Web-Based Wiki Through Telegram
- * Source: docs/graphify.html
+ * Source: docs/graphify.html + docs/llm-wiki-graphify.md
  */
 
 import { BlogPostLayout, type FaqItem } from '../../../components/blog/BlogPostLayout';
 
 const FAQ_ITEMS: FaqItem[] = [
   {
-    question: 'What is Graphify and what does it do in this system?',
+    question: 'What is the difference between LLM Wiki and standard RAG?',
     answer:
-      'Graphify is an open-source Python library that parses a corpus of Markdown files, extracts named entities and relationships, detects communities, and generates a graph.json file suitable for D3.js rendering. In this wiki, it runs after every ingestion — rebuilding the full knowledge graph so that new pages immediately appear as nodes with edges to semantically related content. It also auto-injects "Related (from graph)" sections directly into wiki pages.',
+      'Standard RAG (NotebookLM, ChatGPT uploads) re-derives answers from scratch every session — nothing accumulates. LLM Wiki compiles knowledge into discrete, cross-linked Markdown pages. When you add a new source, the LLM reads your existing wiki and updates related pages rather than creating isolated documents. Knowledge compounds instead of resetting.',
   },
   {
-    question: 'Why FastAPI and Vanilla JS instead of Next.js or a React SPA?',
+    question: 'What is Graphify and how does it differ from LLM-based linking?',
     answer:
-      'The goal was a system with no build step and minimal dependencies. Vanilla JS + the History API gives a functional SPA that still works in 2035 without npm audit nightmares. FastAPI handles async I/O without blocking during file parsing or LLM calls. The entire stack runs on a $5/month VPS with room to spare — a build pipeline would add complexity without adding value for a single-user tool.',
+      'Graphify is an open-source Python library that transforms documents into a queryable knowledge graph using a hybrid approach: Tree-sitter AST for code (deterministic, zero LLM tokens, 25 languages), LLMs for document semantics, and local Whisper transcription for audio/video. Unlike an LLM that infers "A relates to B," Graphify assigns typed, confidence-scored edges — EXTRACTED (100% certain), INFERRED (scored), or AMBIGUOUS (flagged for review). It also uses the Leiden algorithm for community detection.',
   },
   {
     question: 'What is a "God Node" in the knowledge graph?',
     answer:
-      'A God Node is any node whose degree (number of connections) exceeds mean_degree + 2*std_dev across the entire graph. In practice, these are concepts that appear referenced in many different articles — they act as bridges between clusters of knowledge. FastAPI, for example, emerged as a God Node bridging infrastructure notes and API design philosophy pages, a connection that was never manually tagged.',
+      'A God Node is any node whose degree (number of connections) exceeds mean_degree + 2×std_dev across the full graph. These are concepts that appear referenced across many different articles and act as bridges between knowledge clusters. In practice, they reveal unexpected structural importance — a shared utility function connecting an OAuth2 module and a PaymentGateway that no human noticed, for example.',
+  },
+  {
+    question: 'What is confidence scoring (EXTRACTED / INFERRED / AMBIGUOUS)?',
+    answer:
+      'Graphify tags every relationship with a confidence type. EXTRACTED means the relationship is structurally certain — Code A directly imports Code B. INFERRED means the relationship is semantically likely but not guaranteed, scored with a confidence value (e.g., 0.87). AMBIGUOUS means the relationship is unclear and is flagged for human review. This replaces the LLM\'s all-or-nothing linking with a trust gradient.',
   },
   {
     question: 'What does this cost to run per month?',
     answer:
-      'The Hetzner CX23 VPS (4GB RAM, 40GB SSD, ARM64) runs approximately €4–5/month. Caddy and Let\'s Encrypt are free. LLM costs via OpenRouter run $0.01–0.03 per ingestion using Kimi K2.5. For typical personal use — ingesting 10–20 items per week — monthly LLM spend stays under $5. Total: ~$5–10/month depending on usage.',
-  },
-  {
-    question: 'Why use a JSONL file for the job queue instead of Redis?',
-    answer:
-      'A JSON-lines file requires no separate process, no configuration, and survives server restarts without data loss. For a single-user wiki processing a few jobs per day, it is more than sufficient. The queue file is also human-readable — you can cat it, grep for stuck jobs, or manually clear bad entries with a text editor. Redis would add operational overhead for zero measurable benefit at this scale.',
+      'The Hetzner CX23 VPS (4GB RAM, 40GB SSD, ARM64) costs approximately €4–5/month. Caddy and Let\'s Encrypt are free. LLM API calls via OpenRouter cost $0.01–0.03 per ingestion with Kimi K2.5. For typical personal use — 10–20 ingestions per week — total monthly cost stays under $10. The SHA256 cache in Graphify means unchanged files are never re-processed, keeping token costs low as the wiki grows.',
   },
   {
     question: 'Did you write any of the code yourself?',
     answer:
-      'Zero lines. The entire codebase — FastAPI backend, Vanilla JS frontend, Caddy configuration, Graphify integration, systemd service file — was written by Hermes Agent via Telegram. The human role was diagnosis and direction: reading logs when things hung, describing symptoms, and asking better questions. That division of labor — agent handles implementation, human handles clarity — is the real lesson of the build.',
+      'Zero lines. The entire codebase — FastAPI backend, Vanilla JS SPA, Caddy configuration, Graphify integration, systemd service file — was written by Hermes Agent via Telegram. The human role was diagnosis and direction: reading logs when the Graphify worker hung, describing error traces, and asking better questions when things broke. The agent handled implementation; I handled clarity.',
   },
 ];
 
@@ -54,12 +54,12 @@ export default function GraphifyWikiBuildPost() {
 
   return (
     <BlogPostLayout
-      title="I Built a Web-Based Wiki Through Telegram"
+      title="From Scattered Notes to a Living Knowledge Graph: Building LLM Wiki + Graphify"
       author="Jaehee Song"
-      date="2026-04-20"
-      readTime="8 min read"
+      date="2026-04-21"
+      readTime="10 min read"
       category="AI & Development"
-      excerpt="It took a few restarts, some log-diving, and an AI agent on the other end of a chat thread. But it works — and it replaced Obsidian. A case study: FastAPI + Graphify + D3.js, $5/month, zero lines of human code."
+      excerpt="My digital life was fragmented across Google Drive, OneNote, Apple Notes, Slack, and Brunch. I built a self-hosted wiki where an AI agent ingests anything and Graphify maps the connections — $5/month, zero lines of human code."
       slug="graphify-wiki-build"
       coverImage="GW"
       coverGradient="from-blue-700 via-cyan-600 to-teal-500"
@@ -85,38 +85,265 @@ export default function GraphifyWikiBuildPost() {
         ))}
       </div>
 
-      <h2>The Starting Point: A Gist and a Chat Thread</h2>
-
-      <p>I started with a gist and a Telegram chat.</p>
-
       <p>
-        Andrej Karpathy published a simple pattern for an LLM wiki — a markdown-based knowledge base
-        where you feed sources to an LLM and let it write structured notes. It resonated with me
-        immediately. I've used Obsidian for years, but I was tired of the sync dance between
-        devices, the plugin dependency, the feeling that my notes were locked in a desktop app that
-        didn't quite fit how I work anymore.
+        We live in an age of infinite information, but our tools for managing it are fundamentally
+        broken.
       </p>
 
       <p>
-        I wanted a web version. Something I could access from any browser. Something that lived on a
-        server I controlled, not in a proprietary sync chain. But I didn't want to spend weekends
-        writing CRUD endpoints and debugging CSS.
+        My digital life is a fragmented mess. Documents are scattered across Google Drive, emails,
+        Microsoft OneNote, Apple Notes, Samsung Notes, Slack threads, Medium articles, and Brunch
+        posts. When I need to find a specific concept, I don't know where to look. Information
+        duplicates itself, goes outdated, or simply gets lost in the noise.
       </p>
 
       <p>
-        So I <strong>installed Hermes agents on my local machine, set up a Telegram connection, and
-        started asking.</strong>
+        I needed a solution. I found it in Andrej Karpathy's{' '}
+        <a
+          href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 underline"
+        >
+          LLM Wiki
+        </a>{' '}
+        concept. I implemented it locally using Obsidian, and it worked beautifully. But there was
+        a catch: <strong>it was trapped on my laptop.</strong>
       </p>
+
+      <p>
+        The easiest fix was Obsidian Sync at $5/month. But without stable income right now, a
+        recurring subscription is a luxury I can't justify.
+      </p>
+
+      <p>
+        So I built a web version. I provisioned a cheap Linux server (Hetzner CX23), set up Hermes
+        agents via Telegram, and iteratively instructed the AI to build a web-based LLM Wiki. It
+        worked — I had a FastAPI + vanilla JS SPA to ingest data and read my wiki. But something was
+        missing:{' '}
+        <strong>there were no visual connections between the documents.</strong> It was just a fancy
+        text database.
+      </p>
+
+      <p>
+        Then I discovered <strong>Graphify</strong>. By integrating it into my LLM Wiki, I didn't
+        just add a feature — I evolved scattered notes into a connected, visual, living knowledge
+        network.
+      </p>
+
+      <h2>What Is LLM Wiki?</h2>
+
+      <p>
+        LLM Wiki is a paradigm shift from "saving files" to "compiling knowledge."
+      </p>
+
+      <p>
+        Traditional note-taking apps treat a document as a bucket of text. LLM Wiki treats a
+        document as raw material to be distilled into atomic concepts. When you feed a URL, PDF, or
+        text file into the system, it follows a strict three-layer architecture:
+      </p>
+
+      <div className="not-prose overflow-x-auto my-8 border border-gray-200 dark:border-gray-700 rounded-xl">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
+              {['Layer', 'Purpose', 'What Lives Here'].map((h) => (
+                <th
+                  key={h}
+                  className="text-left px-4 py-3 font-mono text-xs text-gray-400 uppercase tracking-wider"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+            {[
+              ['raw/ (Immutable)', 'Original source material saved exactly as it was. You never edit this.', 'PDFs, scraped HTML, uploaded files'],
+              ['wiki/ (Entities & Concepts)', 'The LLM reads raw files and breaks them into discrete markdown files.', 'entities/, concepts/, comparisons/'],
+              ['SCHEMA.md', 'The organizational logic that ties it all together.', 'Ontology rules, naming conventions'],
+            ].map(([layer, purpose, what]) => (
+              <tr key={layer} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                <td className="px-4 py-3 font-mono text-xs text-blue-500 dark:text-blue-400">{layer}</td>
+                <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{purpose}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{what}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Instead of reading a 10-page PDF to find one concept, the LLM has already extracted that
+        concept into its own standalone wiki page, cross-referenced with everything else. It is an
+        Obsidian-compatible vault running on a cheap web server, accessible from any device.
+      </p>
+
+      <div className="not-prose bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5 my-6">
+        <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-1">The limitation</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          LLM Wiki is brilliant at text synthesis, but it relies solely on the LLM to guess how
+          concepts relate. It's linear. It lacks structural certainty and visual context.
+        </p>
+      </div>
+
+      <h2>What Is Graphify?</h2>
+
+      <p>
+        Graphify is an open-source Python library that transforms unstructured data — documents,
+        code, images, audio — into a queryable <strong>knowledge graph</strong>: a network of Nodes
+        (concepts) and Edges (relationships).
+      </p>
+
+      <p>
+        While LLM Wiki uses an AI to "read and summarize," Graphify uses a hybrid approach to "map
+        and connect":
+      </p>
+
+      <ul>
+        <li>
+          <strong>For Code:</strong> Tree-sitter AST (Abstract Syntax Trees) extracts functions,
+          classes, and imports across 25 languages. This is <em>deterministic</em> — no LLM tokens
+          wasted, zero hallucinations.
+        </li>
+        <li>
+          <strong>For Docs/Images/Videos:</strong> LLMs and local transcription (faster-whisper)
+          extract semantic relationships.
+        </li>
+        <li>
+          <strong>Confidence Scoring:</strong> Relationships are typed —{' '}
+          <code>EXTRACTED</code> (100% certain), <code>INFERRED</code> (scored by confidence), or{' '}
+          <code>AMBIGUOUS</code> (flagged for human review).
+        </li>
+        <li>
+          <strong>Community Detection:</strong> The Leiden algorithm automatically clusters related
+          nodes into "neighborhoods" of knowledge.
+        </li>
+      </ul>
+
+      <div className="not-prose overflow-x-auto my-8 border border-gray-200 dark:border-gray-700 rounded-xl">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
+              {['Feature', 'Standard LLM (Basic Wiki)', 'Graphify Enhancement'].map((h) => (
+                <th
+                  key={h}
+                  className="text-left px-4 py-3 font-mono text-xs text-gray-400 uppercase tracking-wider"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+            {[
+              ['Code Parsing', 'Reads it like English text. Costly, prone to missing structural links.', 'Tree-sitter AST: Extracts exact call graphs, imports, classes (25 languages). Zero LLM tokens.'],
+              ['Relationships', 'Implicit wikilinks based on text similarity.', 'Explicit, typed edges (calls, depends_on, contradicts) with confidence scores.'],
+              ['Multimodal', 'Text and basic PDF only.', 'Images (Vision AI), Audio/Video (Local Whisper transcription).'],
+              ['Update Efficiency', 'Re-processes everything on each rebuild.', 'SHA256 Cache: Only processes new or changed files. 71.5× fewer tokens per query.'],
+            ].map(([feat, llm, graph]) => (
+              <tr key={feat} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{feat}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{llm}</td>
+                <td className="px-4 py-3 text-emerald-700 dark:text-emerald-300">{graph}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>What Does the Integration Bring?</h2>
+
+      <p>
+        The core philosophy: <strong>don't replace the wiki — augment it with a graph layer.</strong>{' '}
+        The LLM Wiki remains the human-readable frontend. Graphify becomes the structural, analytical
+        backend.
+      </p>
+
+      <h3>1. Multimodal Ingestion on Steroids</h3>
+
+      <p>
+        The wiki used to only handle URLs and text. Now I can drop a GitHub repo URL, three UI
+        screenshots, and a YouTube conference talk into the web portal simultaneously.
+      </p>
+      <ul>
+        <li>Graphify clones the repo and maps the code architecture via AST.</li>
+        <li>It transcribes the YouTube video locally with faster-whisper.</li>
+        <li>
+          It passes all of this to the LLM Wiki to generate highly specific, code-aware wiki pages.
+        </li>
+      </ul>
+
+      <h3>2. God Nodes and Surprising Connections</h3>
+
+      <p>
+        Graphify maps the mathematical centrality of the network, identifying{' '}
+        <strong>God Nodes</strong> — concepts that connect to the highest number of other concepts
+        (threshold: mean_degree + 2×std_dev). It also detects{' '}
+        <strong>Surprising Connections</strong> — two distant concepts linked through an unexpected
+        path.
+      </p>
+
+      <div className="not-prose bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-5 my-4">
+        <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-1">Example</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          Graphify discovered that an <code>OAuth2</code> module and a{' '}
+          <code>PaymentGateway</code> module were tightly coupled through a shared utility function
+          that no human had noticed. That connection never would have appeared in the wiki's
+          manually-written wikilinks.
+        </p>
+      </div>
+
+      <h3>3. Graph-Powered Cross-Referencing</h3>
+
+      <p>
+        When I open a wiki page now, a new section is auto-injected at the bottom — pulling hard,
+        structured data from the graph rather than relying on the LLM's memory:
+      </p>
+
+      <div className="not-prose bg-gray-900 dark:bg-gray-950 rounded-xl p-6 my-4 font-mono text-xs overflow-x-auto">
+        <pre className="text-gray-300 leading-relaxed">{`## Related (from Graphify)
+- [[UserManager Class]] — \`EXTRACTED\` — imports_from
+- [[Auth Best Practices]] — \`INFERRED\` (0.87) — semantically_similar_to
+- Part of community: **Authentication Cluster** (Cluster #3)`}</pre>
+      </div>
+
+      <h3>4. Interactive Graph Explorer</h3>
+
+      <p>
+        A "Graph" tab in the web UI renders an interactive, force-directed network map of the entire
+        knowledge base.
+      </p>
+      <ul>
+        <li>Nodes are color-coded by community.</li>
+        <li>Edges are colored by confidence (Green = Extracted, Yellow = Inferred).</li>
+        <li>Click a node to jump to its wiki page.</li>
+        <li>
+          Type <em>"Show me the path from [Concept A] to [Concept B]"</em> to see the exact chain
+          of connections.
+        </li>
+      </ul>
 
       <h2>System Architecture</h2>
 
       <p>
-        What emerged after a few iterations was a three-layer architecture designed for minimal
-        infrastructure and maximum longevity. No build tools. No managed databases. Just files,
-        processes, and a reverse proxy.
+        Here is how data flows from a scattered piece of information into a connected knowledge node:
       </p>
 
-      {/* Architecture diagram */}
+      <div className="not-prose my-8">
+        <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-900">
+          <img
+            src="/system-archtect.png"
+            alt="LLM Wiki + Graphify system architecture — showing the SPA web UI, FastAPI backend with Extractor → Graphify Pipeline → LLM Synthesis flow, graph.json knowledge graph, and the Wiki Markdown Vault with raw/, wiki/, and graphify-out/ directories"
+            className="w-full"
+          />
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-3 italic">
+          Three layers: the SPA web UI, the FastAPI engine (Extractor → Graphify → LLM Synthesis), and the Markdown vault.
+        </p>
+      </div>
+
+      {/* Architecture layer boxes */}
       <div className="not-prose my-8 space-y-0">
         {[
           {
@@ -190,115 +417,6 @@ export default function GraphifyWikiBuildPost() {
         ))}
       </div>
 
-      {/* Tech stack table */}
-      <div className="not-prose overflow-x-auto my-8 border border-gray-200 dark:border-gray-700 rounded-xl">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-              {['Layer', 'Technology', 'Purpose', 'Why It Was Chosen'].map((h) => (
-                <th
-                  key={h}
-                  className="text-left px-4 py-3 font-mono text-xs text-gray-400 uppercase tracking-wider"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-            {[
-              ['Frontend', 'Vanilla JS + D3.js v7', 'SPA + Graph Viz', 'No build step. Still works in 2035.'],
-              ['Proxy', 'Caddy', 'HTTPS + Auth', 'Auto certs. 10-line config.'],
-              ['Backend', 'FastAPI + Uvicorn', 'API + Async', 'Python-native. Handles I/O without blocking.'],
-              ['Queue', 'JSON-lines file', 'Job processing', 'No Redis. Human-readable. Survives restarts.'],
-              ['Storage', 'Local Filesystem', 'Markdown + Assets', 'Zero vendor lock-in. `cat` your notes.'],
-              ['LLM', 'Kimi K2.5 (OpenRouter)', 'Content Synthesis', 'Structured JSON output. Cross-linking logic.'],
-            ].map(([layer, tech, purpose, why]) => (
-              <tr key={layer} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                <td className="px-4 py-3 font-mono text-xs text-blue-500 dark:text-blue-400">{layer}</td>
-                <td className="px-4 py-3 text-gray-900 dark:text-gray-100">{tech}</td>
-                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{purpose}</td>
-                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{why}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <h2>The Ingestion Pipeline: From URL to Knowledge Graph</h2>
-
-      <p>
-        The system doesn't just store files — it understands them. Here's exactly what happens when
-        you paste a URL into the wiki.
-      </p>
-
-      <div className="not-prose my-8 space-y-0">
-        {[
-          {
-            n: '1',
-            title: 'Input & Extraction',
-            desc: 'URL fetched via httpx + BeautifulSoup. PDFs through PyMuPDF. DOCX via python-docx. Everything returns clean text within 30 seconds.',
-            tag: 'Timeout: 30s',
-          },
-          {
-            n: '2',
-            title: 'Context Assembly',
-            desc: 'Before calling the LLM, the system reads your existing wiki pages. It knows what you already know — preventing duplicate concepts and maintaining referential integrity.',
-            tag: 'Reads: SCHEMA.md + index + existing pages',
-          },
-          {
-            n: '3',
-            title: 'LLM Synthesis',
-            desc: 'Kimi K2.5 receives a structured prompt: schema conventions, existing pages for cross-linking, source text (first 80KB), and metadata. It acts as a librarian, not a search engine.',
-            tag: 'Model: kimi-k2.5 via OpenRouter',
-          },
-          {
-            n: '4',
-            title: 'Structured Output',
-            desc: 'The model returns JSON defining: source_page, entities[], concepts[], analyses[], plus log entries and index updates.',
-            tag: 'Validated via Pydantic',
-          },
-          {
-            n: '5',
-            title: 'File Writing',
-            desc: 'Markdown files land in wiki/sources/, wiki/entities/, wiki/concepts/ — all with [[WikiLinks]] and Obsidian-compatible structure.',
-            tag: 'Updates: index.md + log.md + overview.md',
-          },
-          {
-            n: '6',
-            title: 'Graph Rebuild',
-            desc: 'Graphify re-parses the entire corpus. Extracts entities, relationships, and communities. Generates graph.json for D3 rendering and auto-injects "Related (from graph)" sections into wiki pages.',
-            tag: 'Timeout: 300s for full rebuild',
-          },
-          {
-            n: '7',
-            title: 'Interactive Visualization',
-            desc: 'Open wiki.ai-biz.app/graph. D3.js force simulation renders nodes sized by degree, colored by community, with edges labeled by relationship type. God Nodes appear as bridges between distant clusters.',
-            tag: 'God Node threshold: mean_degree + 2×std_dev',
-          },
-        ].map((step, i, arr) => (
-          <div key={step.n} className="flex gap-0">
-            <div className="flex flex-col items-center w-12 shrink-0">
-              <div className="w-9 h-9 rounded-full border-2 border-blue-400 dark:border-blue-500 bg-white dark:bg-gray-900 flex items-center justify-center font-mono font-bold text-sm text-blue-500 dark:text-blue-400 z-10">
-                {step.n}
-              </div>
-              {i < arr.length - 1 && (
-                <div className="w-px flex-1 bg-gray-200 dark:bg-gray-700 mt-1" />
-              )}
-            </div>
-            <div className={`flex-1 pl-4 ${i < arr.length - 1 ? 'pb-7' : ''}`}>
-              <div className="font-semibold text-gray-900 dark:text-white text-sm mb-1">
-                {step.title}
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{step.desc}</p>
-              <span className="inline-block font-mono text-xs px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-emerald-600 dark:text-emerald-400">
-                {step.tag}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
       <h2>The Build: From Telegram to Production</h2>
 
       <p>
@@ -354,7 +472,6 @@ Build a FastAPI app for a web-based LLM Wiki.
         gateway itself needed a restart before the agent could see the updated state.
       </p>
 
-      {/* Integration table */}
       <div className="not-prose overflow-x-auto my-8 border border-gray-200 dark:border-gray-700 rounded-xl">
         <table className="w-full text-sm">
           <thead>
@@ -392,8 +509,7 @@ Build a FastAPI app for a web-based LLM Wiki.
         I reset the session a couple of times. Restarted the gateway. Cleared stuck jobs manually.
         Each time, I'd paste the log snippet into Telegram, describe what I saw, and ask the agent
         to fix it. Slowly, the integration hardened. Timeouts got segmented:{' '}
-        <strong>10s for queries, 30s for pathfinding, 300s for full rebuilds.</strong> Error
-        handling improved. The worker learned to recover from partial failures.
+        <strong>10s for queries, 30s for pathfinding, 300s for full rebuilds.</strong>
       </p>
 
       <p>
@@ -445,8 +561,7 @@ Build a FastAPI app for a web-based LLM Wiki.
       <p>
         Security is intentionally minimal for the use case: TLS 1.3 via Caddy, HTTP Basic Auth with
         bcrypt hashes, port 8080 restricted to admin IP only. No session management. No JWT
-        complexity. No CORS because the SPA and API share the same origin. It's not enterprise
-        security — it's <em>appropriate</em> security.
+        complexity. It's not enterprise security — it's <em>appropriate</em> security.
       </p>
 
       <h2>When the Graph Finally Worked</h2>
@@ -461,8 +576,14 @@ Build a FastAPI app for a web-based LLM Wiki.
         I opened <strong>wiki.ai-biz.app/graph</strong>. The D3.js force simulation pulled nodes
         into view. "Agentic AI" connected to "LLM orchestration," which connected to a note I'd
         ingested weeks earlier about autonomous systems. The node for "FastAPI" sat in the center of
-        a cluster, bridging infrastructure notes and API design philosophy. I hadn't linked those
-        manually. The graph found the bridge.
+        a cluster — a God Node bridging infrastructure notes and API design philosophy. I hadn't
+        linked those manually. Graphify found the bridge through structural analysis alone.
+      </p>
+
+      <p>
+        I typed: <em>"Show me the path from OAuth2 to PaymentGateway."</em> The graph traced it
+        through a shared utility function that neither module's documentation mentioned. That
+        connection existed structurally — in the code — but was invisible in text.
       </p>
 
       <p>
@@ -480,23 +601,17 @@ Build a FastAPI app for a web-based LLM Wiki.
         </p>
       </div>
 
-      <h2>What I Actually Built</h2>
+      <h2>Implementation Roadmap</h2>
 
       <p>
-        Now I have a web-based LLM wiki with <strong>no Obsidian dependency</strong>. I can ingest a
-        URL from my phone, let Kimi K2.5 synthesize it into structured markdown, and watch the
-        knowledge graph update in real time. I can search across everything. I can follow
-        connections I never would have tagged manually. And I can do it from any device with a
-        browser, because the whole thing lives at <code>wiki.ai-biz.app</code> on a server I
-        control.
+        Building this isn't a massive monolithic task — it breaks down into highly valuable phases:
       </p>
 
-      {/* Feature status table */}
       <div className="not-prose overflow-x-auto my-8 border border-gray-200 dark:border-gray-700 rounded-xl">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-              {['Feature', 'How It Works', 'Status'].map((h) => (
+              {['Phase', 'Goal', 'Effort', 'Key Deliverable'].map((h) => (
                 <th
                   key={h}
                   className="text-left px-4 py-3 font-mono text-xs text-gray-400 uppercase tracking-wider"
@@ -508,56 +623,42 @@ Build a FastAPI app for a web-based LLM Wiki.
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
             {([
-              ['URL Ingestion', 'Fetch + extract + LLM synthesis in ~30s'],
-              ['File Upload', 'PDF, DOCX, TXT → structured markdown'],
-              ['Wiki Browser', 'SPA with sidebar tree, search, breadcrumbs'],
-              ['Knowledge Graph', 'D3.js force graph with God Node detection'],
-              ['Auto Cross-Linking', 'LLM injects [[WikiLinks]] during synthesis'],
-              ['Graph Sync', 'Auto-injects "Related (from graph)" sections'],
-              ['HTTPS Access', 'Caddy + Let\'s Encrypt at wiki.ai-biz.app'],
-              ['Mobile Access', 'Responsive SPA, no app install required'],
-            ] as const).map(([feature, how]) => (
-              <tr key={feature} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
-                <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{feature}</td>
-                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{how}</td>
-                <td className="px-4 py-3">{statusBadge('ok', 'Active')}</td>
+              ['1. Foundation', 'Wire Graphify into the backend worker', '2–3 hrs', 'Auto-generates graph.json and GRAPH_REPORT.md on every ingest'],
+              ['2. Cross-Reference', 'Sync Graph data ↔ Wiki text', '3–4 hrs', 'Wiki pages dynamically show "Related from Graph" sections'],
+              ['3. Visualization', 'Web UI Graph Tab', '4–6 hrs', 'Interactive vis.js network map in the browser'],
+              ['4. Multimodal', 'Expand upload types', '3–4 hrs', 'Enable ingestion of code repos, images, and video/audio'],
+              ['5. Agent Query', 'Hermes/Telegram integration', '2–3 hrs', 'Ask the Telegram bot "How does X connect to Y?" and it queries the graph'],
+            ] as const).map(([phase, goal, effort, deliverable]) => (
+              <tr key={phase} className="hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                <td className="px-4 py-3 font-semibold text-blue-600 dark:text-blue-400">{phase}</td>
+                <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{goal}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400">{effort}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{deliverable}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Tag list */}
-      <div className="not-prose flex flex-wrap gap-2 my-6">
-        {['FastAPI', 'Vanilla JS', 'D3.js', 'Graphify', 'Kimi K2.5', 'OpenRouter', 'Caddy', 'Self-Hosted', 'Hermes Agent', 'Telegram'].map(
-          (tag) => (
-            <span
-              key={tag}
-              className="font-mono text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
-            >
-              {tag}
-            </span>
-          )
-        )}
-      </div>
-
-      <h2>The Real Lesson</h2>
-
-      <p>The agent built the code. I built the clarity.</p>
+      <h2>The Result</h2>
 
       <p>
-        Every time the integration hung, I had to get specific. I couldn't say "it's broken." I had
-        to paste the log, point to the line, describe the symptom. That specificity forced me to
-        understand the system better than I would have if everything had worked on the first try.
-        The agent handled the implementation. I handled the diagnosis. Together, we got to something
-        solid.
+        For the cost of a cheap Linux server ($5/month total, replacing multiple SaaS
+        subscriptions), I have turned my fragmented digital life into a unified, searchable,
+        visually connected brain.
       </p>
 
       <p>
-        If you're hesitating on a project like this because you don't know FastAPI or you've never
-        configured Caddy, consider this:{' '}
-        <strong>I didn't either.</strong> I just knew what I wanted my wiki to do, and I kept asking
-        better questions when it didn't.
+        The LLM Wiki solves the problem of <em>understanding</em> scattered documents. Graphify
+        solves the problem of <em>connecting</em> them. Together, they form a Personal Knowledge
+        Management system that actually works.
+      </p>
+
+      <p>
+        If your notes feel like a graveyard of forgotten ideas, the problem is not that you are bad
+        at organizing. The problem is that your tools treat documents as{' '}
+        <strong>files</strong> instead of <strong>nodes in a network</strong>. Build the network.
+        The knowledge will find its own way home.
       </p>
 
       <div className="not-prose bg-gray-50 dark:bg-gray-800/60 border-l-4 border-emerald-400 dark:border-emerald-500 rounded-r-xl px-6 py-5 my-8">
@@ -566,6 +667,19 @@ Build a FastAPI app for a web-based LLM Wiki.
           a matter of sending the right message."
         </p>
         <p className="font-mono text-xs text-gray-400 dark:text-gray-500 mt-3">— The takeaway</p>
+      </div>
+
+      {/* Tag list */}
+      <div className="not-prose flex flex-wrap gap-2 my-6">
+        {['FastAPI', 'Vanilla JS', 'D3.js', 'Graphify', 'Kimi K2.5', 'OpenRouter', 'Caddy',
+          'Self-Hosted', 'Hermes Agent', 'Telegram', 'Tree-sitter', 'Knowledge Graph'].map((tag) => (
+          <span
+            key={tag}
+            className="font-mono text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
+          >
+            {tag}
+          </span>
+        ))}
       </div>
     </BlogPostLayout>
   );
