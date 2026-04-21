@@ -4,6 +4,7 @@
  */
 
 import { BlogPostLayout, type FaqItem } from '../../../components/blog/BlogPostLayout';
+import systemArchitectImg from '../../../assets/system-archtect.png';
 
 const FAQ_ITEMS: FaqItem[] = [
   {
@@ -333,7 +334,7 @@ export default function GraphifyWikiBuildPost() {
       <div className="not-prose my-8">
         <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-900">
           <img
-            src="/system-archtect.png"
+            src={systemArchitectImg}
             alt="LLM Wiki + Graphify system architecture — showing the SPA web UI, FastAPI backend with Extractor → Graphify Pipeline → LLM Synthesis flow, graph.json knowledge graph, and the Wiki Markdown Vault with raw/, wiki/, and graphify-out/ directories"
             className="w-full"
           />
