@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anthropic API or OpenRouter for Claude Opus: An Honest Trade-off — AI Developer Guide</title>
+<meta name="description" content="When to use Anthropic's direct API for Claude Opus, and when OpenRouter wins. A practical guide with real pricing, latency data, and feature comparisons — April 2026.">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-muted: #7a7a7a;
+    --line: #e8e6df;
+    --line-soft: #f0eeea;
+    --bg: #fafaf7;
+    --bg-card: #ffffff;
+    --bg-highlight: #fff8e6;
+    --bg-code: #f5f3ed;
+    --accent-1: #534AB7; /* purple — Anthropic side */
+    --accent-2: #D85A30; /* coral — OpenRouter side */
+    --accent-3: #1D9E75; /* teal — winner/recommendation */
+    --accent-warn: #BA7517;
+    --serif: Georgia, 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    --mono: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 24px 96px; }
+  .wide { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+  header.hero {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    color: var(--accent-1);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: 42px;
+    line-height: 1.15;
+    font-weight: 500;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 19px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 22px;
+    font-weight: 400;
+  }
+  .byline {
+    font-size: 13px;
+    color: var(--ink-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
+  .byline .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-muted); }
+  h2 {
+    font-family: var(--serif);
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 500;
+    margin: 56px 0 16px;
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 36px 0 10px;
+    color: var(--ink);
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 20px 0 6px;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  p { margin: 0 0 18px; font-size: 17px; }
+  .lead { font-size: 19px; line-height: 1.6; color: var(--ink); }
+  .lead::first-letter {
+    font-family: var(--serif);
+    font-size: 64px;
+    float: left;
+    line-height: 0.85;
+    padding: 8px 10px 0 0;
+    color: var(--accent-1);
+    font-weight: 500;
+  }
+  a { color: var(--accent-1); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--accent-2); }
+  code {
+    font-family: var(--mono);
+    font-size: 14px;
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+  }
+  pre {
+    background: #2b2b2b;
+    color: #f0f0f0;
+    padding: 18px 20px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin: 20px 0;
+  }
+  pre code { background: transparent; border: none; padding: 0; color: inherit; font-size: inherit; }
+  ul, ol { margin: 0 0 20px; padding-left: 26px; }
+  li { margin-bottom: 8px; font-size: 17px; }
+  blockquote {
+    border-left: 3px solid var(--accent-1);
+    padding: 4px 0 4px 22px;
+    margin: 24px 0;
+    font-family: var(--serif);
+    font-size: 21px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 28px 0; border: 1px solid var(--line); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th { text-align: left; padding: 12px 14px; background: var(--bg-code); font-weight: 600; border-bottom: 1px solid var(--line); font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-soft); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.pos { color: var(--accent-3); font-weight: 500; }
+  td.neg { color: var(--accent-2); }
+
+  /* Callouts */
+  .callout {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent-1);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin: 28px 0;
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+  .callout.tip { border-left-color: var(--accent-3); }
+  .callout.warn { border-left-color: var(--accent-warn); background: var(--bg-highlight); }
+  .callout.pitfall { border-left-color: var(--accent-2); }
+  .callout h4 { margin: 0 0 8px; font-size: 13px; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* Chart containers */
+  .chart-figure {
+    margin: 32px 0;
+    padding: 20px 22px 22px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .chart-figure .caption { font-size: 12.5px; color: var(--ink-muted); margin-top: 10px; font-style: italic; }
+  .chart-figure h4 { margin: 0 0 4px; font-size: 15px; text-transform: none; letter-spacing: 0; }
+  .chart-figure .sub { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; }
+  .chart-box { position: relative; width: 100%; height: 300px; }
+  .chart-box.tall { height: 380px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend .sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+  /* Decision/comparison cards */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+  @media (max-width: 640px) { .card-grid { grid-template-columns: 1fr; } }
+  .vcard {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 22px;
+    position: relative;
+  }
+  .vcard.pick-anthropic { border-top: 4px solid var(--accent-1); }
+  .vcard.pick-openrouter { border-top: 4px solid var(--accent-2); }
+  .vcard h3 { margin: 0 0 6px; font-size: 18px; }
+  .vcard .tag { display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; font-weight: 600; margin-bottom: 12px; }
+  .vcard.pick-anthropic .tag { background: #EEEDFE; color: #3C3489; }
+  .vcard.pick-openrouter .tag { background: #FAECE7; color: #712B13; }
+  .vcard ul { margin-bottom: 0; }
+  .vcard li { font-size: 14.5px; line-height: 1.5; }
+
+  /* Illustrated diagrams */
+  .diagram { margin: 32px 0; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  /* TL;DR box */
+  .tldr {
+    background: linear-gradient(180deg, #EEEDFE 0%, #F7F6FD 100%);
+    border: 1px solid #CECBF6;
+    border-radius: 8px;
+    padding: 22px 26px;
+    margin: 0 0 40px;
+  }
+  .tldr h4 { margin: 0 0 10px; font-size: 12px; color: #3C3489; }
+  .tldr p { margin: 0; font-size: 16px; line-height: 1.55; color: #26215C; }
+  .tldr strong { color: #1a1a1a; }
+
+  /* Section intro */
+  .section-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-muted);
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink-muted);
+  }
+  footer p { font-size: 14px; margin-bottom: 8px; }
+  footer a { color: var(--ink-soft); }
+
+  /* Pull-number */
+  .pull-stat { display: inline-block; background: var(--bg-code); padding: 1px 8px; border-radius: 3px; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 24px 0; }
+  .stat-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+  .stat-card .label { font-size: 12px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-card .value { font-size: 26px; font-weight: 500; line-height: 1.1; font-family: var(--serif); }
+  .stat-card .note { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">AI Developer Guide · The Infrastructure Series</div>
+  <h1>Anthropic API or OpenRouter for Claude Opus: an honest trade-off</h1>
+  <p class="subtitle">Both paths reach the same model. The question is what you give up to get there — and one of them quietly eats your cache hit rate.</p>
+  <div class="byline">
+    <span>By Jaehee Song</span>
+    <span class="dot"></span>
+    <span>April 22, 2026</span>
+    <span class="dot"></span>
+    <span>13 min read</span>
+  </div>
+</header>
+
+<div class="tldr">
+  <h4>THE SHORT VERSION</h4>
+  <p>Use <strong>Anthropic's API directly</strong> when you need prompt caching that actually sticks, extended thinking, Fast Mode, or zero markup on high-volume workloads. Use <strong>OpenRouter</strong> when you're prototyping across models, need one key for a small team, want automatic failover, or haven't decided whether Opus is the right model yet. For a production agent that sends the same 40K-token system prompt thousands of times a month — go direct. For everything else, OpenRouter is probably fine.</p>
+</div>
+
+<p class="lead">Last month I ran an experiment. I took a Hermes Agent I'd been building — the kind that loops through tool calls, burns through 40,000-token contexts, and makes hundreds of requests in an afternoon — and I routed it through Claude Opus 4.6 for one day. Just one day. The bill came back at <span class="pull-stat">$19.81</span>. That was 65% of my entire 20-day OpenRouter spend, done in a single afternoon.</p>
+
+<p>Was Opus worth it? Sometimes. Was I using it correctly? No, not really. But the bigger question that came out of that experiment is the one I want to answer in this post: when you've decided you want Claude Opus — and you will, eventually, because it's genuinely the best model for certain hard problems — should you call Anthropic's API directly, or route through OpenRouter?</p>
+
+<p>The honest answer depends on what you're optimizing for. Let me show you the trade-offs with real numbers.</p>
+
+<h2><span class="section-num">01</span>The two paths look identical on paper</h2>
+
+<p>Here's the thing people don't realize when they first compare these two options: <strong>the token prices are the same</strong>. OpenRouter doesn't mark up inference. You pay $5 per million input tokens and $25 per million output tokens either way. That's not a typo — OpenRouter makes its money on a 5.5% credit-purchase fee, not on a per-token cut.</p>
+
+<p>So if cost were the only thing that mattered, this would be a very short blog post. But cost isn't the only thing that matters. Here's a clean side-by-side of what you're actually getting on each path:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>What you get</th>
+      <th>Anthropic API (direct)</th>
+      <th>OpenRouter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Base price (Opus 4.6)</td>
+      <td class="num">$5 in / $25 out per MTok</td>
+      <td class="num">$5 in / $25 out per MTok</td>
+    </tr>
+    <tr>
+      <td>Platform fee</td>
+      <td class="pos">None</td>
+      <td>5.5% on credit top-ups</td>
+    </tr>
+    <tr>
+      <td>Prompt caching</td>
+      <td class="pos">Full control, up to 90% savings</td>
+      <td>Works, but passthrough — harder to tune</td>
+    </tr>
+    <tr>
+      <td>Batch API (50% off)</td>
+      <td class="pos">Yes, native</td>
+      <td>Not available for Anthropic models</td>
+    </tr>
+    <tr>
+      <td>Fast Mode (Opus 4.7)</td>
+      <td class="pos">Yes, 2.5x faster at 6x price</td>
+      <td>Yes, but auto-routes to Anthropic first-party</td>
+    </tr>
+    <tr>
+      <td>Extended thinking</td>
+      <td class="pos">Full support</td>
+      <td>Supported via <code>reasoning</code> parameter</td>
+    </tr>
+    <tr>
+      <td>Automatic failover</td>
+      <td class="neg">No — you handle retries</td>
+      <td class="pos">Yes, routes across Bedrock/Vertex/1P</td>
+    </tr>
+    <tr>
+      <td>One key, many models</td>
+      <td class="neg">Claude only</td>
+      <td class="pos">290+ models, one key</td>
+    </tr>
+    <tr>
+      <td>Zero-completion insurance</td>
+      <td class="neg">You pay for failed attempts</td>
+      <td class="pos">Only pay for successful runs</td>
+    </tr>
+    <tr>
+      <td>Enterprise SSO / audit logs</td>
+      <td class="pos">Full enterprise plan</td>
+      <td class="pos">Available on Enterprise tier</td>
+    </tr>
+    <tr>
+      <td>Regional routing</td>
+      <td class="pos">Global, US, or region-specific</td>
+      <td>Enterprise and PAYG tiers only</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Already you can see the shape of the trade-off. Anthropic gives you more control over the thing you're paying for. OpenRouter gives you more flexibility across what you can reach.</p>
+
+<h3>The "one provider" problem nobody talks about</h3>
+
+<p>Here's a thing worth pointing out because it surprised me. OpenRouter's big marketing line is provider diversity — route across Bedrock, Vertex AI, Azure, and Anthropic first-party, get the best price automatically. For open-weight models like Kimi K2.5, that genuinely works. There are a dozen providers competing.</p>
+
+<p>For Claude Opus? Not really. Every single one of my 91 Opus calls went through Amazon Bedrock. Not some. Not most. All of them. The "marketplace of providers" I thought I was getting was actually one provider with one price. OpenRouter was adding a network hop, not a negotiation.</p>
+
+<div class="callout pitfall">
+<h4>THE INDIRECTION TRAP</h4>
+<p>For premium models like Opus, OpenRouter often has only one provider anyway. You're not getting fallback diversity — you're getting indirection. This isn't OpenRouter's fault; it's a function of how Anthropic licenses Opus to cloud partners. But it does mean the "one key for everything" value proposition weakens considerably the further you move upmarket.</p>
+</div>
+
+<h3>The pricing simulation that convinced me</h3>
+
+<p>I ran four realistic workloads through both billing paths using Anthropic's published rates ($5 per million input, $25 per million output, $0.50 per million cached read) and OpenRouter's effective rates on the same provider. Here's what came out:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Scenario</th>
+      <th class="num">Anthropic direct</th>
+      <th class="num">OpenRouter (Bedrock)</th>
+      <th class="num">Difference</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Small task (10K in, 2K out)</td>
+      <td class="num">$0.100</td>
+      <td class="num">$0.100</td>
+      <td class="num pos">$0.00</td>
+    </tr>
+    <tr>
+      <td>Medium doc (50K in, 8K out)</td>
+      <td class="num">$0.450</td>
+      <td class="num">$0.450</td>
+      <td class="num pos">$0.00</td>
+    </tr>
+    <tr>
+      <td>Large analysis (100K in, 15K out)</td>
+      <td class="num">$0.875</td>
+      <td class="num">$0.875</td>
+      <td class="num pos">$0.00</td>
+    </tr>
+    <tr>
+      <td>Agent loop (80K in, 3K out, 60K cached)</td>
+      <td class="num">$0.205</td>
+      <td class="num">$0.205</td>
+      <td class="num pos">$0.00</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The bars line up to the penny. For Opus specifically, you will not save money by switching from OpenRouter to Anthropic Direct. The savings live elsewhere — specifically, in how you structure your prompts and whether you're using features like caching and batch at all.</p>
+
+<h2><span class="section-num">02</span>The cache problem — where the real money hides</h2>
+
+<p>If you only read one section of this post, read this one. Prompt caching is where the pricing on Opus actually matters.</p>
+
+<p>Here's the setup: Claude Opus costs $5 per million input tokens. But a <em>cached</em> read costs $0.50 per million tokens — a 90% discount. If you're running an agent that re-sends the same 30,000-token system prompt and tool schema on every call, caching isn't a nice-to-have. It's the difference between a $200 bill and a $20 bill at the end of the month.</p>
+
+<div class="chart-figure">
+  <h4>What caching does to your Opus bill</h4>
+  <p class="sub">Same workload, same prompt, four different cache hit rates</p>
+  <div class="legend">
+    <span><span class="sw" style="background:#534AB7"></span>Fresh read ($5/MTok)</span>
+    <span><span class="sw" style="background:#AFA9EC"></span>Cached read ($0.50/MTok)</span>
+    <span><span class="sw" style="background:#D85A30"></span>Output ($25/MTok)</span>
+  </div>
+  <div class="chart-box"><canvas id="cacheChart"></canvas></div>
+  <p class="caption">Modeled on a typical agent workload: 40K input tokens per call, 500 output tokens, 1,000 calls per day. At 80% cache hits, you save roughly $144/day vs no caching. Over a month, that's more than $4,300.</p>
+</div>
+
+<p>Here's where the honest trade-off gets uncomfortable. Both paths support prompt caching. But the control you have over it is very different.</p>
+
+<p>On Anthropic's direct API, you add a single <code>cache_control</code> field at the top of your request. You decide what gets cached, for how long (5 minutes or 1 hour), and where the breakpoints sit. You see cache read tokens and cache write tokens as separate line items in your usage. You can tune it.</p>
+
+<p>On OpenRouter, caching happens automatically for supported models. That sounds nice — one less thing to configure. But it also means less visibility. The cache is being managed by the gateway layer on top of the provider, and if your request gets routed to a provider that handles caching differently than Anthropic's first-party endpoint, your hit rate can quietly collapse without anyone telling you.</p>
+
+<div class="callout warn">
+<h4>A REAL PITFALL</h4>
+<p>On my own OpenRouter data, I hit <strong>38.2% cache utilization</strong> on Claude Opus calls. On Kimi K2.5 through SiliconFlow I hit 48.5%. Anthropic's own docs quote cache savings of up to 90%. That 50-point gap isn't the model's fault — it's what happens when you can't see or control where your cache breakpoints are landing.</p>
+</div>
+
+<h3>What a 0% cache hit actually looks like</h3>
+
+<p>Let me make this concrete with one evening from my logs. On April 8, between 23:00 and 23:35, my deep-researcher agent made 15 Opus calls in a row. The prompt size ranged from 87K to 100K tokens each. The cache hit rate on every single one of those calls? Zero. I paid full freight for roughly 1.4 million input tokens in 35 minutes — about $7 of pure waste that should have cost me 70 cents with caching on.</p>
+
+<p>Would routing through Anthropic directly have saved me anything? Probably not. The cache doesn't care who's billing you. It cares whether you structured your request with <code>cache_control</code> markers in the right places. I hadn't. The indirection layer wasn't the problem — the prompt architecture was.</p>
+
+<div class="callout tip">
+<h4>WHAT ACTUALLY FIXES THIS</h4>
+<p>On either path, add cache markers to your stable context blocks. The structure looks the same both ways:</p>
+<pre style="margin-top: 10px;"><code>{"type": "text", "text": "Your long system prompt...",
+ "cache_control": {"type": "ephemeral"}}</code></pre>
+<p style="margin-top: 12px; margin-bottom: 0;">OpenRouter passes this through to Bedrock (or whichever provider is serving you). Anthropic direct consumes it natively. The billing outcome is identical. The savings show up the moment you actually send the marker — which, from looking at my own data, I wasn't doing nearly often enough.</p>
+</div>
+
+<h2><span class="section-num">03</span>Latency: the part that matters for users</h2>
+
+<p>Pricing isn't the only axis. If you're building a user-facing product, latency eats your UX budget faster than cost eats your margin. And here the picture gets interesting.</p>
+
+<p>From my own 20-day dataset routed through OpenRouter, Claude Opus 4.6 averaged <strong>7.8 seconds total generation time</strong> with a <strong>2.5-second time to first token</strong>. Those numbers are fine. But OpenRouter specifically routed most of my Opus calls through Amazon Bedrock, which has its own latency profile — not Anthropic's.</p>
+
+<p>If you go direct, you can ask for Anthropic's Fast Mode on Opus 4.6. That's 2.5x faster output at 6x the price. It's absolutely not a default — but if you're building something like a live coding assistant where waiting six seconds for a function signature is a UX disaster, Fast Mode exists specifically for you. OpenRouter supports Fast Mode too, but only by auto-routing to Anthropic first-party when you flag it. Other providers can't serve it.</p>
+
+<div class="chart-figure">
+  <h4>Latency distribution in a real agent workload</h4>
+  <p class="sub">Hermes Agent on OpenRouter, April 2026 — 936 requests across 5 models</p>
+  <div class="chart-box"><canvas id="latencyChart"></canvas></div>
+  <p class="caption">Opus is the fastest of the bunch in this sample, but it's also the one whose latency is most determined by which provider OpenRouter picks. Direct-to-Anthropic gives you one answer you can trust.</p>
+</div>
+
+<h2><span class="section-num">04</span>The honest pros and cons, side by side</h2>
+
+<p>I want to be fair here, because a lot of the trade-off discussion online reads like ad copy for whichever vendor wrote it. Before getting into the specific scenarios where each one wins, here's the unvarnished version.</p>
+
+<h3>Anthropic direct API</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th style="width:50%">Why you'd choose it</th>
+      <th style="width:50%">Where it hurts</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong class="pos">First-party features</strong> — Batch API, Fast Mode, extended thinking, and new model drops arrive on the direct API weeks before they propagate to gateways.</td>
+      <td><strong class="neg">Single provider lock-in</strong> — if Anthropic has an outage, your system stops. No automatic fallback.</td>
+    </tr>
+    <tr>
+      <td><strong class="pos">Simpler debugging</strong> — one API, one set of error codes, one status page. When something breaks, you know who to ask.</td>
+      <td><strong class="neg">Account management overhead</strong> — separate billing, separate rate limits, separate keys for dev/staging/prod.</td>
+    </tr>
+    <tr>
+      <td><strong class="pos">Lower latency floor</strong> — one less network hop, no routing layer between you and the model.</td>
+      <td><strong class="neg">No model diversity</strong> — you get Claude. Need Gemini for vision or Kimi for cheap tool loops? That's a second integration.</td>
+    </tr>
+    <tr>
+      <td><strong class="pos">Enterprise negotiation</strong> — if you're spending real money, Anthropic will talk terms.</td>
+      <td><strong class="neg">Tighter regional availability</strong> — Anthropic's direct API has fewer regions than Bedrock or Vertex.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>OpenRouter</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th style="width:50%">Why you'd choose it</th>
+      <th style="width:50%">Where it hurts</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong class="pos">Unified API</strong> — one key, one client, one response format for Opus, Sonnet, Gemini, Kimi, and 290+ more.</td>
+      <td><strong class="neg">Provider opacity</strong> — you don't control which provider handles your request. Price and latency vary silently.</td>
+    </tr>
+    <tr>
+      <td><strong class="pos">Automatic fallback</strong> — if Bedrock is down, OpenRouter can route to Vertex or Anthropic 1P without you writing retry logic.</td>
+      <td><strong class="neg">Feature lag</strong> — new Anthropic features (cache improvements, computer use updates) often land on OpenRouter days or weeks later.</td>
+    </tr>
+    <tr>
+      <td><strong class="pos">Cost arbitrage on open-weight models</strong> — for Kimi K2.5, switching Chutes → SiliconFlow saves 2.2×. That's a real benefit.</td>
+      <td><strong class="neg">No Batch API for Anthropic models</strong> — you lose the 50% discount that async workloads would otherwise get.</td>
+    </tr>
+    <tr>
+      <td><strong class="pos">Unified billing</strong> — one invoice, one dashboard, one export. Genuinely nice if you run many models.</td>
+      <td><strong class="neg">The "one provider" problem</strong> — for premium models like Opus, OpenRouter often has only one provider anyway. You're getting indirection, not diversity.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>With that laid out, here's how those trade-offs map to specific situations.</p>
+
+<h2><span class="section-num">05</span>When OpenRouter is genuinely the better choice</h2>
+
+<h3>You haven't decided which model to use yet</h3>
+<p>If you're prototyping, running evaluations, or comparing Opus against Sonnet 4.6, GPT-5, Gemini 3 Pro, and a handful of open-weight models, OpenRouter is the path of least resistance. One key. One billing account. Change a model string, rerun your test. That workflow is genuinely hard to replicate with direct APIs unless you set up four separate accounts.</p>
+
+<h3>You want automatic failover</h3>
+<p>Anthropic occasionally has outages. When Opus on the first-party API is down, OpenRouter can fall back to Opus on Bedrock or Vertex AI automatically. Your agent doesn't stop. If your business depends on Claude being responsive, this alone can justify the 5.5% credit fee.</p>
+
+<h3>You're a small team sharing access</h3>
+<p>OpenRouter's per-key rate limiting, spend caps, and team dashboards are simpler than Anthropic's enterprise setup for teams under about 10 people. You can give your junior developer a key with a $50 monthly cap and not worry about it.</p>
+
+<h3>You only pay for what works</h3>
+<p>This is the quiet win. OpenRouter's "zero-completion insurance" means if a request fails or gets cut off, you don't pay. Anthropic's API bills you for failed attempts the same way it bills for successful ones. At scale, this matters.</p>
+
+<h2><span class="section-num">06</span>When Anthropic direct is genuinely the better choice</h2>
+
+<h3>You're sending the same prompt thousands of times</h3>
+<p>This is where caching control pays for itself in a week. An agent that re-sends a 40K-token system prompt 1,000 times a day is burning roughly $200/day without caching. With properly tuned caching at 80% hit rate, that drops to under $60. You need the visibility that the direct API gives you to hit that 80%.</p>
+
+<h3>You need extended thinking on a tight latency budget</h3>
+<p>Opus 4.6 and 4.7 support a thinking mode where the model reasons through a problem before responding. On the direct API, you can set the thinking budget precisely. Through OpenRouter, it's passed through — but the reasoning_details object needs to be preserved carefully across turns, and the abstraction layer adds a step where things can go wrong.</p>
+
+<h3>You process data overnight, not in real-time</h3>
+<p>Anthropic's Batch API gives you 50% off both input and output. It's async — your results come back within 24 hours. For things like nightly document processing, data enrichment, or eval runs, this turns Opus from "too expensive for that" into "why were we ever paying full price."</p>
+
+<div class="callout tip">
+<h4>THE MATH ON BATCH</h4>
+<p>Process 10 million input tokens and 2 million output tokens on Opus. Synchronous direct API: $100. Batch API: $50. OpenRouter: $100 (no batch discount on Anthropic models). If your workload can wait a few hours, the direct API cuts the bill in half.</p>
+</div>
+
+<h3>You need compliance, data residency, or audit trails</h3>
+<p>Enterprise workloads on Opus 4.7 can specify <code>inference_geo: us</code> for US-only routing (with a 1.1x surcharge). That kind of guarantee isn't something a routing layer can give you cleanly — because the routing layer might send your prompt anywhere.</p>
+
+<h2><span class="section-num">07</span>The decision, visualized</h2>
+
+<div class="diagram">
+<svg viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Decision tree for choosing Anthropic API vs OpenRouter">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7a7a7a"/>
+    </marker>
+  </defs>
+  <style>
+    .nd { fill: #fff; stroke: #e8e6df; stroke-width: 1.2; }
+    .nd-q { fill: #fff8e6; stroke: #BA7517; }
+    .nd-a { fill: #EEEDFE; stroke: #534AB7; stroke-width: 1.5; }
+    .nd-o { fill: #FAECE7; stroke: #D85A30; stroke-width: 1.5; }
+    .tx { font-family: var(--sans, sans-serif); font-size: 13px; fill: #1a1a1a; }
+    .tx-s { font-family: var(--sans, sans-serif); font-size: 11px; fill: #7a7a7a; }
+    .tx-b { font-family: var(--sans, sans-serif); font-size: 14px; fill: #1a1a1a; font-weight: 600; }
+    .ln { stroke: #7a7a7a; stroke-width: 1; fill: none; }
+    .lbl { font-family: var(--sans, sans-serif); font-size: 11px; fill: #4a4a4a; }
+  </style>
+
+  <!-- Start -->
+  <rect class="nd-q" x="260" y="20" width="200" height="54" rx="6"/>
+  <text class="tx-b" x="360" y="42" text-anchor="middle">Start here</text>
+  <text class="tx" x="360" y="60" text-anchor="middle">Are you using only Claude?</text>
+
+  <!-- Branch 1: multiple models -->
+  <path class="ln" d="M 260 47 L 140 110" marker-end="url(#arrow)"/>
+  <text class="lbl" x="180" y="80">no, many models</text>
+
+  <rect class="nd-o" x="30" y="115" width="220" height="60" rx="6"/>
+  <text class="tx-b" x="140" y="140" text-anchor="middle">→ OpenRouter</text>
+  <text class="tx-s" x="140" y="158" text-anchor="middle">One key for 290+ models</text>
+
+  <!-- Branch 2: claude only -->
+  <path class="ln" d="M 460 47 L 580 110"/>
+  <path class="ln" d="M 360 74 L 360 110" marker-end="url(#arrow)"/>
+  <text class="lbl" x="330" y="96">yes, Claude only</text>
+
+  <rect class="nd-q" x="260" y="115" width="200" height="54" rx="6"/>
+  <text class="tx" x="360" y="137" text-anchor="middle">High-volume production</text>
+  <text class="tx" x="360" y="154" text-anchor="middle">with repeated prompts?</text>
+
+  <!-- Branch 2a: high volume -->
+  <path class="ln" d="M 360 169 L 360 200" marker-end="url(#arrow)"/>
+  <text class="lbl" x="370" y="187">yes</text>
+
+  <rect class="nd-q" x="260" y="205" width="200" height="54" rx="6"/>
+  <text class="tx" x="360" y="227" text-anchor="middle">Need batch (async) or</text>
+  <text class="tx" x="360" y="244" text-anchor="middle">Fast Mode?</text>
+
+  <path class="ln" d="M 360 259 L 360 290" marker-end="url(#arrow)"/>
+  <rect class="nd-a" x="260" y="295" width="200" height="60" rx="6"/>
+  <text class="tx-b" x="360" y="320" text-anchor="middle">→ Anthropic direct</text>
+  <text class="tx-s" x="360" y="338" text-anchor="middle">Caching, batch, fast mode</text>
+
+  <!-- Branch 2b: low volume -->
+  <path class="ln" d="M 460 142 L 580 200"/>
+  <path class="ln" d="M 580 155 L 580 200" marker-end="url(#arrow)"/>
+  <text class="lbl" x="495" y="170">low / prototyping</text>
+
+  <rect class="nd-q" x="470" y="205" width="220" height="54" rx="6"/>
+  <text class="tx" x="580" y="227" text-anchor="middle">Need automatic failover</text>
+  <text class="tx" x="580" y="244" text-anchor="middle">or team key management?</text>
+
+  <path class="ln" d="M 580 259 L 580 290" marker-end="url(#arrow)"/>
+  <rect class="nd-o" x="470" y="295" width="220" height="60" rx="6"/>
+  <text class="tx-b" x="580" y="320" text-anchor="middle">→ OpenRouter</text>
+  <text class="tx-s" x="580" y="338" text-anchor="middle">Failover, zero-completion insurance</text>
+
+  <!-- Footer -->
+  <text class="tx-s" x="360" y="410" text-anchor="middle">When unsure, start on OpenRouter and migrate to Anthropic when one workload dominates your bill.</text>
+</svg>
+</div>
+
+<h2><span class="section-num">08</span>A practical hybrid pattern</h2>
+
+<p>You don't have to pick one. The teams I've seen run this well do something smarter: they use both, for different workloads.</p>
+
+<p>Here's the pattern. Your production agent — the one making 10,000 calls a day with a cacheable prompt — goes straight to Anthropic. Everything else — prototyping, one-off experiments, comparison benchmarks against GPT-5 or Gemini, the occasional Kimi K2 call for a cheap task — routes through OpenRouter. Two API clients, two billing accounts, two very different cost profiles.</p>
+
+<pre><code># Pseudocode for a hybrid router
+def route_call(prompt, model, is_production_agent):
+    if model.startswith("anthropic/") and is_production_agent:
+        # Go direct — we want cache control and batch access
+        return anthropic_client.messages.create(
+            model=model.replace("anthropic/", ""),
+            system=cached_system_prompt,  # with cache_control
+            messages=messages,
+        )
+    else:
+        # Go via OpenRouter — flexibility matters more than control here
+        return openrouter_client.chat.completions.create(
+            model=model,
+            messages=messages,
+        )</code></pre>
+
+<p>The added complexity isn't free — you're maintaining two clients, two sets of retry logic, two different observability pipelines. But for workloads at scale, the savings more than cover the engineering time. A team running $500/month on Opus through OpenRouter could probably cut their bill to $150 by moving the production workload direct and tuning their cache.</p>
+
+<h2><span class="section-num">09</span>What I'd actually tell you to do</h2>
+
+<div class="card-grid">
+<div class="vcard pick-anthropic">
+  <span class="tag">Anthropic direct</span>
+  <h3>Pick this when...</h3>
+  <ul>
+    <li>You're running one repeated agent workload at scale</li>
+    <li>You need cache control to hit 70%+ hit rates</li>
+    <li>You can wait hours for batch jobs (50% off)</li>
+    <li>You need Fast Mode or extended thinking with precise budget control</li>
+    <li>Compliance or data residency is non-negotiable</li>
+    <li>Your monthly Opus spend is already over $500</li>
+  </ul>
+</div>
+<div class="vcard pick-openrouter">
+  <span class="tag">OpenRouter</span>
+  <h3>Pick this when...</h3>
+  <ul>
+    <li>You're prototyping or evaluating across multiple models</li>
+    <li>You need one key that also covers GPT-5, Gemini, Kimi, etc.</li>
+    <li>You care about automatic failover more than cache precision</li>
+    <li>Your team needs per-developer keys with spend caps</li>
+    <li>You want zero-completion insurance on flaky workloads</li>
+    <li>Your monthly Opus spend is under $200 and experimentation matters more than optimization</li>
+  </ul>
+</div>
+</div>
+
+<blockquote>The question isn't "which is better." It's "which is better for this specific workload, this specific team, this specific month." The answer changes as you grow.</blockquote>
+
+<h2><span class="section-num">10</span>The real lesson from $19.81</h2>
+
+<p>Here's what that Apr 8 experiment actually taught me, and it's almost the opposite of what I expected going in. <strong>The API gateway is not where Opus gets expensive. The architecture is.</strong></p>
+
+<p>Whether you pay Anthropic directly or OpenRouter indirectly, 91 uncached agent loops with 60K-token prompts will cost roughly the same. The bars in my pricing simulation line up to the penny for a reason — the billing path is a commodity. What varies is what you put through it.</p>
+
+<p>Looking back at that $19.81, almost none of the waste was attributable to OpenRouter. The waste was in:</p>
+
+<ul>
+  <li>Using Opus for a task that Kimi would have handled equivalently</li>
+  <li>Re-sending 60K tokens of context without any cache markers</li>
+  <li>Letting the agent loop without a spending alert in place</li>
+  <li>Not checking whether my cache hit rate was 40% or 80% until after the bill arrived</li>
+</ul>
+
+<p>Every one of those problems is fixable on either path. Going direct wouldn't have rescued me from any of them. Staying on OpenRouter doesn't doom me to repeat them.</p>
+
+<p>If you're already on OpenRouter and the workflow suits you, keep it. Just don't expect switching APIs to magically make Opus cheap. The price is the price. The waste is in how you use it.</p>
+
+<h2><span class="section-num">11</span>One last thing about Opus 4.7</h2>
+
+<p>Anthropic released Opus 4.7 on April 16, 2026. The sticker price stayed at $5 in / $25 out. But 4.7 uses a new tokenizer that can produce up to 35% more tokens for the same input text — especially on code, structured data, and non-English content. So your Opus bill can genuinely go up 0-35% per request even though Anthropic didn't raise prices.</p>
+
+<p>This matters for both paths. Direct, you'll see it in your usage metrics immediately. Through OpenRouter, you'll see it too, but the abstraction layer means you're one step further from noticing. Either way, if you migrate from 4.6 to 4.7, measure your own token consumption before you commit. And if you're writing Korean or Chinese or any non-English content, the tokenizer change tends to hit harder — something I've seen firsthand on the Korean Brunch posts I publish.</p>
+
+<p>You've got real options here. Both paths lead to the same model. What differs is how much control you want over the road.</p>
+
+<footer>
+  <p><strong>Sources and verification.</strong> Pricing data sourced from Anthropic's official pricing documentation (platform.claude.com/docs/en/about-claude/pricing) and OpenRouter's pricing page, verified April 22, 2026. Latency figures from a 936-request dataset across the author's own Hermes Agent deployment, April 3–22, 2026.</p>
+  <p>Part of the AI Developer Guide Infrastructure Series. For the companion piece on cost optimization, see "The $30 bill that should have been $7: cost-saving moves for a real AI agent."</p>
+</footer>
+
+</div>
+
+<script>
+// Cache savings chart — stacked bar showing monthly cost at various cache hit rates
+(function(){
+  const ctx = document.getElementById('cacheChart');
+  if (!ctx) return;
+  // Daily: 40K * 1000 calls = 40M input tok, 0.5M output tok
+  // At hit rate h: fresh = 40 * (1-h) * $5 = $200*(1-h), cached = 40 * h * $0.5 = $20*h, out = 0.5 * $25 = $12.5
+  const labels = ['0% cache', '30%', '60%', '80%', '90%'];
+  const rates = [0, 0.3, 0.6, 0.8, 0.9];
+  const fresh = rates.map(h => +(200 * (1-h)).toFixed(1));
+  const cached = rates.map(h => +(20 * h).toFixed(1));
+  const output = rates.map(_ => 12.5);
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Fresh input', data: fresh, backgroundColor: '#534AB7', borderWidth: 0, stack: 's' },
+        { label: 'Cached input', data: cached, backgroundColor: '#AFA9EC', borderWidth: 0, stack: 's' },
+        { label: 'Output', data: output, backgroundColor: '#D85A30', borderWidth: 0, stack: 's' },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2) + '/day',
+            footer: (items) => {
+              const total = items.reduce((s, i) => s + i.parsed.y, 0);
+              return 'Total: $' + total.toFixed(2) + '/day · ~$' + (total * 30).toFixed(0) + '/month';
+            },
+          },
+        },
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { callback: (v) => '$' + v }, grid: { color: 'rgba(0,0,0,0.06)' } },
+      },
+    },
+  });
+})();
+
+// Latency chart — horizontal bars per model
+(function(){
+  const ctx = document.getElementById('latencyChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Gemini 3 Flash', 'Claude Opus 4.6', 'GLM 4.7', 'Gemini 2.5 Flash', 'Kimi K2.5'],
+      datasets: [
+        { label: 'Time to first token', data: [1.6, 2.5, 2.5, 0.6, 6.8], backgroundColor: '#AFA9EC', borderWidth: 0, stack: 'lat' },
+        { label: 'Remaining generation', data: [2.2, 5.3, 8.6, 21.9, 27.6], backgroundColor: '#534AB7', borderWidth: 0, stack: 'lat' },
+      ],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', font: { size: 12 }, boxWidth: 10 } },
+        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + ctx.parsed.x.toFixed(1) + 's' } },
+      },
+      scales: {
+        x: { stacked: true, beginAtZero: true, ticks: { callback: (v) => v + 's' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        y: { stacked: true, grid: { display: false } },
+      },
+    },
+  });
+})();
+</script>
+
+</body>
+</html>

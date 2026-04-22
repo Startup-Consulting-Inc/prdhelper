@@ -40,10 +40,29 @@ export default {
       typography: (theme) => ({
         DEFAULT: {
           css: {
+            p: {
+              marginTop: theme('spacing.5'),
+              marginBottom: theme('spacing.5'),
+              lineHeight: '1.8',
+            },
+            'li > p': {
+              marginTop: theme('spacing.2'),
+              marginBottom: theme('spacing.2'),
+            },
+            li: {
+              marginTop: theme('spacing.2'),
+              marginBottom: theme('spacing.2'),
+              lineHeight: '1.8',
+            },
             h2: {
               paddingLeft: theme('spacing.4'),
               borderLeft: `3px solid ${theme('colors.primary.500')}`,
-              marginTop: theme('spacing.10'),
+              marginTop: theme('spacing.12'),
+              marginBottom: theme('spacing.5'),
+            },
+            h3: {
+              marginTop: theme('spacing.8'),
+              marginBottom: theme('spacing.3'),
             },
             blockquote: {
               borderLeftColor: theme('colors.primary.400'),
@@ -56,6 +75,8 @@ export default {
               paddingTop: theme('spacing.4'),
               paddingBottom: theme('spacing.4'),
               paddingRight: theme('spacing.6'),
+              marginTop: theme('spacing.6'),
+              marginBottom: theme('spacing.6'),
             },
             a: {
               textDecoration: 'none',

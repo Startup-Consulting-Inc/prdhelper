@@ -54,6 +54,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 32,
+      slug: 'anthropic-vs-openrouter-opus',
+      title: 'Anthropic API or OpenRouter for Claude Opus: An Honest Trade-off',
+      excerpt:
+        "Both paths reach the same model — the token prices line up to the penny. So why did one afternoon on Opus cost me $19.81? A deep dive into caching, Batch API, Fast Mode, and where the real money actually hides.",
+      author: 'Jaehee Song',
+      date: '2026-04-22',
+      readTime: '13 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 31,
       slug: 'graphify-wiki-build',
       title: 'From Scattered Notes to a Living Knowledge Graph: Building LLM Wiki + Graphify',
