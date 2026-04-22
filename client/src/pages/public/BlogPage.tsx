@@ -54,6 +54,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 33,
+      slug: 'hermes-agent-cost-saving',
+      title: 'The $30 Bill That Should Have Been $7: Cost-Saving Moves for a Real AI Agent',
+      excerpt:
+        "A forensic audit of 936 OpenRouter calls over 20 days. Where the money leaked, how to plug it, and what your production AI agent is probably doing wrong too — three config-only moves that cut the bill by 78%.",
+      author: 'Jaehee Song',
+      date: '2026-04-22',
+      readTime: '15 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 32,
       slug: 'anthropic-vs-openrouter-opus',
       title: 'Anthropic API or OpenRouter for Claude Opus: An Honest Trade-off',

@@ -80,6 +80,7 @@ const HermesLLMWikiPost = lazyWithRetry(() => import('./pages/public/blog/Hermes
 const LLMWikiHermesAgentPost = lazyWithRetry(() => import('./pages/public/blog/LLMWikiHermesAgentPost'));
 const GraphifyWikiBuildPost = lazyWithRetry(() => import('./pages/public/blog/GraphifyWikiBuildPost'));
 const AnthropicVsOpenRouterOpusPost = lazyWithRetry(() => import('./pages/public/blog/AnthropicVsOpenRouterOpusPost'));
+const HermesAgentCostSavingPost = lazyWithRetry(() => import('./pages/public/blog/HermesAgentCostSavingPost'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -331,6 +332,7 @@ function App() {
         <Route path="/blog/llm-wiki-hermes-agent" element={<LLMWikiHermesAgentPost />} />
         <Route path="/blog/graphify-wiki-build" element={<GraphifyWikiBuildPost />} />
         <Route path="/blog/anthropic-vs-openrouter-opus" element={<AnthropicVsOpenRouterOpusPost />} />
+        <Route path="/blog/hermes-agent-cost-saving" element={<HermesAgentCostSavingPost />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />
