@@ -54,6 +54,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 34,
+      slug: 'skills-vs-agents',
+      title: 'Agents vs Skills: The Full Picture — One Agent, a Skill Library, and Where MCP Fits',
+      excerpt:
+        'The “stop building agents” line is about duplicate scaffolding, not deleting your runtime. How Skills, progressive disclosure, and MCP fit together — plus an old-vs-new mental model in one diagram.',
+      author: 'Jaehee Song',
+      date: '2026-04-23',
+      readTime: '14 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 33,
       slug: 'hermes-agent-cost-saving',
       title: 'The $30 Bill That Should Have Been $7: Cost-Saving Moves for a Real AI Agent',
