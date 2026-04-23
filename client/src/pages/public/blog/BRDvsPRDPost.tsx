@@ -2,6 +2,7 @@
  * Blog Post: BRD vs PRD: What's the Difference and When to Use Each
  */
 
+import { Link } from 'react-router-dom';
 import { BlogPostLayout, type FaqItem } from '../../../components/blog/BlogPostLayout';
 
 const FAQ_ITEMS: FaqItem[] = [
@@ -45,13 +46,13 @@ const FAQ_ITEMS: FaqItem[] = [
 export default function BRDvsPRDPost() {
   return (
     <BlogPostLayout
-      title="BRD vs PRD: What's the Difference and When to Use Each"
+      title="BRD vs PRD: What’s the Difference? (2026 Guide)"
       author="Alex Kumar"
       date="2026-01-15"
-      dateModified="2026-04-01"
+      dateModified="2026-04-23"
       readTime="8 min read"
       category="Guides"
-      excerpt="BRD vs PRD — two documents that every PM and BA needs, but few teams use correctly. Learn the differences, when each is needed, and how they work together."
+      excerpt="BRD = business case; PRD = what to build. When to use each, which comes first, and outline-style sections you can copy—plain English for product and BA teams in 2026."
       slug="brd-vs-prd"
       coverImage="vs"
       coverGradient="from-orange-600 via-amber-500 to-yellow-500"
@@ -61,6 +62,38 @@ export default function BRDvsPRDPost() {
         <p className="text-gray-900 dark:text-white text-base leading-relaxed">
           A <strong>BRD (Business Requirements Document)</strong> defines what a business needs to achieve — the problem being solved, the goals, and the constraints. A <strong>PRD (Product Requirements Document)</strong> defines what a product must do to solve those needs — specific features, user stories, and acceptance criteria. The BRD answers <em>"should we build this and why?"</em> The PRD answers <em>"exactly what should we build?"</em> Both documents address requirements, but for different audiences, at different stages, and with different levels of detail.
         </p>
+      </div>
+
+      <div className="not-prose border border-dashed border-gray-300/90 dark:border-gray-600 rounded-xl p-4 sm:p-5 mb-8 bg-white/50 dark:bg-gray-900/20">
+        <p className="m-0 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">
+          Related reading
+        </p>
+        <ul className="m-0 list-none space-y-2 text-sm sm:text-base text-gray-800 dark:text-gray-200">
+          <li>
+            <Link
+              to="/blog/complete-guide-to-writing-brds"
+              className="font-medium text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              The complete guide to writing BRDs
+            </Link>
+            {' — '}deep structure and why BRDs exist.
+          </li>
+          <li>
+            <Link
+              to="/blog/how-to-write-a-brd-2026"
+              className="font-medium text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              How to write a BRD in 2026 (step-by-step)
+            </Link>
+            {' — '}tactical, section-by-section.
+          </li>
+          <li>
+            <Link to="/docs/prd-guide" className="font-medium text-primary-600 dark:text-primary-400 hover:underline">
+              How to write a PRD
+            </Link>
+            {' — '}when you are ready to translate business needs into product specs.
+          </li>
+        </ul>
       </div>
 
       <h2>The Confusion Is Real — And It's Costly</h2>

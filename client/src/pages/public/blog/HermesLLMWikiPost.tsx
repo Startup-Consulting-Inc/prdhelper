@@ -2,7 +2,9 @@
  * Blog Post: Hermes LLM Wiki — Building a Self-Hosted AI Knowledge Base
  */
 
+import { Link } from 'react-router-dom';
 import { BlogPostLayout, type FaqItem } from '../../../components/blog/BlogPostLayout';
+import { ArrowRight } from 'lucide-react';
 
 const FAQ_ITEMS: FaqItem[] = [
   {
@@ -79,6 +81,31 @@ export default function HermesLLMWikiPost() {
         AI agents (Ingest, Summarize, Link) transform any URL into a connected, searchable Markdown
         page stored in Git — accessible from any browser, anywhere.
       </p>
+
+      <div className="not-prose my-10 rounded-2xl border border-primary-200 dark:border-primary-800 bg-gradient-to-br from-primary-50/90 to-white dark:from-primary-950/30 dark:to-gray-900/40 p-6 sm:p-8 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-widest text-primary-700 dark:text-primary-400 mb-2">
+          Also building product requirements?
+        </p>
+        <p className="m-0 text-base sm:text-lg text-gray-800 dark:text-gray-200 leading-relaxed">
+          Hermes is for <strong>research and wikis</strong>. If you also need a structured <strong>BRD or PRD</strong> your
+          team and AI coding tools can build from, try Clearly—guided AI requirements, not a blank page.
+        </p>
+        <div className="mt-5 flex flex-col sm:flex-row flex-wrap gap-3">
+          <Link
+            to="/prd-generator"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500"
+          >
+            AI PRD generator
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+          <Link
+            to="/brd-generator"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-primary-500/80 bg-white dark:bg-gray-800 px-5 py-3 text-sm font-semibold text-primary-700 dark:text-primary-300 transition hover:bg-primary-50 dark:hover:bg-gray-700"
+          >
+            AI BRD generator
+          </Link>
+        </div>
+      </div>
 
       <h2>The Architecture</h2>
 

@@ -13,8 +13,8 @@ export default function PRDDocPage() {
   return (
     <PublicLayout>
       <SEO
-        title="Product Requirements Document (PRD) – Complete Guide"
-        description="Learn what a PRD is, what it contains, and how to write one. A Product Requirements Document defines features, user stories, and technical specifications for your product."
+        title="What Is a PRD? Product Requirements Document Explained (2026)"
+        description="PRD meaning, what to include, and how it differs from a BRD. Start here, then use our how-to guide or the AI PRD generator to produce a spec your team can ship."
         path="/docs/prd"
       />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -25,6 +25,32 @@ export default function PRDDocPage() {
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400">
             Transforming business needs into detailed product specifications
+          </p>
+        </div>
+
+        <div className="not-prose max-w-2xl mx-auto mb-10 border border-gray-200 dark:border-gray-600 rounded-xl p-4 sm:p-5 bg-slate-50/80 dark:bg-gray-800/30">
+          <p className="m-0 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+            Go deeper
+          </p>
+          <p className="m-0 text-sm sm:text-base text-gray-800 dark:text-gray-200 leading-relaxed">
+            <Link to="/docs/prd-guide" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+              Full how-to: write a PRD
+            </Link>
+            {' · '}
+            <Link to="/blog/brd-vs-prd" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+              BRD vs PRD
+            </Link>
+            {' · '}
+            <Link
+              to="/blog/complete-guide-to-writing-brds"
+              className="font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              Writing BRDs
+            </Link>
+            {' · '}
+            <Link to="/prd-generator" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+              AI PRD generator
+            </Link>
           </p>
         </div>
 

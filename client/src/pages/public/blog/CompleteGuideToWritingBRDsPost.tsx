@@ -2,6 +2,7 @@
  * Blog Post: The Complete Guide to Writing BRDs
  */
 
+import { Link } from 'react-router-dom';
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
 import { FileText, CheckCircle2, Users, Target, Shield, TrendingUp } from 'lucide-react';
 
@@ -18,6 +19,28 @@ export default function CompleteGuideToWritingBRDsPost() {
       coverImage="BRD"
       coverGradient="from-emerald-600 via-teal-600 to-cyan-600"
     >
+      <div className="not-prose border border-gray-200 dark:border-gray-600 rounded-xl p-4 sm:p-5 mb-8 text-sm sm:text-base bg-slate-50/80 dark:bg-gray-800/30">
+        <p className="m-0 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+          Related in this series
+        </p>
+        <p className="m-0 text-gray-700 dark:text-gray-300 leading-relaxed">
+          <Link to="/blog/brd-vs-prd" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+            BRD vs PRD: what is the difference?
+          </Link>
+          {' · '}
+          <Link
+            to="/blog/how-to-write-a-brd-2026"
+            className="font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            How to write a BRD in 2026
+          </Link>
+          {' · '}
+          <Link to="/docs/prd-guide" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+            PRD writing guide
+          </Link>
+        </p>
+      </div>
+
       <h2>What is a Business Requirements Document (BRD)?</h2>
       <p>
         A Business Requirements Document (BRD) is a formal document that describes the business

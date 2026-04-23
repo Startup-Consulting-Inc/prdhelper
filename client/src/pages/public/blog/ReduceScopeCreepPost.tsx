@@ -1,5 +1,5 @@
 /**
- * Blog Post: How to Reduce Scope Creep with Better Requirements (7 Proven Methods)
+ * Blog Post: 7 Ways to Cut Scope Creep with Better Requirements (2026)
  */
 
 import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
@@ -7,12 +7,12 @@ import { BlogPostLayout } from '../../../components/blog/BlogPostLayout';
 export default function ReduceScopeCreepPost() {
   return (
     <BlogPostLayout
-      title="How to Reduce Scope Creep with Better Requirements (7 Proven Methods)"
+      title="7 Ways to Cut Scope Creep with Better Requirements (2026)"
       author="Sarah Chen"
       date="2026-02-12"
       readTime="8 min read"
       category="Best Practices"
-      excerpt="Scope creep kills projects. Learn 7 proven methods to prevent it — starting with writing better requirements before development begins."
+      excerpt="Stop 'just one more feature' with 7 methods: tighter requirements, change control, and acceptance criteria so scope matches what you agreed to ship—before dev burns the budget."
       slug="reduce-scope-creep-requirements"
       coverImage="🛑"
       coverGradient="from-red-600 via-rose-600 to-pink-600"

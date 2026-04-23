@@ -4,6 +4,7 @@
  * Comprehensive guide to Product Requirements Documents in the age of rapid development
  */
 
+import { Link } from 'react-router-dom';
 import { PublicLayout } from '../../../components/layout/PublicLayout';
 import { SEO } from '../../../components/SEO';
 import { Helmet } from 'react-helmet-async';
@@ -36,8 +37,8 @@ export default function PRDGuidePage() {
   return (
     <PublicLayout>
       <SEO
-        title="How to Write a PRD – Complete Guide to Product Requirements Documents"
-        description="Step-by-step guide to writing Product Requirements Documents. Templates, examples, and best practices for product managers and development teams."
+        title="How to Write a PRD: Guide, Examples & Template (2026)"
+        description="Step-by-step PRD guide: sections to include, real examples, and best practices for PMs—so engineering (and AI tools) get a spec they can build from. Free generator linked inside."
         path="/docs/prd-guide"
       />
       <Helmet>
@@ -86,6 +87,35 @@ export default function PRDGuidePage() {
             Structure, Clarity, and Direction in the Era of Speed
           </p>
         </header>
+
+        <div className="not-prose max-w-3xl mx-auto mb-10 text-center sm:text-left border border-dashed border-gray-300/90 dark:border-gray-600 rounded-xl px-4 py-4 sm:px-6 sm:py-5 bg-slate-50/80 dark:bg-gray-800/30">
+          <p className="m-0 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+            Related: BRD and requirements
+          </p>
+          <p className="m-0 text-sm sm:text-base text-gray-800 dark:text-gray-200 leading-relaxed">
+            <Link to="/blog/brd-vs-prd" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+              BRD vs PRD
+            </Link>
+            {' · '}
+            <Link
+              to="/blog/complete-guide-to-writing-brds"
+              className="font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              Complete guide to writing BRDs
+            </Link>
+            {' · '}
+            <Link
+              to="/blog/how-to-write-a-brd-2026"
+              className="font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              How to write a BRD (2026)
+            </Link>
+            {' · '}
+            <Link to="/docs/prd" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+              What is a PRD? (short overview)
+            </Link>
+          </p>
+        </div>
 
         {/* Main Content Grid */}
         <main className="grid lg:grid-cols-3 gap-8">

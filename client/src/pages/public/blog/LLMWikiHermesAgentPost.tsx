@@ -2,6 +2,7 @@
  * Blog Post: How I Built a Web-Based LLM Wiki with Hermes Agent
  */
 
+import { Link } from 'react-router-dom';
 import { BlogPostLayout, type FaqItem } from '../../../components/blog/BlogPostLayout';
 
 const FAQ_ITEMS: FaqItem[] = [
@@ -79,6 +80,20 @@ export default function LLMWikiHermesAgentPost() {
       <p>The wiki gets smarter. Your knowledge compounds.</p>
 
       <p>I read that gist and immediately wanted to build it.</p>
+
+      <div className="not-prose my-6">
+        <p className="m-0 text-sm sm:text-base text-gray-600 dark:text-gray-400 py-3 px-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200/80 dark:border-gray-600/60">
+          Building products too? Use Clearly to draft a structured{' '}
+          <Link to="/prd-generator" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+            AI PRD
+          </Link>{' '}
+          or{' '}
+          <Link to="/brd-generator" className="font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+            AI BRD
+          </Link>{' '}
+          from guided prompts—separate from the wiki pattern above.
+        </p>
+      </div>
 
       <h2>Why I Didn't Use Obsidian</h2>
 

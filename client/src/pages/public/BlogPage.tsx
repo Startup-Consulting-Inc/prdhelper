@@ -232,9 +232,9 @@ export default function BlogPage() {
     {
       id: 3,
       slug: 'brd-vs-prd',
-      title: "BRD vs PRD: What's the Difference and When to Use Each",
+      title: 'BRD vs PRD: What’s the Difference? (2026 Guide)',
       excerpt:
-        'BRD vs PRD — two documents that every PM and BA needs, but few teams use correctly. Learn the differences, when each is needed, and how they work together.',
+        'BRD = business case; PRD = what to build. When to use each, which comes first, and outline-style sections you can copy—plain English for product and BA teams in 2026.',
       author: 'Alex Kumar',
       date: '2026-03-12',
       readTime: '8 min read',
@@ -276,9 +276,9 @@ export default function BlogPage() {
     {
       id: 7,
       slug: 'requirements-management-tools-2026',
-      title: 'Best Requirements Management Tools in 2026 (Honest Comparison)',
+      title: '7 Best Requirements Management Tools in 2026 — Compared',
       excerpt:
-        'Comparing the top requirements management tools in 2026: from dedicated platforms to AI generators to manual methods. Find the right tool for your team.',
+        'Compare 7 leading stacks—Jira, Jama, Confluence, Azure DevOps, Valispace, AI spec tools, and spreadsheets—for 2026. Honest picks for team size, budget, and AI-ready requirements.',
       author: 'Alex Kumar',
       date: '2026-03-03',
       readTime: '11 min read',
@@ -342,9 +342,9 @@ export default function BlogPage() {
     {
       id: 13,
       slug: 'reduce-scope-creep-requirements',
-      title: 'How to Reduce Scope Creep with Better Requirements (7 Methods)',
+      title: '7 Ways to Cut Scope Creep with Better Requirements (2026)',
       excerpt:
-        'Scope creep kills projects. The root cause is almost always unclear requirements. Here are 7 methods to write requirements that prevent scope creep before it starts.',
+        "Stop 'just one more feature' with 7 methods: tighter requirements, change control, and acceptance criteria so scope matches what you agreed to ship—before dev burns the budget.",
       author: 'Alex Kumar',
       date: '2026-03-07',
       readTime: '8 min read',

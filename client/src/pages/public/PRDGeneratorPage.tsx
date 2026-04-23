@@ -83,8 +83,8 @@ export default function PRDGeneratorPage() {
   return (
     <PublicLayout>
       <SEO
-        title="PRD Generator – Create Product Requirements Documents with AI"
-        description="Generate professional Product Requirements Documents in 15-30 minutes with AI. Clearly's PRD generator guides you from idea to complete document. Free trial."
+        title="AI PRD Generator: Product Requirements in Minutes (Free Trial)"
+        description="AI PRD tool with a guided wizard—turn an idea into a structured Product Requirements Document for engineering, QA, and AI coding tools. Export-ready PRDs. Try Clearly free, no card."
         path="/prd-generator"
       />
       <Helmet>
