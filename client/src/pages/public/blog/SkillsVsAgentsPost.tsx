@@ -1,9 +1,12 @@
 /**
  * Blog Post: Agents vs Skills — skills, MCP, progressive disclosure
  * Source: docs/skills-vs-agents.md + docs/skills-vs-agents.png
+ * Display: Medium-style sections, pull quotes, and visual hierarchy (not a single prose block)
  */
 
+import type { ReactNode } from 'react';
 import { BlogPostLayout, type FaqItem } from '../../../components/blog/BlogPostLayout';
+import { Cpu, Layers, Package } from 'lucide-react';
 import skillsVsAgentsImg from '../../../assets/skills-vs-agents.png';
 
 const FAQ_ITEMS: FaqItem[] = [
@@ -44,15 +47,66 @@ const FAQ_ITEMS: FaqItem[] = [
   },
 ];
 
+/** Body copy: Medium-like size and line height */
+function P({ children }: { children: ReactNode }) {
+  return (
+    <p className="mb-7 last:mb-0 text-[1.05rem] sm:text-[1.125rem] leading-[1.78] text-gray-800 dark:text-gray-200">
+      {children}
+    </p>
+  );
+}
+
+/** Key line / “pull quote” — scan-friendly */
+function KeyLine({ children }: { children: ReactNode }) {
+  return (
+    <p className="my-8 pl-5 border-l-[3px] border-violet-500 dark:border-violet-400 text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 leading-relaxed">
+      {children}
+    </p>
+  );
+}
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="mt-14 first:mt-0 mb-6 text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      {children}
+    </h2>
+  );
+}
+
+function Subhead({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="mt-10 mb-4 text-base font-bold uppercase tracking-wide text-violet-700 dark:text-violet-400">
+      {children}
+    </h3>
+  );
+}
+
+function SectionRule() {
+  return (
+    <div
+      className="my-12 h-px w-full bg-gradient-to-r from-transparent via-gray-300/90 dark:via-gray-600 to-transparent"
+      aria-hidden
+    />
+  );
+}
+
+function ArticleShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="not-prose max-w-[680px] mx-auto w-full text-[1.05rem] sm:text-[1.125rem] leading-[1.78] text-gray-800 dark:text-gray-200">
+      {children}
+    </div>
+  );
+}
+
 export default function SkillsVsAgentsPost() {
   return (
     <BlogPostLayout
-      title="Agents vs Skills: The Full Picture — One Agent, a Skill Library, and Where MCP Fits"
+      title="Agents vs Skills: The Full Picture"
       author="Jaehee Song"
       date="2026-04-23"
-      readTime="14 min read"
+      readTime="12 min read"
       category="AI & Development"
-      excerpt="The “stop building agents” line is about duplicate scaffolding, not about deleting agents. Here is how Anthropic frames Skills, progressive disclosure, and why MCP and Skills are complementary — plus a clear old-vs-new mental model."
+      excerpt="The “stop building agents” line is about duplicate scaffolding, not deleting your runtime. How Skills, progressive disclosure, and MCP fit together — in the same shape as the Medium version, with a clear old-vs-new diagram."
       slug="skills-vs-agents"
       coverImage="SV"
       coverGradient="from-violet-700 via-fuchsia-600 to-amber-500"
@@ -78,294 +132,330 @@ export default function SkillsVsAgentsPost() {
         },
       ]}
     >
-      {/* Lead */}
-      <div className="not-prose bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-xl p-7 my-10">
-        <p className="text-xs font-bold text-violet-700 dark:text-violet-400 uppercase tracking-widest mb-4">
-          The short version
+      <ArticleShell>
+        {/* Opening — matches Medium: hook first */}
+        <p className="mb-8 text-[1.125rem] sm:text-[1.2rem] leading-[1.75] text-gray-800 dark:text-gray-200 first-letter:float-left first-letter:mr-2 first-letter:mt-0.5 first-letter:font-serif first-letter:text-[2.8rem] first-letter:font-bold first-letter:leading-[0.9] first-letter:text-violet-700 dark:first-letter:text-violet-400">
+          The viral framing — <em>“Stop building agents”</em> — is rhetorically loud but technically
+          softer than it sounds.{' '}
+          <span className="whitespace-nowrap sm:whitespace-normal">Barry Zhang and Mahesh Murag’s 16-minute talk at the</span>{' '}
+          AI Engineer Code Summit (on YouTube) is not saying “never build an agent again.”{' '}
+          It is saying: <strong>stop building a different specialized agent for every domain</strong>.{' '}
+          Build <strong>one general-purpose agent</strong> and give it a <strong>library of Skills</strong> instead.
         </p>
-        <p className="text-base leading-8 text-gray-800 dark:text-gray-200">
-          The viral framing — <em>“Stop building agents”</em> — is rhetorically loud, but it is
-          technically softer than it sounds. People like Barry Zhang and Mahesh Murag (in public
-          talks on this topic) are not saying you should never run an agent again. They are
-          saying:{' '}
-          <strong>stop building a different specialized agent for every domain</strong>. Instead,
-          build <strong>one general-purpose agent</strong> and give it a <strong>library of Skills</strong>{' '}
-          it can load when a task needs them.
-        </p>
-        <p className="text-base leading-8 text-gray-800 dark:text-gray-200 mt-5">
-          The infographic below is the cleanest picture of the shift: from six siloed “domain
-          agents” to <strong>one runtime</strong> plus <strong>composable SKILL.md</strong> playbooks. Everything
-          below unpacks that diagram with mechanics, token math, and where MCP still belongs.
-        </p>
-      </div>
 
-      <p>
-        To understand the argument, you have to separate <strong>the agent shell</strong> (model +
-        runtime + tools + filesystem) from <strong>the expertise</strong> (how to do a specific job well).
-        The claim is that the shell converges, and the interesting work moves into Skills — not
-        into yet another one-off agent repo.
-      </p>
-
-      {/* Infographic */}
-      <figure className="not-prose my-10">
-        <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/40 shadow-sm">
-          <img
-            src={skillsVsAgentsImg}
-            alt="Comparison: old paradigm with six siloed domain agents (code, legal, finance, HR, sales, ops) versus new paradigm with one general agent and a library of SKILL.md files (pdf, xlsx, seo-audit, etc.)"
-            className="w-full h-auto"
-            loading="eager"
-          />
-        </div>
-        <figcaption className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-400">
-          <span className="font-semibold text-gray-800 dark:text-gray-200">Old vs new.</span>{' '}
-          The left: duplicate scaffolding, no sharing. The right: a single general agent (model +
-          runtime + filesystem) that pulls only the <code className="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800">SKILL.md</code>
-          {' '}
-          (and reference files) that the current task needs.
-        </figcaption>
-      </figure>
-
-      <h2>The real diagnosis</h2>
-
-      <p>
-        Anthropic’s view is that a lot of recent agent development chased the wrong variable. The
-        line that stuck with me: we used to assume agents in different domains would look very
-        different. In practice, the <em>agent underneath</em> is more universal than that. Once
-        you have a model connected to a runtime with a filesystem and code execution (the rough
-        shape of the Claude Code pattern), the scaffolding does not need to be rebuilt for every
-        use case. <strong>What actually varies is domain knowledge.</strong>
-      </p>
-
-      <p>
-        The tax analogy lands because it is unfair to both sides. Would you rather have a
-        300-IQ system that has never read the tax code, or a 20-year accountant? Today’s models
-        are capable, but they still miss context you have not given them, cannot absorb your
-        private expertise by default, and do not “learn your company” unless you put that
-        knowledge somewhere they can use. <strong>Skills are where you package that expertise</strong> once,
-        in a file tree, with progressive loading — instead of re-explaining it every session or
-        hard-coding it into six different agents.
-      </p>
-
-      <h2>What a Skill actually is, mechanically</h2>
-
-      <p>
-        A Skill is a folder. Inside it, at minimum, a <code>SKILL.md</code>. The markdown has{' '}
-        <strong>YAML frontmatter</strong> (a name and a one-line description) and a body of
-        instructions. It can also ship supporting material: long reference documents, small Python
-        scripts, templates. <strong>No new public API, no required framework, no central registry</strong> — it
-        is a packaging convention, not a new cloud product.
-      </p>
-
-      <p>
-        The part that changes cost curves is <strong>progressive disclosure</strong>, split into three
-        levels. Here is the honest accounting of <em>when</em> each layer hits the context window.
-      </p>
-
-      <div className="not-prose overflow-x-auto my-10 border border-gray-200 dark:border-gray-700 rounded-xl">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left px-4 py-3 font-mono text-xs text-gray-500 uppercase tracking-wider">
-                Level
-              </th>
-              <th className="text-left px-4 py-3 font-mono text-xs text-gray-500 uppercase tracking-wider">
-                Content
-              </th>
-              <th className="text-left px-4 py-3 font-mono text-xs text-gray-500 uppercase tracking-wider">
-                When it loads
-              </th>
-              <th className="text-left px-4 py-3 font-mono text-xs text-gray-500 uppercase tracking-wider">
-                Rough cost
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-            <tr>
-              <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">1 · Metadata</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 leading-7">
-                Name + one-line description
-              </td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 leading-7">At startup</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono text-xs">
-                ~100 tokens / skill
-              </td>
-            </tr>
-            <tr>
-              <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">2 · Skill body</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 leading-7">Full instructions in SKILL.md</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 leading-7">When the agent picks the skill</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono text-xs">Up to ~5K tokens (typical cap)</td>
-            </tr>
-            <tr>
-              <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">3 · References</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 leading-7">
-                Extra docs, data, scripts, assets
-              </td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 leading-7">When the body points at them</td>
-              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono text-xs">On demand</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p>
-        At startup, the system only needs enough text to know <strong>that a skill exists and what it is for</strong>.
-        {''} That means you can keep <strong>hundreds of skills</strong> “installed” without paying thousands of
-        tokens per skill before the first user message. When a task matches, the model reads the
-        full <code>SKILL.md</code>. If the body references other files, it can open them through normal
-        filesystem and shell behavior; scripts can execute without their entire source being pasted
-        into the chat window. Bundled content that is never used stays <strong>at zero context cost</strong>.
-      </p>
-
-      <h2>Skills and MCP: complementary, not competitors</h2>
-
-      <p>
-        This matters a lot if you are already <strong>heavy on MCP</strong> (Model Context Protocol). The two
-        sit at different layers. A simple split that has held up in real conversations:
-      </p>
-
-      <div className="not-prose grid sm:grid-cols-2 gap-5 my-10">
-        <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/80 dark:bg-indigo-900/20 p-6">
-          <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-widest mb-3">
-            MCP
+        <div className="mb-10 rounded-2xl border border-gray-200/80 dark:border-gray-600/50 bg-gradient-to-b from-violet-50/90 to-white dark:from-violet-950/40 dark:to-gray-900/30 px-6 sm:px-8 py-7 shadow-sm">
+          <p className="m-0 text-sm font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400 mb-2">
+            One diagram, two paradigms
           </p>
-          <p className="text-sm leading-7 text-gray-800 dark:text-gray-200">
-            <strong>Capabilities</strong> — what the agent is allowed to <em>do</em>. Call Gmail, query GSC, post
-            to Slack, control a browser. This is the “plumbing to the outside world.”
+          <p className="m-0 text-base leading-8 text-gray-700 dark:text-gray-300">
+            Old model: <strong>one custom agent per domain</strong> — code, legal, finance, each with
+            duplicate scaffolding.             New model: <strong>one general agent</strong> (model + runtime + filesystem){' '}
+            that <strong>pulls only the SKILL.md (and friends) a task needs</strong>.
           </p>
         </div>
-        <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-900/20 p-6">
-          <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-widest mb-3">
-            Skills
+
+        <P>
+          To understand the rest, you separate <strong>the agent shell</strong> (model + runtime + tools +
+          filesystem) from <strong>the expertise</strong> (how to do a job well). The claim is: the shell
+          converges; the work moves into Skills — not into yet another one-off agent repo.
+        </P>
+
+        <figure className="my-10">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900/50 shadow-md">
+            <img
+              src={skillsVsAgentsImg}
+              alt="Old paradigm: six siloed domain agents. New paradigm: one general agent plus a library of SKILL.md skills."
+              className="w-full h-auto"
+              loading="eager"
+            />
+          </div>
+          <figcaption className="mt-4 text-sm leading-7 text-gray-500 dark:text-gray-400 text-center max-w-md mx-auto">
+            Left: each agent built from scratch, no sharing. Right: one runtime; skills load
+            on demand.
+          </figcaption>
+        </figure>
+
+        <SectionRule />
+
+        <SectionTitle>The real diagnosis</SectionTitle>
+        <P>
+          Anthropic’s view is that a lot of recent agent development chased the wrong variable. The
+          line that stuck: we used to assume agents in different domains would look very different. In
+          practice, the <em>agent underneath</em> is more universal than that. Once you have a model tied to
+          a runtime with a filesystem and code execution (the Claude Code pattern), the scaffolding
+          does not need rebuilding per use case.
+        </P>
+        <KeyLine>What actually varies is domain knowledge.</KeyLine>
+        <P>
+          The tax analogy is the memorable test: a 300-IQ system that has never read the tax code,
+          or a 20-year accountant? Today’s models are strong in the abstract but still miss
+          <strong>your</strong> context, cannot “learn the company” without you writing it down, and do not
+          improve by magic. <strong>Skills are where you package that expertise</strong> — once, in a file tree, with
+          progressive loading — instead of re-explaining every session or hard-coding six custom
+          agents.
+        </P>
+
+        <SectionRule />
+
+        <SectionTitle>What a Skill actually is (mechanically)</SectionTitle>
+        <P>
+          A Skill is a folder. At minimum, a <code className="text-[0.9em] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono">SKILL.md</code>. The markdown has <strong>YAML
+          frontmatter</strong> (name + one-line description) and a body of instructions. It can bundle
+          references, small scripts, and templates. <strong>No new public API, no required framework, no
+          central registry</strong> — it is a packaging convention, not a new cloud product.
+        </P>
+
+        <p className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Example layout</p>
+        <pre className="mb-8 overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/60 p-4 sm:p-5 text-xs sm:text-sm leading-relaxed font-mono text-left text-gray-800 dark:text-gray-200 shadow-inner">
+{`my-skill/
+├── SKILL.md           # metadata + instructions
+├── reference.md        # deep reference (optional)
+├── forms.md            # sub-procedures (optional)
+└── apply_template.py  # scripts (optional)`}
+        </pre>
+
+        <P>
+          The part that changes cost curves is <strong>progressive disclosure</strong> — in three levels. Here
+          is the honest read on <em>when</em> each layer hits the context window.
+        </P>
+
+        <div className="mb-8 overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900/20">
+          <table className="w-full min-w-[520px] text-sm text-left">
+            <thead>
+              <tr className="bg-gray-100/90 dark:bg-gray-800/80 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-3 font-semibold">Level</th>
+                <th className="px-4 py-3 font-semibold">Content</th>
+                <th className="px-4 py-3 font-semibold">When</th>
+                <th className="px-4 py-3 font-semibold">Cost</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              {[
+                ['1 · Meta', 'Name + one-line blurb', 'Startup', '~100 tok/skill'],
+                ['2 · Body', 'Full SKILL.md', 'When skill fits', 'Up to ~5K'],
+                ['3 · Extras', 'Docs, data, scripts', 'When referenced', 'On demand'],
+              ].map((row) => (
+                <tr key={row[0]} className="text-gray-800 dark:text-gray-200">
+                  <td className="px-4 py-3 font-semibold text-violet-700 dark:text-violet-400 whitespace-nowrap">
+                    {row[0]}
+                  </td>
+                  <td className="px-4 py-3 leading-relaxed">{row[1]}</td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{row[2]}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-400">{row[3]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <P>
+          At startup, the model only needs to know that a skill <em>exists</em> and <em>when to use it</em>. You
+          can list <strong>hundreds of skills</strong> without that alone blowing the budget. When a task
+          matches, it reads the full <code className="text-[0.9em] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono">SKILL.md</code> and, if needed, other files over bash — scripts can run
+          without their full source living in the chat. Unused bundles stay <strong>at zero context cost</strong>.
+        </P>
+        <KeyLine>
+          The practical upshot: huge docs and datasets in the folder do not cost tokens until
+          something actually asks for them.
+        </KeyLine>
+
+        <SectionRule />
+
+        <SectionTitle>The MCP comparison (they’re complementary, not competitors)</SectionTitle>
+        <P>
+          If you are already on MCP, this is the layer map — not a winner-take-all story.
+        </P>
+
+        <ul className="mb-8 space-y-3 pl-0 list-none">
+          {[
+            <>
+              <strong className="text-indigo-700 dark:text-indigo-400">MCP</strong>
+              {''} = <strong>Capabilities</strong> — what the agent can <em>do</em> (Gmail, GSC, Slack, a browser, …).
+            </>,
+            <>
+              <strong className="text-emerald-700 dark:text-emerald-400">Skills</strong>
+              {''} = <strong>Technique</strong> — how to do the job: order of checks, failure handling, what “done”
+              looks like.
+            </>,
+          ].map((item, i) => (
+            <li
+              key={i}
+              className="flex gap-3 pl-0 py-3 px-4 rounded-xl bg-gray-50/90 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/60 leading-relaxed"
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white dark:bg-gray-700 text-xs font-bold text-gray-600 dark:text-gray-300">
+                {i + 1}
+              </span>
+              <span className="text-[1.02rem] sm:text-[1.05rem] text-gray-800 dark:text-gray-200">{item}</span>
+            </li>
+          ))}
+        </ul>
+
+        <P>
+          A heavy MCP session can put a <strong>large</strong> share of the window into <strong>tool definitions</strong>
+          {''} before the first user turn — in extreme setups, most of a 200K context. MCP loads those
+          descriptions in full at session start, whether you call every tool or not. Skills sidestep
+          that for <em>domain</em> knowledge: only light metadata is always on.
+        </P>
+        <P>
+          Practitioners who run both: all Skills and no tools → great playbooks, nothing to call. All
+          MCP and no Skills → sprawl and thin wrappers. <strong>Use both</strong> — skills for workflow, MCP for
+          live pipes.
+        </P>
+
+        <SectionRule />
+
+        <SectionTitle>The mental model that actually lands</SectionTitle>
+        <p className="mb-6 text-[1.05rem] sm:text-[1.125rem] leading-[1.78] text-gray-800 dark:text-gray-200">
+          Zhang and Murag’s <strong>processor / OS / apps</strong> analogy is the one to remember. Same stack, three
+          roles:
+        </p>
+
+        <div className="mb-8 space-y-4">
+          {[
+            {
+              icon: Cpu,
+              title: 'Models ≈ Processors',
+              text: 'Huge investment, huge potential — not much alone on a desk.',
+              tone: 'from-slate-50 to-slate-100/80 dark:from-slate-900/50 dark:to-slate-800/30',
+              border: 'border-slate-200 dark:border-slate-600',
+            },
+            {
+              icon: Layers,
+              title: 'Agent runtime ≈ Operating system',
+              text: 'Schedules work, files, permissions — brings the job to the processor.',
+              tone: 'from-violet-50/90 to-violet-100/50 dark:from-violet-950/30 dark:to-violet-900/20',
+              border: 'border-violet-200 dark:border-violet-700/50',
+            },
+            {
+              icon: Package,
+              title: 'Skills ≈ Applications',
+              text: 'Where expertise and taste live — built by people who are not writing kernels.',
+              tone: 'from-amber-50/90 to-orange-50/50 dark:from-amber-950/25 dark:to-orange-950/20',
+              border: 'border-amber-200 dark:border-amber-800/50',
+            },
+          ].map(({ icon: Icon, title, text, tone, border }) => (
+            <div
+              key={title}
+              className={`flex gap-4 rounded-2xl border ${border} bg-gradient-to-br ${tone} p-5 sm:p-6`}
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/80 dark:bg-gray-800/80 shadow-sm text-violet-600 dark:text-violet-400">
+                <Icon className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div>
+                <p className="m-0 text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1.5">
+                  {title}
+                </p>
+                <p className="m-0 text-[0.98rem] sm:text-[1.05rem] leading-relaxed text-gray-700 dark:text-gray-300">
+                  {text}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <P>
+          Only a few companies build chips. A modest number build OS-level agent runtimes. <strong>Millions</strong>
+          {''} can ship “apps” if an app is a folder and a <code className="text-[0.9em] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono">SKILL.md</code> — and that is how the
+          <em> expertise layer</em> can open to legal, finance, and ops without every author being a
+          backend engineer.
+        </P>
+
+        <SectionRule />
+
+        <SectionTitle>When to build a Skill vs. when not to</SectionTitle>
+
+        <div className="mb-6 grid gap-5 sm:gap-6">
+          <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-800/50 bg-emerald-50/40 dark:bg-emerald-950/20 p-5 sm:p-6">
+            <Subhead>Build a Skill when</Subhead>
+            <ul className="m-0 pl-0 list-none space-y-3.5 text-[1.02rem] sm:text-[1.05rem] leading-relaxed text-gray-800 dark:text-gray-200">
+              {[
+                'You keep repeating the same multi-step instructions across chats.',
+                'Procedural know-how only lives in a senior person’s head.',
+                'There is a real “definition of done,” but it shifts with context.',
+                'You need consistent style or quality on a recurring workflow.',
+              ].map((t) => (
+                <li key={t} className="flex gap-3 pl-0">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold mt-0.5" aria-hidden>
+                    →
+                  </span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-indigo-200/80 dark:border-indigo-800/50 bg-indigo-50/40 dark:bg-indigo-950/20 p-5 sm:p-6">
+            <Subhead>Build or use MCP (or tools) when</Subhead>
+            <ul className="m-0 pl-0 list-none space-y-3.5 text-[1.02rem] sm:text-[1.05rem] leading-relaxed text-gray-800 dark:text-gray-200">
+              {[
+                'You need live data, auth, real-time state, or org-wide governance.',
+                'The hard part is access to systems, not a missing paragraph of how-to.',
+              ].map((t) => (
+                <li key={t} className="flex gap-3 pl-0">
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold mt-0.5" aria-hidden>
+                    →
+                  </span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-800/50 bg-rose-50/30 dark:bg-rose-950/15 p-5 sm:p-6">
+            <Subhead>Don’t build a one-off “domain agent” from scratch when</Subhead>
+            <P>
+              A <strong>single general agent</strong> with the <strong>right Skills and tools</strong> is enough. The talk is
+              aimed at teams that rebuild bespoke chassis per vertical when one shared runtime + domain
+              Skills is faster and composes better.
+            </P>
+          </div>
+        </div>
+
+        <SectionTitle>One counter-point worth holding</SectionTitle>
+        <div className="mb-8 rounded-2xl border-l-4 border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-amber-950/20 px-5 sm:px-6 py-5">
+          <P>
+            The “Skills killed MCP” story is thinner now. In coding setups, a documentation MCP
+            alone is often enough to get correct code; Skills are not always the missing win. The
+            takeaway is not <em>which label wins</em> — it is whether your pain is <strong>access</strong> (MCP) or
+            {''} <strong>technique</strong> (Skills). In real systems, it is often both.
+          </P>
+        </div>
+
+        <SectionTitle>What this means in practice (including multi-agent stacks)</SectionTitle>
+        <P>
+          If you run something like a Hermes-style stack — SEO, monitoring, reports — ask: what is
+          a real <strong>isolation or runtime</strong> requirement vs what is just a <strong>different body of
+          know-how</strong>? The second kind is a Skill on one agent. Multi-site SEO is a natural fit for
+          per-site reference files and one <code className="text-[0.9em] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono">seo-audit</code> skill, not five duplicate agents.
+        </P>
+
+        <SectionRule />
+
+        <div className="mt-2 rounded-2xl bg-gradient-to-br from-violet-600/95 to-indigo-800 text-white p-6 sm:p-8 shadow-lg">
+          <p className="m-0 text-xs font-bold uppercase tracking-widest text-violet-200/90 mb-3">
+            Bottom line
           </p>
-          <p className="text-sm leading-7 text-gray-800 dark:text-gray-200">
-            <strong>Technique</strong> — <em>how</em> to do a job well. Checklists, ordering, failure handling,
-            what “done” means for your org. This is the “playbook,” not the socket.
+          <p className="m-0 text-lg sm:text-xl font-medium leading-relaxed text-white">
+            The pattern that is winning is: <strong>one general-purpose agent</strong>, a <strong>library of
+            Skills</strong>, and <strong>MCP (or your tool layer) for the outside world</strong>. “Stop building
+            agents” really means <em>stop rebuilding the same agent chassis for every domain</em>. The hard
+            part is expertise — package it once, load it lazily, let the shared runtime do the rest.
           </p>
         </div>
-      </div>
 
-      <p>
-        Why people compare them at all: a typical MCP-heavy session can shove a <strong>large</strong> share of
-        the context window into <strong>tool definitions alone</strong> before a single end-user action. Connect
-        several servers and the descriptions add up fast — in worst cases, a majority of a very
-        large window, depending on your stack. MCP tends to <strong>load those descriptions in full at
-        session start</strong>, whether the conversation will ever call half of the tools. Skills are
-        designed to avoid that tax for domain knowledge: only metadata is always on.
-      </p>
-
-      <p>
-        The production-friendly middle is not “Skills instead of MCP.” It is:{' '}
-        <strong>use both</strong> — Skills describe the workflow, MCP servers (or your own tool layer)
-        provide the <em>live</em> connections the workflow references. If you go all-in on skills and skip
-        tools, the agent can read a brilliant playbook and still have nothing to <em>call</em>. If you
-        go all-in on MCP, you can end up with tool sprawl and a pile of half-thin API wrappers. The
-        architecture that wins in messy products is <strong>Skills + tools</strong> with a clear line between
-        know-how and access.
-      </p>
-
-      <h2>The mental model that actually lands: processor, OS, apps</h2>
-
-      <p>
-        The cleanest analogy I have seen for this (and the one worth memorizing) is the classic
-        three-layer picture:
-      </p>
-
-      <ul>
-        <li>
-          <strong>Models</strong> are like <strong>processors</strong> — huge investment, huge ceiling, not very useful
-          as a box sitting alone on a desk.
-        </li>
-        <li>
-          <strong>Agent runtimes</strong> are the <strong>operating system</strong> — scheduling, files, permissions,
-          bringing work to the processor.
-        </li>
-        <li>
-          <strong>Skills</strong> are <strong>applications</strong> — where real-world expertise and taste live, in the
-          hands of people who are not, and should not have to be, OS authors.
-        </li>
-      </ul>
-
-      <p>
-        Only a handful of companies will ship “processors.” A modest number will ship
-        “operating systems” for agents. <strong>Millions</strong> can ship <strong>apps</strong> if the app format is a folder
-        and a <code>SKILL.md</code> — and that, in part, is the bet: open the <em>expertise layer</em> to people in
-        legal, accounting, recruiting, and every other function that already has internal runbooks
-        and checklists, not microservices in production.
-      </p>
-
-      <h2>When to build a Skill — and when to build something else</h2>
-
-      <h3>Build a Skill when…</h3>
-      <ul>
-        <li>You keep pasting the same multi-step instructions into new chats.</li>
-        <li>Procedural knowledge only lives in a senior person’s head.</li>
-        <li>The job has a real “definition of done,” but the shape of that “done” depends on context.</li>
-        <li>You need consistent style or quality across a recurring workflow (reports, reviews, handoffs).</li>
-      </ul>
-
-      <h3>Build or use MCP (or other tools) when…</h3>
-      <ul>
-        <li>
-          The bottleneck is <strong>access</strong> — live data, sign-in, real-time system state, rate limits, org
-          policy — not a missing paragraph of instructions.
-        </li>
-        <li>
-          You need a governed, centralized integration that many agents or humans share (the right
-          home for a server, not a static markdown file).
-        </li>
-      </ul>
-
-      <h3>Do not build a one-off “domain agent from scratch” when…</h3>
-      <p>
-        A <strong>single general agent</strong> with the <strong>right Skills and tools</strong> can handle the work. This is
-        the design critique behind the “stop building agents” slogan: a lot of teams rebuilt the
-        same <em>chassis</em> (routing, file IO, error handling) for every vertical, when the chassis could
-        be shared and the per-vertical part could be a Skill library.
-      </p>
-
-      <h2>A counter-point worth keeping</h2>
-
-      <p>
-        The narrative “Skills killed MCP” has thinned in the months since these ideas went wide.
-        Teams running <strong>both</strong> in production often report a messier story: in pure coding agents,
-        strong editor and documentation <strong>tools</strong> (sometimes delivered via MCP) are enough to
-        make the model useful <em>most</em> of the time, and a Skill is not always the missing piece. The
-        honest takeaway is not “Skills always win” or “MCP always wins.” It is:{' '}
-        <strong>match the mechanism to the failure mode</strong> — is the gap primarily <em>access</em> to systems
-        (MCP) or <em>technique</em> and taste (Skills)? In real products, the answer is frequently “some of
-        each.”
-      </p>
-
-      <h2>What this means in practice (including multi-agent stacks)</h2>
-
-      <p>
-        If you run something like a “Hermes” style stack with separate automations for SEO,
-        monitoring, reports, and content, ask a blunt question: which parts are <strong>actually different
-        runtimes or isolation boundaries</strong> (parallelism, different trust zones, different triggers),
-        and which are <strong>really different bodies of know-how</strong> that could be Skills for one agent? The
-        first stays multiple processes if it must. The second is where duplication hurts.
-      </p>
-
-      <p>
-        Progressive disclosure is especially strong for <strong>multi-site or multi-tenant</strong> editorial and
-        SEO work. A <code>seo-audit</code> skill can carry per-site reference files and only read the one
-        that matches the current property — <strong>leaner</strong> than shoving every site’s voice guidelines into
-        one static system prompt, or running five separate “agents” for five blogs when one runtime
-        would do. The same idea applies to bilingual or multi-format content: one <code>SKILL.md</code> for
-        voice, plus small reference files per format, is easier to govern than re-explaining rules
-        every time.
-      </p>
-
-      <h2>Bottom line</h2>
-
-      <p>
-        The shape that is converging is:{' '}
-        <strong>one general-purpose agent runtime, a library of Skills for expertise, and tools (often
-        MCP) for the outside world</strong>. The loud version of the message — “stop building agents” — is
-        really: <em>stop rebuilding the same agent chassis for every domain.</em> The hard part is the
-        expertise. Package it once, load it lazily, and let the shared runtime do the rest.
-      </p>
+        <p className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
+          Also published on{' '}
+          <a
+            href="https://medium.com/@jsong_49820/agents-vs-skills-the-full-picture-f16422ec7f9b"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-violet-600 dark:text-violet-400 hover:underline"
+          >
+            Medium
+          </a>
+          .
+        </p>
+      </ArticleShell>
     </BlogPostLayout>
   );
 }

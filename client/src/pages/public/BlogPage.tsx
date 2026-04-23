@@ -56,12 +56,12 @@ export default function BlogPage() {
     {
       id: 34,
       slug: 'skills-vs-agents',
-      title: 'Agents vs Skills: The Full Picture — One Agent, a Skill Library, and Where MCP Fits',
+      title: 'Agents vs Skills: The Full Picture',
       excerpt:
-        'The “stop building agents” line is about duplicate scaffolding, not deleting your runtime. How Skills, progressive disclosure, and MCP fit together — plus an old-vs-new mental model in one diagram.',
+        'The “stop building agents” line is about duplicate scaffolding, not deleting your runtime. Skills, progressive disclosure, and MCP in one readable layout — same story as the Medium post, with the old-vs-new diagram.',
       author: 'Jaehee Song',
       date: '2026-04-23',
-      readTime: '14 min read',
+      readTime: '12 min read',
       category: 'AI & Development',
     },
     {
