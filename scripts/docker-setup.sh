@@ -54,7 +54,7 @@ check_env_file() {
         echo "Required variables:"
         echo "  - GOOGLE_CLIENT_ID"
         echo "  - GOOGLE_CLIENT_SECRET"
-        echo "  - OPENROUTER_API_KEY"
+        echo "  - MOONSHOT_API_KEY (or OPENROUTER_API_KEY for legacy fallback)"
         echo ""
         read -p "Press Enter to continue after updating .env..."
     else
