@@ -84,7 +84,7 @@ export const updateProjectPhaseSchema = z.object({
 export const getAllProjectsSchema = z.object({
   status: z.enum(['ACTIVE', 'COMPLETED', 'ARCHIVED']).optional(),
   mode: z.enum(['PLAIN', 'TECHNICAL', 'UNIFIED']).optional(),
-  limit: z.number().min(1).max(100).default(50).optional(),
+  limit: z.number().min(1).max(200).default(100).optional(),
   offset: z.number().min(0).default(0).optional(),
 });
 

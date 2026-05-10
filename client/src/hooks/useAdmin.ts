@@ -22,8 +22,8 @@ export function useSystemStats() {
 /**
  * Get all users with pagination
  */
-export function useUsers(limit = 50, offset = 0) {
-  const { data, isLoading, error } = trpc.admin.getAllUsers.useQuery({ limit, offset });
+export function useUsers(limit = 50, offset = 0, search?: string) {
+  const { data, isLoading, error } = trpc.admin.getAllUsers.useQuery({ limit, offset, search });
 
   return {
     users: data?.users ?? [],
@@ -110,6 +110,7 @@ export function useAdminProjects(filters?: {
   status?: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   limit?: number;
   offset?: number;
+  search?: string;
 }) {
   const { data, isLoading, error } = trpc.admin.getAllProjects.useQuery(filters ?? {});
 
@@ -150,6 +151,7 @@ export function useAdminDocuments(filters?: {
   status?: 'DRAFT' | 'APPROVED';
   limit?: number;
   offset?: number;
+  search?: string;
 }) {
   const { data, isLoading, error } = trpc.admin.getAllDocuments.useQuery(filters ?? {});
 

@@ -24,6 +24,8 @@ import {
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
 import { randomBytes } from 'crypto';
+import type { ProjectData, UserData, CollaboratorData, InviteData } from '../lib/firestore-types.js';
+import type { Timestamp } from '../lib/firebase.js';
 
 /**
  * Generate a unique token for invitations
@@ -54,7 +56,7 @@ export const collaboratorsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -476,7 +478,7 @@ export const collaboratorsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -560,7 +562,7 @@ export const collaboratorsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -670,7 +672,7 @@ export const collaboratorsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -701,7 +703,7 @@ export const collaboratorsRouter = router({
         // Fetch user and inviter data for each collaborator
         const collaborators = await Promise.all(
           collaboratorsSnapshot.docs.map(async (doc) => {
-            const collaboratorData = doc.data();
+            const collaboratorData = doc.data() as CollaboratorData;
 
             const userDoc = await ctx.db.collection('users').doc(collaboratorData.userId).get();
             const userData = userDoc.exists ? userDoc.data() : null;
@@ -712,8 +714,9 @@ export const collaboratorsRouter = router({
             const inviterData = inviterDoc?.exists ? inviterDoc.data() : null;
 
             return {
+                            ...collaboratorData,
               id: doc.id,
-              ...collaboratorData,
+
               createdAt: collaboratorData.createdAt?.toDate(),
               updatedAt: collaboratorData.updatedAt?.toDate(),
               acceptedAt: collaboratorData.acceptedAt?.toDate(),
@@ -768,8 +771,8 @@ export const collaboratorsRouter = router({
             .get();
 
           for (const inviteDoc of invitesSnapshot.docs) {
-            const inviteData = inviteDoc.data();
-            const expiresAt = inviteData.expiresAt?.toDate();
+            const inviteData = inviteDoc.data() as InviteData;
+            const expiresAt = (inviteData.expiresAt as Timestamp)?.toDate ? (inviteData.expiresAt as Timestamp).toDate() : (inviteData.expiresAt as Date);
 
             // Only include non-expired invites
             if (expiresAt && now <= expiresAt) {
@@ -778,8 +781,8 @@ export const collaboratorsRouter = router({
               const inviterData = inviterDoc.exists ? inviterDoc.data() : null;
 
               allInvites.push({
-                id: inviteDoc.id,
                 ...inviteData,
+                id: inviteDoc.id,
                 createdAt: inviteData.createdAt?.toDate(),
                 updatedAt: inviteData.updatedAt?.toDate(),
                 expiresAt,
@@ -844,7 +847,7 @@ export const collaboratorsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',

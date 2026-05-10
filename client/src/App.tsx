@@ -1,6 +1,7 @@
 import { useState, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { trackPageView } from './lib/utils/analytics';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
 import { AuthLayout } from './components/auth/AuthLayout';
@@ -76,12 +77,18 @@ const DataGovernanceAIEraPost = lazyWithRetry(() => import('./pages/public/blog/
 const ResponsibleAIGuidePost = lazyWithRetry(() => import('./pages/public/blog/ResponsibleAIGuidePost'));
 const EntryLevelTech2026Post = lazyWithRetry(() => import('./pages/public/blog/EntryLevelTech2026Post'));
 const AIInterviewTransformationPost = lazyWithRetry(() => import('./pages/public/blog/AIInterviewTransformationPost'));
+const IdentityCollapseCaregivingPost = lazyWithRetry(() => import('./pages/public/blog/IdentityCollapseCaregivingPost'));
 const HermesLLMWikiPost = lazyWithRetry(() => import('./pages/public/blog/HermesLLMWikiPost'));
 const LLMWikiHermesAgentPost = lazyWithRetry(() => import('./pages/public/blog/LLMWikiHermesAgentPost'));
 const GraphifyWikiBuildPost = lazyWithRetry(() => import('./pages/public/blog/GraphifyWikiBuildPost'));
 const AnthropicVsOpenRouterOpusPost = lazyWithRetry(() => import('./pages/public/blog/AnthropicVsOpenRouterOpusPost'));
 const HermesAgentCostSavingPost = lazyWithRetry(() => import('./pages/public/blog/HermesAgentCostSavingPost'));
 const SkillsVsAgentsPost = lazyWithRetry(() => import('./pages/public/blog/SkillsVsAgentsPost'));
+const BeyondVibeCodingPost01 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost01'));
+const BeyondVibeCodingPost02 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost02'));
+const BeyondVibeCodingPost03 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost03'));
+const BeyondVibeCodingPost04 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost04'));
+const BeyondVibeCodingPost05 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost05'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -140,6 +147,11 @@ function AppContent() {
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, isLoading, location.pathname, navigate]);
+
+  // Track page views on SPA route changes
+  useEffect(() => {
+    trackPageView(location.pathname, document.title);
+  }, [location.pathname]);
 
   // Show loading state
   if (isLoading) {
@@ -329,12 +341,18 @@ function App() {
         <Route path="/blog/responsible-ai-guide" element={<ResponsibleAIGuidePost />} />
         <Route path="/blog/entry-level-tech-2026" element={<EntryLevelTech2026Post />} />
         <Route path="/blog/ai-interview-transformation-2026" element={<AIInterviewTransformationPost />} />
+        <Route path="/blog/engineer-caregiver-identity-collapse" element={<IdentityCollapseCaregivingPost />} />
         <Route path="/blog/hermes-llm-wiki" element={<HermesLLMWikiPost />} />
         <Route path="/blog/llm-wiki-hermes-agent" element={<LLMWikiHermesAgentPost />} />
         <Route path="/blog/graphify-wiki-build" element={<GraphifyWikiBuildPost />} />
         <Route path="/blog/anthropic-vs-openrouter-opus" element={<AnthropicVsOpenRouterOpusPost />} />
         <Route path="/blog/hermes-agent-cost-saving" element={<HermesAgentCostSavingPost />} />
         <Route path="/blog/skills-vs-agents" element={<SkillsVsAgentsPost />} />
+        <Route path="/blog/vibe-coded-app-why-it-breaks" element={<BeyondVibeCodingPost01 />} />
+        <Route path="/blog/the-one-file-every-ai-developer-needs" element={<BeyondVibeCodingPost02 />} />
+        <Route path="/blog/stop-losing-architectural-decisions" element={<BeyondVibeCodingPost03 />} />
+        <Route path="/blog/two-docs-before-2am-crisis" element={<BeyondVibeCodingPost04 />} />
+        <Route path="/blog/retrofit-engineering-discipline-in-a-day" element={<BeyondVibeCodingPost05 />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />

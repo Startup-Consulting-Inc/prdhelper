@@ -13,6 +13,15 @@ import { z } from 'zod';
 import { router, adminProcedure } from '../lib/trpc/trpc.js';
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
+import type {
+  ProjectData,
+  DocumentData,
+  UserData,
+  SystemPromptData,
+  PromptVersionData,
+  AuditLogData,
+  TokenUsageData,
+} from '../lib/firestore-types.js';
 
 export const adminRouter = router({
   /**
@@ -25,12 +34,15 @@ export const adminRouter = router({
         .orderBy('type', 'asc')
         .get();
 
-      const prompts = promptsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-      }));
+      const prompts = promptsSnapshot.docs.map((doc) => {
+        const data = doc.data() as SystemPromptData;
+        return {
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate(),
+        };
+      });
 
       return prompts;
     } catch (error) {
@@ -65,7 +77,7 @@ export const adminRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Prompt not found' });
         }
 
-        const currentPrompt = promptDoc.data();
+        const currentPrompt = promptDoc.data() as SystemPromptData | undefined;
 
         // Get latest version number from versions subcollection
         const versionsSnapshot = await promptRef
@@ -97,12 +109,14 @@ export const adminRouter = router({
 
         // Get updated prompt
         const updatedDoc = await promptRef.get();
-        const updatedPrompt = { id: updatedDoc.id, ...(updatedDoc.data() || {}) } as {
-          id: string;
-          type?: string;
-          createdAt?: admin.firestore.Timestamp;
-          updatedAt?: admin.firestore.Timestamp;
-          [key: string]: unknown;
+        const updatedData = updatedDoc.data() as SystemPromptData | undefined;
+        const updatedPrompt = {
+          id: updatedDoc.id,
+          type: updatedData?.type || '',
+          prompt: updatedData?.prompt || '',
+          isActive: updatedData?.isActive ?? true,
+          createdAt: updatedData?.createdAt,
+          updatedAt: updatedData?.updatedAt,
         };
 
         // Create audit log
@@ -150,7 +164,7 @@ export const adminRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Prompt not found' });
         }
 
-        const promptData = promptDoc.data();
+        const promptData = promptDoc.data() as SystemPromptData | undefined;
 
         // Delete versions subcollection first
         const versionsSnapshot = await promptRef.collection('versions').get();
@@ -227,10 +241,11 @@ export const adminRouter = router({
 
         // Map versions with creator data
         const versions = versionsSnapshot.docs.map((doc) => {
-          const data = doc.data();
+          const data = doc.data() as PromptVersionData;
           return {
+                        ...data,
             id: doc.id,
-            ...data,
+
             creator: creatorsMap.get(data.createdBy) || null,
             createdAt: data.createdAt?.toDate(),
           };
@@ -273,7 +288,7 @@ export const adminRouter = router({
         }
 
         const versionData = versionDoc.data();
-        const currentPromptData = promptDoc.data();
+        const currentPromptData = promptDoc.data() as SystemPromptData | undefined;
 
         // Get latest version number
         const latestVersionSnapshot = await promptRef
@@ -305,11 +320,14 @@ export const adminRouter = router({
 
         // Get updated prompt
         const updatedDoc = await promptRef.get();
-        const updatedPrompt = { id: updatedDoc.id, ...(updatedDoc.data() || {}) } as {
-          id: string;
-          createdAt?: admin.firestore.Timestamp;
-          updatedAt?: admin.firestore.Timestamp;
-          [key: string]: unknown;
+        const updatedData = updatedDoc.data() as SystemPromptData | undefined;
+        const updatedPrompt = {
+          id: updatedDoc.id,
+          type: updatedData?.type || '',
+          prompt: updatedData?.prompt || '',
+          isActive: updatedData?.isActive ?? true,
+          createdAt: updatedData?.createdAt,
+          updatedAt: updatedData?.updatedAt,
         };
 
         // Create audit log
@@ -355,27 +373,19 @@ export const adminRouter = router({
       z.object({
         limit: z.number().min(1).max(100).default(50).optional(),
         offset: z.number().min(0).default(0).optional(),
+        search: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       try {
-        const { limit = 50, offset = 0 } = input;
+        const { limit = 50, offset = 0, search } = input;
 
-        // Get all users count
+        // Get all users
         const allUsersSnapshot = await ctx.db.collection('users').get();
-        const total = allUsersSnapshot.size;
-
-        // Get paginated users
-        const usersSnapshot = await ctx.db
-          .collection('users')
-          .orderBy('createdAt', 'desc')
-          .limit(limit)
-          .offset(offset)
-          .get();
 
         // Get project counts for each user
-        const users = await Promise.all(
-          usersSnapshot.docs.map(async (doc) => {
+        let users = await Promise.all(
+          allUsersSnapshot.docs.map(async (doc) => {
             const userData = doc.data();
 
             // Count projects for this user
@@ -406,10 +416,32 @@ export const adminRouter = router({
           })
         );
 
+        // Apply search filter
+        if (search && search.trim()) {
+          const searchLower = search.toLowerCase().trim();
+          users = users.filter(
+            (u) =>
+              (u.name && u.name.toLowerCase().includes(searchLower)) ||
+              (u.email && u.email.toLowerCase().includes(searchLower))
+          );
+        }
+
+        const total = users.length;
+
+        // Sort by createdAt desc
+        users.sort((a, b) => {
+          const aTime = a.createdAt?.getTime() || 0;
+          const bTime = b.createdAt?.getTime() || 0;
+          return bTime - aTime;
+        });
+
+        // Apply pagination
+        const paginatedUsers = users.slice(offset, offset + limit);
+
         return {
-          users,
+          users: paginatedUsers,
           total,
-          hasMore: offset + users.length < total,
+          hasMore: offset + paginatedUsers.length < total,
         };
       } catch (error) {
         logger.error({ error }, 'Failed to get all users');
@@ -448,7 +480,7 @@ export const adminRouter = router({
         });
 
         const updatedDoc = await userRef.get();
-        const updatedData = updatedDoc.data();
+        const updatedData = updatedDoc.data() as UserData | undefined;
 
         // Create audit log
         await ctx.db.collection('auditLogs').add({
@@ -641,10 +673,11 @@ export const adminRouter = router({
 
         // Map logs with user data
         const logs = paginatedDocs.map((doc) => {
-          const data = doc.data();
+          const data = doc.data() as AuditLogData;
           return {
+                        ...data,
             id: doc.id,
-            ...data,
+
             user: usersMap.get(data.userId) || null,
             createdAt: data.createdAt?.toDate(),
           };
@@ -730,11 +763,12 @@ export const adminRouter = router({
         status: z.enum(['ACTIVE', 'COMPLETED', 'ARCHIVED']).optional(),
         limit: z.number().min(1).max(100).default(50).optional(),
         offset: z.number().min(0).default(0).optional(),
+        search: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       try {
-        const { userId, status, limit = 50, offset = 0 } = input;
+        const { userId, status, limit = 50, offset = 0, search } = input;
 
         // Build query with filters
         let query = ctx.db.collection('projects').orderBy('createdAt', 'desc');
@@ -748,41 +782,69 @@ export const adminRouter = router({
 
         // Get all matching projects for count and pagination
         const allProjectsSnapshot = await query.get();
-        const total = allProjectsSnapshot.size;
+        let projectDocs = allProjectsSnapshot.docs;
+
+        // Fetch user data for search filtering
+        let usersMap = new Map<string, { id: string; name?: string; email?: string }>();
+        if (search && search.trim()) {
+          const userIds = [...new Set(projectDocs.map((doc) => doc.data().userId))];
+          const usersData = await Promise.all(
+            userIds.map(async (uid) => {
+              const userDoc = await ctx.db.collection('users').doc(uid).get();
+              return userDoc.exists
+                ? { id: userDoc.id, name: userDoc.data()?.name, email: userDoc.data()?.email }
+                : null;
+            })
+          );
+          usersMap = new Map(usersData.filter((u) => u !== null).map((u) => [u!.id, u!]));
+
+          const searchLower = search.toLowerCase().trim();
+          projectDocs = projectDocs.filter((doc) => {
+            const data = doc.data();
+            const user = usersMap.get(data.userId);
+            return (
+              (data.title && data.title.toLowerCase().includes(searchLower)) ||
+              (user?.name && user.name.toLowerCase().includes(searchLower)) ||
+              (user?.email && user.email.toLowerCase().includes(searchLower))
+            );
+          });
+        }
+
+        const total = projectDocs.length;
 
         // Apply pagination in memory
-        const paginatedDocs = allProjectsSnapshot.docs.slice(offset, offset + limit);
+        const paginatedDocs = projectDocs.slice(offset, offset + limit);
 
-        // Get user IDs
-        const userIds = [...new Set(paginatedDocs.map((doc) => doc.data().userId))];
-
-        // Fetch user data
-        const usersData = await Promise.all(
-          userIds.map(async (uid) => {
-            const userDoc = await ctx.db.collection('users').doc(uid).get();
-            return userDoc.exists
-              ? {
-                  id: userDoc.id,
-                  name: userDoc.data()?.name,
-                  email: userDoc.data()?.email,
-                }
-              : null;
-          })
-        );
-
-        const usersMap = new Map(usersData.filter((u) => u !== null).map((u) => [u!.id, u]));
+        // Get user IDs (re-fetch if not already fetched for search)
+        if (!search || !search.trim()) {
+          const userIds = [...new Set(paginatedDocs.map((doc) => doc.data().userId))];
+          const usersData = await Promise.all(
+            userIds.map(async (uid) => {
+              const userDoc = await ctx.db.collection('users').doc(uid).get();
+              return userDoc.exists
+                ? {
+                    id: userDoc.id,
+                    name: userDoc.data()?.name,
+                    email: userDoc.data()?.email,
+                  }
+                : null;
+            })
+          );
+          usersMap = new Map(usersData.filter((u) => u !== null).map((u) => [u!.id, u!]));
+        }
 
         // Get project data with document counts
         const projects = await Promise.all(
           paginatedDocs.map(async (doc) => {
-            const data = doc.data();
+            const data = doc.data() as ProjectData;
 
             // Count documents in subcollection
             const documentsSnapshot = await doc.ref.collection('documents').get();
 
             return {
+                            ...data,
               id: doc.id,
-              ...data,
+
               user: usersMap.get(data.userId) || null,
               _count: {
                 documents: documentsSnapshot.size,
@@ -889,11 +951,12 @@ export const adminRouter = router({
         status: z.enum(['DRAFT', 'APPROVED']).optional(),
         limit: z.number().min(1).max(100).default(50).optional(),
         offset: z.number().min(0).default(0).optional(),
+        search: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       try {
-        const { projectId, userId, type, status, limit = 50, offset = 0 } = input;
+        const { projectId, userId, type, status, limit = 50, offset = 0, search } = input;
 
         // Get projects (filtered by userId if provided)
         let projectsQuery: admin.firestore.Query<admin.firestore.DocumentData> = ctx.db.collection('projects');
@@ -907,10 +970,10 @@ export const adminRouter = router({
         const projectsSnapshot = await projectsQuery.get();
 
         // Collect all documents from project subcollections
-        const allDocuments: any[] = [];
+        let allDocuments: any[] = [];
 
         for (const projectDoc of projectsSnapshot.docs) {
-          const projectData = projectDoc.data();
+          const projectData = projectDoc.data() as ProjectData;
 
           // Build documents query with filters
           let docsQuery = projectDoc.ref.collection('documents').orderBy('createdAt', 'desc');
@@ -936,10 +999,11 @@ export const adminRouter = router({
 
           // Add documents with project info
           documentsSnapshot.docs.forEach((doc) => {
-            const docData = doc.data();
+            const docData = doc.data() as DocumentData;
             allDocuments.push({
+                            ...docData,
               id: doc.id,
-              ...docData,
+
               project: {
                 id: projectDoc.id,
                 title: projectData.title,
@@ -948,6 +1012,21 @@ export const adminRouter = router({
               createdAt: docData.createdAt?.toDate(),
               updatedAt: docData.updatedAt?.toDate(),
             });
+          });
+        }
+
+        // Apply search filter
+        if (search && search.trim()) {
+          const searchLower = search.toLowerCase().trim();
+          allDocuments = allDocuments.filter((d) => {
+            const projectTitle = d.project?.title || '';
+            const ownerName = d.project?.user?.name || '';
+            const ownerEmail = d.project?.user?.email || '';
+            return (
+              projectTitle.toLowerCase().includes(searchLower) ||
+              ownerName.toLowerCase().includes(searchLower) ||
+              ownerEmail.toLowerCase().includes(searchLower)
+            );
           });
         }
 
@@ -1127,10 +1206,11 @@ export const adminRouter = router({
 
         // Map usage with user and project data
         const usage = paginatedDocs.map((doc) => {
-          const data = doc.data();
+          const data = doc.data() as TokenUsageData;
           return {
+                        ...data,
             id: doc.id,
-            ...data,
+
             user: usersMap.get(data.userId) || null,
             project: data.projectId ? projectsMap.get(data.projectId) || null : null,
             createdAt: data.createdAt?.toDate(),

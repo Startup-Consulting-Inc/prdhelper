@@ -28,7 +28,7 @@ interface PromptVersion {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 interface PromptEditorProps {
@@ -132,7 +132,7 @@ export function PromptEditor({
             </h3>
             {isVersion && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Created by {(prompt as PromptVersion).creator.name} on{' '}
+                Created by {(prompt as PromptVersion).creator?.name || 'Unknown'} on{' '}
                 {new Date(prompt.createdAt).toLocaleString()}
               </p>
             )}

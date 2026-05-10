@@ -392,7 +392,19 @@ export function BlogPostLayout({
             </header>
 
             {/* Article content */}
-            <div className="prose prose-lg dark:prose-invert max-w-none">{children}</div>
+            <div
+              className="prose prose-lg dark:prose-invert max-w-none
+              prose-p:mb-7 prose-p:last:mb-0 prose-p:leading-[1.78] prose-p:text-[1.05rem] sm:prose-p:text-[1.125rem]
+              prose-headings:tracking-tight
+              prose-h2:mt-14 prose-h2:mb-6 prose-h2:text-2xl sm:prose-h2:text-3xl prose-h2:font-bold
+              prose-h3:mt-10 prose-h3:mb-4 prose-h3:text-base prose-h3:font-bold prose-h3:uppercase prose-h3:tracking-wide prose-h3:text-emerald-700 dark:prose-h3:text-emerald-400
+              prose-a:text-emerald-700 dark:prose-a:text-emerald-300 prose-a:font-medium prose-a:underline prose-a:underline-offset-4
+              prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+              prose-blockquote:border-l-emerald-600 dark:prose-blockquote:border-l-emerald-400 prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300
+              prose-li:my-1.5"
+            >
+              {children}
+            </div>
 
             {/* Related posts */}
             {relatedPosts && relatedPosts.length > 0 && (

@@ -13,6 +13,8 @@ export type { Project };
 export function useProjects(filters?: {
   status?: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   mode?: 'PLAIN' | 'TECHNICAL';
+  limit?: number;
+  offset?: number;
 }) {
   const utils = trpc.useUtils();
   const { isAuthenticated } = useAuth();
@@ -21,6 +23,7 @@ export function useProjects(filters?: {
   const {
     data,
     isLoading,
+    isFetching,
     error,
     refetch,
   } = trpc.projects.getAll.useQuery(filters || {}, {
@@ -74,6 +77,7 @@ export function useProjects(filters?: {
     total: data?.total || 0,
     hasMore: data?.hasMore || false,
     isLoading,
+    isFetching,
     error,
     refetch,
     createProject: createProject.mutate,

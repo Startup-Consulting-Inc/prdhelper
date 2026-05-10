@@ -178,6 +178,7 @@ app.use(
           'https://www.googletagmanager.com', // Google Tag Manager
           'https://www.google-analytics.com', // Google Analytics
           'https://region1.google-analytics.com', // GA4 regional endpoint
+          'https://www.google.com', // GA4 collect endpoint
         ],
         fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         objectSrc: ["'none'"],

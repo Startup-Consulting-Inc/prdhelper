@@ -4,7 +4,7 @@
  * Main dashboard showing user stats, projects, and quick actions.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Footer } from '../components/layout/Footer';
@@ -14,20 +14,45 @@ import { useProjects, useProjectStats, type Project } from '../hooks/useProjects
 import { useAuth } from '../contexts/AuthContext';
 import { calculateProjectProgress } from '../lib/utils/projectProgress';
 
+const PAGE_SIZE = 100;
+
 export function DashboardPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [offset, setOffset] = useState(0);
   const {
     projects,
+    total,
+    hasMore,
     isLoading: isLoadingProjects,
+    isFetching,
     deleteProjectAsync,
     archiveProjectAsync,
     updateProjectAsync,
     duplicateProjectAsync,
-  } = useProjects();
+  } = useProjects({ limit: PAGE_SIZE, offset });
   const { stats, isLoading: isLoadingStats } = useProjectStats();
   const [editingProject, setEditingProject] = useState<{ id: string; title: string } | null>(null);
   const [editTitle, setEditTitle] = useState('');
+
+  // Accumulate projects across pagination loads
+  const [allProjects, setAllProjects] = useState<typeof projects>([]);
+
+  useEffect(() => {
+    if (!isLoadingProjects) {
+      if (offset === 0) {
+        setAllProjects(projects);
+      } else {
+        setAllProjects((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newProjects = projects.filter((p) => !existingIds.has(p.id));
+          return [...prev, ...newProjects];
+        });
+      }
+    }
+  }, [projects, isLoadingProjects, offset]);
+
+  const resetPagination = () => setOffset(0);
 
   const handleCreateProject = () => {
     navigate('/projects/new');
@@ -42,6 +67,7 @@ export function DashboardPage() {
       return;
     }
 
+    resetPagination();
     try {
       await deleteProjectAsync({ id });
     } catch (error) {
@@ -54,6 +80,7 @@ export function DashboardPage() {
       return;
     }
 
+    resetPagination();
     try {
       await archiveProjectAsync({ id });
     } catch (error) {
@@ -62,12 +89,17 @@ export function DashboardPage() {
   };
 
   const handleDuplicateProject = async (id: string) => {
+    resetPagination();
     try {
       const newProject = await duplicateProjectAsync({ id });
       navigate(`/projects/${newProject.id}`);
     } catch (error) {
       alert('Failed to duplicate project: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
+  };
+
+  const handleLoadMore = () => {
+    setOffset((prev) => prev + PAGE_SIZE);
   };
 
   const handleEditProject = (id: string, currentTitle: string) => {
@@ -78,6 +110,7 @@ export function DashboardPage() {
   const handleSaveEdit = async () => {
     if (!editingProject || !editTitle.trim()) return;
 
+    resetPagination();
     try {
       await updateProjectAsync({ id: editingProject.id, title: editTitle.trim() });
       setEditingProject(null);
@@ -210,12 +243,14 @@ export function DashboardPage() {
               </Button>
             </div>
             <ProjectList
-              projects={projects.map((p: Project) => ({
+              projects={allProjects.map((p) => ({
                 id: p.id,
+                userId: p.userId,
                 title: p.title || 'Untitled Project',
                 description: p.description,
                 mode: (p.mode || 'UNIFIED').toLowerCase() as 'plain' | 'technical' | 'unified',
                 status: (p.status || 'ACTIVE').toLowerCase() as 'active' | 'completed' | 'archived',
+                user: p.user,
                 progress: calculateProjectProgress(
                   { mode: p.mode || 'PLAIN' },
                   p.documents || []
@@ -229,8 +264,22 @@ export function DashboardPage() {
               onArchiveProject={handleArchiveProject}
               onDeleteProject={handleDeleteProject}
               onDuplicateProject={handleDuplicateProject}
-              isLoading={isLoadingProjects}
+              isLoading={isLoadingProjects && offset === 0}
             />
+            {hasMore && !isLoadingProjects && (
+              <div className="mt-6 text-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadMore}
+                  disabled={isFetching}
+                >
+                  {isFetching && offset > 0
+                    ? 'Loading...'
+                    : `Load More (${total - allProjects.length} remaining)`}
+                </Button>
+              </div>
+            )}
           </div>
         </main>
         <Footer />

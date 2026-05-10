@@ -13,6 +13,7 @@ export default function EmailVerificationPendingPage() {
   const [message, setMessage] = useState('');
   const [cooldown, setCooldown] = useState(false);
 
+  // @ts-expect-error - resendVerification endpoint not yet implemented
   const resendMutation = trpc.auth.resendVerification.useMutation();
 
   const handleResend = async () => {
@@ -31,7 +32,7 @@ export default function EmailVerificationPendingPage() {
     resendMutation.mutate(
       { email },
       {
-        onSuccess: (data) => {
+        onSuccess: (data: { message: string }) => {
           setResendStatus('success');
           setMessage(data.message);
 
@@ -42,7 +43,7 @@ export default function EmailVerificationPendingPage() {
             setResendStatus('idle');
           }, 60000);
         },
-        onError: (error) => {
+        onError: (error: { message?: string }) => {
           setResendStatus('error');
           setMessage(error.message || 'Failed to resend verification email');
 

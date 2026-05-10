@@ -21,11 +21,11 @@ interface TokenUsage {
     id: string;
     name: string;
     email: string;
-  };
-  project?: {
+  } | null;
+  project: {
     id: string;
     title: string;
-  };
+  } | null;
 }
 
 export function TokenUsageTable() {
@@ -54,8 +54,8 @@ export function TokenUsageTable() {
 
       switch (sortKey) {
         case 'user':
-          aValue = a.user.name;
-          bValue = b.user.name;
+          aValue = a.user?.name || '';
+          bValue = b.user?.name || '';
           break;
         case 'project':
           aValue = a.project?.title || '';
@@ -131,10 +131,10 @@ export function TokenUsageTable() {
       render: (usage) => (
         <div>
           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {usage.user.name}
+            {usage.user?.name || 'Unknown'}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {usage.user.email}
+            {usage.user?.email || ''}
           </div>
         </div>
       ),
@@ -215,16 +215,16 @@ export function TokenUsageTable() {
       </h2>
 
       {/* Statistics Overview */}
-      {stats && stats.totalStats && (
+      {stats && stats.total && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
             title="Total Tokens Used"
-            value={formatTokens(stats.totalStats.totalTokens || 0)}
+            value={formatTokens(stats.total.tokensUsed || 0)}
             icon={Activity}
           />
           <StatsCard
             title="Total Cost"
-            value={formatCost(stats.totalStats.totalCost || 0)}
+            value={formatCost(stats.total.cost || 0)}
             icon={Coins}
           />
           <StatsCard
@@ -234,7 +234,7 @@ export function TokenUsageTable() {
           />
           <StatsCard
             title="Operations"
-            value={stats.totalStats.operationCount || 0}
+            value={stats.byOperation?.length || 0}
             icon={TrendingUp}
           />
         </div>
@@ -283,10 +283,10 @@ export function TokenUsageTable() {
                   {user.userName}
                 </div>
                 <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  {formatTokens(user.totalTokens)}
+                  {formatTokens(user.tokensUsed)}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {formatCost(user.totalCost)}
+                  {formatCost(user.cost)}
                 </div>
               </div>
             ))}

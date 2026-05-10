@@ -39,7 +39,7 @@ interface PromptVersion {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 export function SystemPromptsManagement() {
@@ -94,7 +94,8 @@ export function SystemPromptsManagement() {
 
   const handleRestore = async (versionId: string) => {
     try {
-      await restoreVersion({ versionId });
+      if (!selectedPrompt) return;
+      await restoreVersion({ promptId: selectedPrompt.id, versionId });
       // Refresh selected prompt
       const updatedPrompt = prompts.find((p) => p.id === selectedPrompt?.id);
       if (updatedPrompt) {
@@ -129,7 +130,7 @@ export function SystemPromptsManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Panel */}
         <div className="lg:col-span-1">
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <Tabs value={activeTab} onValueChange={handleTabChange} defaultValue="prompts">
             <TabsList className="mb-4 w-full">
               <TabsTrigger value="prompts" className="flex-1">
                 <FileText className="h-4 w-4 mr-2" />

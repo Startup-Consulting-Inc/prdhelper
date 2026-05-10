@@ -20,11 +20,11 @@ export interface Collaborator {
     name: string;
     email: string;
     image?: string | null;
-  };
+  } | null;
   inviter: {
     id: string;
     name: string;
-  };
+  } | null;
 }
 
 export interface ProjectInvite {
@@ -46,7 +46,7 @@ export interface ProjectInvite {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 export interface UserSearchResult {

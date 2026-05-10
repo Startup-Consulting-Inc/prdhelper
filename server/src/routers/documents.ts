@@ -25,6 +25,7 @@ import {
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
 import { saveDocumentContent, resolveDocumentContent, isGCSReference } from '../lib/storage.js';
+import type { DocumentData, DocumentVersionData, ProjectData } from '../lib/firestore-types.js';
 
 /**
  * Verify project access for document operations
@@ -122,10 +123,11 @@ export const documentsRouter = router({
 
         const documents = await Promise.all(
           documentsSnapshot.docs.map(async (doc) => {
-            const data = doc.data();
+            const data = doc.data() as DocumentData;
             return {
+                            ...data,
               id: doc.id,
-              ...data,
+
               content: data.content && isGCSReference(data.content)
                 ? await resolveDocumentContent(data.content)
                 : data.content,
@@ -156,7 +158,7 @@ export const documentsRouter = router({
     .input(getDocumentByIdSchema)
     .query(async ({ ctx, input }) => {
       try {
-        let documentData: FirebaseFirestore.DocumentData;
+        let documentData: DocumentData;
         let projectDocId: string;
 
         if (input.projectId) {
@@ -171,7 +173,7 @@ export const documentsRouter = router({
             });
           }
 
-          documentData = docSnapshot.data()!;
+          documentData = docSnapshot.data() as DocumentData;
           projectDocId = input.projectId;
         } else {
           // Fallback: collectionGroup query (requires Firestore index on documents/id)
@@ -189,7 +191,7 @@ export const documentsRouter = router({
           }
 
           const docSnap = docsSnapshot.docs[0];
-          documentData = docSnap.data();
+          documentData = docSnap.data() as DocumentData;
           const parentId = docSnap.ref.parent.parent?.id;
 
           if (!parentId) {
@@ -203,7 +205,7 @@ export const documentsRouter = router({
         }
 
         const projectDoc = await ctx.db.collection('projects').doc(projectDocId).get();
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
 
         if (!projectData) {
           throw new TRPCError({
@@ -227,15 +229,16 @@ export const documentsRouter = router({
           : documentData.content;
 
         return {
+                    ...documentData,
           id: input.id,
-          ...documentData,
+
           content: resolvedContent,
           createdAt: documentData.createdAt?.toDate(),
           updatedAt: documentData.updatedAt?.toDate(),
           approvedAt: documentData.approvedAt?.toDate(),
           project: {
-            id: projectDocId,
             ...projectData,
+            id: projectDocId,
             createdAt: projectData.createdAt?.toDate(),
             updatedAt: projectData.updatedAt?.toDate(),
           },
@@ -349,7 +352,7 @@ export const documentsRouter = router({
           });
         }
 
-        const documentData = docSnapshot.data()!;
+        const documentData = docSnapshot.data() as DocumentData;
 
         // Verify project access (owner or collaborator with EDITOR role or higher)
         await verifyProjectAccess(
@@ -442,7 +445,7 @@ export const documentsRouter = router({
           });
         }
 
-        const documentData = docSnapshot.data()!;
+        const documentData = docSnapshot.data() as DocumentData;
 
         // Verify project access (owner or collaborator with EDITOR role or higher)
         await verifyProjectAccess(
@@ -630,7 +633,7 @@ ${resolvedContent}`;
         // Fetch user data for each version
         const versions = await Promise.all(
           versionsSnapshot.docs.map(async (versionDoc) => {
-            const versionData = versionDoc.data();
+            const versionData = versionDoc.data() as DocumentVersionData;
             const userDoc = await ctx.db.collection('users').doc(versionData.createdBy).get();
             const userData = userDoc.exists ? userDoc.data() : null;
 
@@ -639,8 +642,9 @@ ${resolvedContent}`;
               : versionData.content;
 
             return {
+                            ...versionData,
               id: versionDoc.id,
-              ...versionData,
+
               content: resolvedVersionContent,
               createdAt: versionData.createdAt?.toDate(),
               approvedAt: versionData.approvedAt?.toDate(),
@@ -696,7 +700,7 @@ ${resolvedContent}`;
           });
         }
 
-        const documentData = docSnapshot.data()!;
+        const documentData = docSnapshot.data() as DocumentData;
 
         // Get version
         const versionDoc = await documentRef.collection('versions').doc(input.versionId).get();
@@ -717,7 +721,7 @@ ${resolvedContent}`;
           ctx.user.role
         );
 
-        const versionData = versionDoc.data();
+        const versionData = versionDoc.data() as DocumentVersionData | undefined;
         if (!versionData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -730,8 +734,9 @@ ${resolvedContent}`;
         const userData = userDoc.exists ? userDoc.data() : null;
 
         return {
+                    ...versionData,
           id: versionDoc.id,
-          ...versionData,
+
           createdAt: versionData.createdAt?.toDate(),
           approvedAt: versionData.approvedAt?.toDate(),
           user: userData ? {
@@ -740,8 +745,8 @@ ${resolvedContent}`;
             email: userData.email,
           } : null,
           document: {
-            id: documentData.id,
             ...documentData,
+            id: documentData.id,
             createdAt: documentData.createdAt?.toDate(),
             updatedAt: documentData.updatedAt?.toDate(),
             project: {
@@ -783,7 +788,7 @@ ${resolvedContent}`;
           });
         }
 
-        const documentData = docSnapshot.data()!;
+        const documentData = docSnapshot.data() as DocumentData;
 
         // Get version
         const versionDoc = await documentRef.collection('versions').doc(input.versionId).get();
@@ -795,7 +800,7 @@ ${resolvedContent}`;
           });
         }
 
-        const versionData = versionDoc.data();
+        const versionData = versionDoc.data() as DocumentVersionData | undefined;
         if (!versionData) {
           throw new TRPCError({
             code: 'NOT_FOUND',

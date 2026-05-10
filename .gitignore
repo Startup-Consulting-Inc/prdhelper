@@ -122,3 +122,10 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+# Docker env with secrets
+.env.docker
+
+# Vite SSR build output
+client/dist-ssr/
+

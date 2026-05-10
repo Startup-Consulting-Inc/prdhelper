@@ -5,11 +5,12 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable, Column } from '../ui/DataTable';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 import { useAdminProjects, useDeleteProject } from '../../hooks/useAdmin';
 
 type ProjectStatus = 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
@@ -24,9 +25,9 @@ interface Project {
   updatedAt: string;
   user: {
     id: string;
-    name: string;
-    email: string;
-  };
+    name?: string;
+    email?: string;
+  } | null;
   _count: {
     documents: number;
   };
@@ -35,11 +36,13 @@ interface Project {
 export function ProjectManagementTable() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'ALL'>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { projects, isLoading } = useAdminProjects({
     status: statusFilter === 'ALL' ? undefined : statusFilter,
+    search: searchQuery || undefined,
   });
   const { deleteProject } = useDeleteProject();
 
@@ -66,8 +69,8 @@ export function ProjectManagementTable() {
           bValue = b.title;
           break;
         case 'user':
-          aValue = a.user.name;
-          bValue = b.user.name;
+          aValue = a.user?.name || '';
+          bValue = b.user?.name || '';
           break;
         case 'status':
           aValue = a.status;
@@ -151,10 +154,10 @@ export function ProjectManagementTable() {
       render: (project) => (
         <div>
           <div className="text-sm text-gray-900 dark:text-gray-100">
-            {project.user.name}
+            {project.user?.name || 'Unknown'}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {project.user.email}
+            {project.user?.email || ''}
           </div>
         </div>
       ),
@@ -230,7 +233,17 @@ export function ProjectManagementTable() {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Project Management
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search projects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as ProjectStatus | 'ALL')}

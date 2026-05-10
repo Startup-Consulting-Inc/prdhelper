@@ -135,7 +135,7 @@ export function VersionHistory({ documentId, projectId, onClose, onRestore }: Ve
                         <Clock className="h-3 w-3 inline mr-1" />
                         {new Date(version.createdAt).toLocaleString()}
                       </p>
-                      <p>By: {version.user.name}</p>
+                      <p>By: {version.user?.name || 'Unknown'}</p>
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button
@@ -192,7 +192,7 @@ export function VersionHistory({ documentId, projectId, onClose, onRestore }: Ve
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         Created {new Date(selectedVersion.createdAt).toLocaleString()} by{' '}
-                        {selectedVersion.user.name}
+                        {selectedVersion.user?.name || 'Unknown'}
                       </p>
                     </div>
                     <Badge

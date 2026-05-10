@@ -21,7 +21,9 @@ type OutputToolType =
   | 'CLAUDE_CODE'
   | 'CURSOR'
   | 'OPENAI_CODEX'
-  | 'GOOGLE_ANTIGRAVITY';
+  | 'GOOGLE_ANTIGRAVITY'
+  | 'OPENCLAW'
+  | 'HERMES_AGENT';
 
 interface ToolOutputFile {
   path: string;
@@ -435,9 +437,128 @@ export async function generateToolOutput(
 
   const isVibeCoding = toolType.startsWith('VIBE_');
 
-  const userPrompt = isVibeCoding
-    ? `Based on the approved PRD and BRD, generate a comprehensive, optimized prompt specifically for ${getToolLabel(toolType)}. The prompt should be copy-paste ready and enable the tool to build a complete, production-ready application. Wrap the output in <<TOOL_OUTPUT_START>> and <<TOOL_OUTPUT_END>> markers. ${languageInstruction}`
-    : `Based on the approved PRD and BRD, generate the specific configuration files for ${getToolLabel(toolType)}. ${getToolFileExpectations(toolType)} Mark each file with <<FILE:path/to/file>> before the content and <<END_FILE>> after. Wrap the entire output in <<TOOL_OUTPUT_START>> and <<TOOL_OUTPUT_END>> markers. ${languageInstruction}`;
+  // Truncate PRD/BRD to leave more room for output
+  const MAX_CONTEXT = 6000;
+  const truncatedPrd = prdContent.length > MAX_CONTEXT
+    ? prdContent.substring(0, MAX_CONTEXT) + '\n\n[...truncated for length - full PRD available in project documents]'
+    : prdContent;
+  const truncatedBrd = brdContent.length > MAX_CONTEXT
+    ? brdContent.substring(0, MAX_CONTEXT) + '\n\n[...truncated for length - full BRD available in project documents]'
+    : brdContent;
+
+  // Vibe coding tools: single call (generates one prompt)
+  if (isVibeCoding) {
+    return generateToolOutputSingle(systemPrompt, toolType, truncatedPrd, truncatedBrd, languageInstruction);
+  }
+
+  // AI coding tools: two-pass generation
+  // Pass 1: Generate core instruction file + reference document
+  const coreExpectations = getToolCoreFileExpectations(toolType);
+  const corePrompt = `Based on the approved PRD and BRD, generate the PRIMARY instruction file and Reference Document for ${getToolLabel(toolType)}. ${coreExpectations} Mark each file with <<FILE:path/to/file>> before the content and <<END_FILE>> after. Wrap the entire output in <<TOOL_OUTPUT_START>> and <<TOOL_OUTPUT_END>> markers. ${languageInstruction}`;
+
+  const coreMessages = [
+    {
+      role: 'system' as const,
+      content: buildSystemPrompt(systemPrompt, { prd: truncatedPrd, brd: truncatedBrd }) + `\n\n${languageInstruction}`,
+    },
+    {
+      role: 'user' as const,
+      content: corePrompt,
+    },
+  ];
+
+  const coreResponse = await generateCompletion(coreMessages, {
+    temperature: 0.6,
+    maxTokens: MAX_OUTPUT_TOKENS,
+  });
+
+  let coreContent = extractMarkedContent(coreResponse.content, '<<TOOL_OUTPUT_START>>', '<<TOOL_OUTPUT_END>>', coreResponse.truncated);
+  if (!coreContent) {
+    coreContent = coreResponse.content.trim();
+  }
+
+  // Parse core files
+  const coreFiles = parseToolFiles(coreContent);
+  const coreInstructionFile = coreFiles.find(f =>
+    !f.path.toLowerCase().includes('reference') &&
+    !f.path.toLowerCase().includes('readme')
+  );
+  const coreReferenceDoc = coreFiles.find(f =>
+    f.path.toLowerCase().includes('reference') ||
+    f.path.toLowerCase().includes('readme')
+  )?.content;
+
+  // Pass 2: Generate remaining tool-specific files with the instruction file as context
+  const remainingExpectations = getToolRemainingFileExpectations(toolType);
+  const remainingPrompt = `Based on the approved PRD and BRD, generate the REMAINING configuration files for ${getToolLabel(toolType)}. ${remainingExpectations} Mark each file with <<FILE:path/to/file>> before the content and <<END_FILE>> after. Wrap the entire output in <<TOOL_OUTPUT_START>> and <<TOOL_OUTPUT_END>> markers. ${languageInstruction}`;
+
+  const remainingMessages = [
+    {
+      role: 'system' as const,
+      content: buildSystemPrompt(systemPrompt, { prd: truncatedPrd, brd: truncatedBrd }) + `\n\n${languageInstruction}` +
+        (coreInstructionFile ? `\n\n### Already Generated Primary Instruction File (${coreInstructionFile.path})\n\n${coreInstructionFile.content.substring(0, 2000)}` : ''),
+    },
+    {
+      role: 'user' as const,
+      content: remainingPrompt,
+    },
+  ];
+
+  const remainingResponse = await generateCompletion(remainingMessages, {
+    temperature: 0.6,
+    maxTokens: MAX_OUTPUT_TOKENS,
+  });
+
+  let remainingContent = extractMarkedContent(remainingResponse.content, '<<TOOL_OUTPUT_START>>', '<<TOOL_OUTPUT_END>>', remainingResponse.truncated);
+  if (!remainingContent) {
+    remainingContent = remainingResponse.content.trim();
+  }
+
+  // Parse remaining files
+  const remainingFiles = parseToolFiles(remainingContent);
+  const remainingReferenceDoc = remainingFiles.find(f =>
+    f.path.toLowerCase().includes('reference') ||
+    f.path.toLowerCase().includes('readme')
+  )?.content;
+
+  // Merge results
+  const allFiles = [
+    ...coreFiles.filter(f => !f.path.toLowerCase().includes('reference') && !f.path.toLowerCase().includes('readme')),
+    ...remainingFiles.filter(f => !f.path.toLowerCase().includes('reference') && !f.path.toLowerCase().includes('readme')),
+  ];
+  const referenceDoc = coreReferenceDoc || remainingReferenceDoc || remainingContent;
+
+  const isTruncated = coreResponse.truncated || remainingResponse.truncated;
+  const combinedContent = `<<TOOL_OUTPUT_START>>\n\n${coreContent}\n\n${remainingContent}\n\n<<TOOL_OUTPUT_END>>`;
+  const combinedRaw = `Pass 1:\n${coreResponse.content}\n\nPass 2:\n${remainingResponse.content}`;
+
+  const bundle: ToolOutputBundle = {
+    toolType,
+    files: allFiles,
+    referenceDoc,
+  };
+
+  return {
+    content: combinedContent,
+    rawContent: combinedRaw,
+    model: coreResponse.model,
+    tokensUsed: (coreResponse.usage?.totalTokens || 0) + (remainingResponse.usage?.totalTokens || 0),
+    inputTokens: (coreResponse.usage?.promptTokens || 0) + (remainingResponse.usage?.promptTokens || 0),
+    outputTokens: (coreResponse.usage?.completionTokens || 0) + (remainingResponse.usage?.completionTokens || 0),
+    truncated: isTruncated,
+    warning: isTruncated ? `The ${getToolLabel(toolType)} output may be incomplete due to length constraints.` : undefined,
+    bundle,
+  };
+}
+
+async function generateToolOutputSingle(
+  systemPrompt: string,
+  toolType: OutputToolType,
+  prdContent: string,
+  brdContent: string,
+  languageInstruction: string
+): Promise<GenerationResult & { bundle: ToolOutputBundle }> {
+  const userPrompt = `Based on the approved PRD and BRD, generate a comprehensive, optimized prompt specifically for ${getToolLabel(toolType)}. The prompt should be copy-paste ready and enable the tool to build a complete, production-ready application. Wrap the output in <<TOOL_OUTPUT_START>> and <<TOOL_OUTPUT_END>> markers. ${languageInstruction}`;
 
   const messages = [
     {
@@ -470,32 +591,10 @@ export async function generateToolOutput(
     toolContent = rawContent.trim();
   }
 
-  // Parse files from the content for AI coding tools
-  const files: ToolOutputFile[] = [];
-  let referenceDoc: string | undefined;
-
-  if (!isVibeCoding) {
-    const fileRegex = /<<FILE:(.*?)>>([\s\S]*?)<<END_FILE>>/g;
-    let match;
-    while ((match = fileRegex.exec(toolContent)) !== null) {
-      const filePath = match[1].trim();
-      const fileContent = match[2].trim();
-      if (filePath.toLowerCase().includes('reference') || filePath.toLowerCase().includes('readme')) {
-        referenceDoc = fileContent;
-      } else {
-        files.push({ path: filePath, content: fileContent });
-      }
-    }
-
-    if (files.length === 0) {
-      referenceDoc = toolContent;
-    }
-  }
-
   const bundle: ToolOutputBundle = {
     toolType,
-    files,
-    referenceDoc: isVibeCoding ? undefined : (referenceDoc || toolContent),
+    files: [],
+    referenceDoc: undefined,
   };
 
   return {
@@ -511,29 +610,63 @@ export async function generateToolOutput(
   };
 }
 
-function getToolFileExpectations(toolType: OutputToolType): string {
+function parseToolFiles(content: string): ToolOutputFile[] {
+  const files: ToolOutputFile[] = [];
+  const fileRegex = /<<FILE:(.*?)>>([\s\S]*?)<<END_FILE>>/g;
+  let match;
+  while ((match = fileRegex.exec(content)) !== null) {
+    files.push({ path: match[1].trim(), content: match[2].trim() });
+  }
+  return files;
+}
+
+function getToolCoreFileExpectations(toolType: OutputToolType): string {
   const expectations: Partial<Record<OutputToolType, string>> = {
-    CLAUDE_CODE: `Generate exactly these files:
+    CLAUDE_CODE: `Generate exactly these CORE files:
 1. <<FILE:CLAUDE.md>> - A comprehensive MARKDOWN project guide for Claude Code. Include: project overview, architecture description, tech stack, development commands, coding conventions, key patterns, directory structure, and implementation notes. This MUST be a markdown file, NOT JSON.
-2. <<FILE:.claude/settings.json>> - A JSON settings file for the .claude directory with project-specific configuration including allowed tools, permissions, and project preferences.
-3. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with the full project specification, requirements, and technical details.`,
-    CURSOR: `Generate exactly these files:
-1. <<FILE:.cursor/rules/project.mdc>> - Main project rules file in MDC format with project context, coding standards, directory structure, and development patterns.
-2. <<FILE:.cursor/rules/architecture.mdc>> - Architecture rules file with system design patterns, component relationships, and data flow.
-3. <<FILE:AGENTS.md>> - Agent configuration and workflow documentation for Cursor AI agents.
-4. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
-    OPENAI_CODEX: `Generate exactly these files:
+2. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with the full project specification, requirements, and technical details.`,
+    CURSOR: `Generate exactly these CORE files:
+1. <<FILE:AGENTS.md>> - Agent configuration and workflow documentation for Cursor AI agents.
+2. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+    OPENAI_CODEX: `Generate exactly these CORE files:
 1. <<FILE:AGENTS.md>> - Agent configuration with project context, coding guidelines, workflow definitions, and implementation patterns.
-2. <<FILE:.codex/config.toml>> - TOML configuration file for Codex CLI with project settings, tool permissions, and workspace configuration.
-3. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
-    GOOGLE_ANTIGRAVITY: `Generate exactly these files:
+2. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+    GOOGLE_ANTIGRAVITY: `Generate exactly these CORE files:
+1. <<FILE:AGENTS.md>> - Top-level agent documentation with overview and usage instructions.
+2. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+    OPENCLAW: `Generate exactly these CORE files:
+1. <<FILE:AGENTS.md>> - Primary instruction file with project context, coding guidelines, workflow definitions, and implementation patterns.
+2. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+    HERMES_AGENT: `Generate exactly these CORE files:
+1. <<FILE:SOUL.md>> - Personality layer: tone, communication style, behavioral consistency anchors, and persona definition that applies across all skills.
+2. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+  };
+  return expectations[toolType] || 'Generate the primary instruction file and reference document with clear markers: <<FILE:path/to/file>> before each file\'s content and <<END_FILE>> after.';
+}
+
+function getToolRemainingFileExpectations(toolType: OutputToolType): string {
+  const expectations: Partial<Record<OutputToolType, string>> = {
+    CLAUDE_CODE: `Generate exactly these REMAINING files:
+1. <<FILE:.claude/settings.json>> - A JSON settings file for the .claude directory with project-specific configuration including allowed tools, permissions, and project preferences.`,
+    CURSOR: `Generate exactly these REMAINING files:
+1. <<FILE:.cursor/rules/project.mdc>> - Main project rules file in MDC format with project context, coding standards, directory structure, and development patterns.
+2. <<FILE:.cursor/rules/architecture.mdc>> - Architecture rules file with system design patterns, component relationships, and data flow.`,
+    OPENAI_CODEX: `Generate exactly these REMAINING files:
+1. <<FILE:.codex/config.toml>> - TOML configuration file for Codex CLI with project settings, tool permissions, and workspace configuration.`,
+    GOOGLE_ANTIGRAVITY: `Generate exactly these REMAINING files:
 1. <<FILE:.agent/rules.md>> - Agent rules with project context, coding standards, and decision frameworks.
 2. <<FILE:.agent/skills.md>> - Skill definitions for the agent with project-specific capabilities and domain expertise.
-3. <<FILE:.agent/workflows.md>> - Workflow definitions for common development tasks and processes.
-4. <<FILE:AGENTS.md>> - Top-level agent documentation with overview and usage instructions.
-5. <<FILE:REFERENCE_DOCUMENT.md>> - A comprehensive reference document with full project specifications.`,
+3. <<FILE:.agent/workflows.md>> - Workflow definitions for common development tasks and processes.`,
+    OPENCLAW: `Generate exactly these REMAINING files:
+1. <<FILE:SOUL.md>> - Persona and tone definition: communication style, behavioral anchors, and personality guidelines for all agent sessions.
+2. <<FILE:TOOLS.md>> - Tool inventory and usage guidelines: which tools are available, when to use each, and expected tool call patterns.
+3. <<FILE:IDENTITY.md>> - Project identity definition: what the project is, who it serves, core values, and brand voice.
+4. <<FILE:USER.md>> - User context and persona definitions: target audience, user needs, and interaction patterns.`,
+    HERMES_AGENT: `Generate exactly these REMAINING files:
+1. <<FILE:skills/README.md>> - Skill registry overview: list of available skills, when to invoke each, and cross-skill workflow patterns.
+2. <<FILE:skills/example/SKILL.md>> - Example skill template demonstrating the expected structure: skill purpose, invocation triggers, procedures, inputs/outputs, and error handling.`,
   };
-  return expectations[toolType] || 'Output each file with clear markers: <<FILE:path/to/file>> before each file\'s content and <<END_FILE>> after. Also generate a comprehensive reference document.';
+  return expectations[toolType] || 'Generate the remaining configuration files with clear markers: <<FILE:path/to/file>> before each file\'s content and <<END_FILE>> after.';
 }
 
 function getToolLabel(toolType: OutputToolType): string {
@@ -547,6 +680,8 @@ function getToolLabel(toolType: OutputToolType): string {
     CURSOR: 'Cursor',
     OPENAI_CODEX: 'OpenAI Codex',
     GOOGLE_ANTIGRAVITY: 'Google Antigravity',
+    OPENCLAW: 'OpenClaw',
+    HERMES_AGENT: 'Hermes Agent',
   };
   return labels[toolType] || toolType;
 }

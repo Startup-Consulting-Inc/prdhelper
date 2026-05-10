@@ -5,7 +5,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { useQuestionExplanation, type ExplanationResponse } from '@/hooks/useAI';
 
-type MessageRole = 'ai' | 'assistant' | 'user';
+type MessageRole = 'ai' | 'assistant' | 'user' | 'system';
 
 export interface ConversationMessageProps {
   role: MessageRole;
@@ -24,7 +24,7 @@ const ConversationMessage = ({
   projectMode = 'TECHNICAL',
   documentType = 'BRD',
 }: ConversationMessageProps) => {
-  const isAI = role === 'ai' || role === 'assistant';
+  const isAI = role === 'ai' || role === 'assistant' || role === 'system';
   const [showExplanation, setShowExplanation] = useState(false);
   const { explainAsync, isExplaining, error: explainError } = useQuestionExplanation();
   const [explanation, setExplanation] = useState<ExplanationResponse | null>(null);
@@ -91,7 +91,7 @@ const ConversationMessage = ({
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {isAI ? 'AI Assistant' : 'You'}
+            {role === 'system' ? 'System' : isAI ? 'AI Assistant' : 'You'}
           </span>
           {timestamp && (
             <span className="text-xs text-gray-500 dark:text-gray-400">

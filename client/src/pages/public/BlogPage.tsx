@@ -20,6 +20,8 @@ import {
   Star,
   GraduationCap,
   Database,
+  Search,
+  X,
   type LucideIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -51,8 +53,75 @@ function isNew(dateStr: string): boolean {
 
 export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState('All');
+  const [query, setQuery] = useState('');
 
   const blogPosts = [
+    {
+      id: 41,
+      slug: 'vibe-coded-app-why-it-breaks',
+      title: "Your Vibe-Coded App Works. Here's Why It's About to Break.",
+      excerpt:
+        'Vibe coding ships fast—but it grows shared understanding slower than it grows code. The wall is predictable: security, scalability, CI/CD, and manageability break once real users arrive.',
+      author: 'Jaehee Song',
+      date: '2026-05-08',
+      readTime: '14 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 40,
+      slug: 'the-one-file-every-ai-developer-needs',
+      title: 'The One File Every AI Developer Needs (And Almost Nobody Has)',
+      excerpt:
+        'Project-level agent instruction files (CLAUDE.md, Cursor rules, AGENTS.md) turn cold-start sessions into consistent teammates. What to put in them—and the 15-minute challenge to write yours.',
+      author: 'Jaehee Song',
+      date: '2026-05-08',
+      readTime: '22 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 39,
+      slug: 'stop-losing-architectural-decisions',
+      title: 'Stop Losing Your Architectural Decisions to Your AI Agent',
+      excerpt:
+        "ADRs are the receipts that keep agents from “correcting” deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
+      author: 'Jaehee Song',
+      date: '2026-05-08',
+      readTime: '16 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 38,
+      slug: 'two-docs-before-2am-crisis',
+      title: 'The Two Docs That Stand Between Your App and a 2am Crisis',
+      excerpt:
+        'A one-page threat model and a practical deployment runbook move security and ops from “after the incident” to “in the build.” Examples and prompts you can reuse.',
+      author: 'Jaehee Song',
+      date: '2026-05-08',
+      readTime: '20 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 37,
+      slug: 'retrofit-engineering-discipline-in-a-day',
+      title: "You Already Have the Codebase. Here's How to Retrofit Engineering Discipline in a Day.",
+      excerpt:
+        'In the middle of a vibe-coded build? Use agents to document the reality: generate a CLAUDE.md, stub ADRs, find inconsistencies, and ship guardrails without pausing feature work.',
+      author: 'Jaehee Song',
+      date: '2026-05-08',
+      readTime: '22 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 35,
+      slug: 'engineer-caregiver-identity-collapse',
+      title: 'The Engineer Who Got Hired to Wipe Bodies: A Field Report on Identity Collapse',
+      excerpt:
+        "A laid-off engineer takes a near-minimum-wage caregiving job — and discovers what hiring filters can’t measure: patience, ethical work that doesn’t scale, and the ability to sit with ambiguity when identity collapses.",
+      author: 'Jaehee Song',
+      date: '2026-05-05',
+      readTime: '9 min read',
+      category: 'Featured',
+    },
     {
       id: 34,
       slug: 'skills-vs-agents',
@@ -428,8 +497,19 @@ export default function BlogPage() {
   ];
 
   const categories = ['All', ...Array.from(new Set(blogPosts.map((p) => p.category)))];
-  const filtered =
-    activeCategory === 'All' ? blogPosts : blogPosts.filter((p) => p.category === activeCategory);
+  const trimmedQuery = query.trim().toLowerCase();
+  const isSearching = trimmedQuery.length > 0;
+
+  const filtered = blogPosts.filter((p) => {
+    if (isSearching) {
+      return (
+        p.title.toLowerCase().includes(trimmedQuery) ||
+        p.excerpt.toLowerCase().includes(trimmedQuery) ||
+        p.author.toLowerCase().includes(trimmedQuery)
+      );
+    }
+    return activeCategory === 'All' || p.category === activeCategory;
+  });
 
   return (
     <PublicLayout>
@@ -449,6 +529,7 @@ export default function BlogPage() {
         </div>
 
         {/* Featured Post */}
+        {!isSearching && (
         <div className="mb-16">
           <div className="bg-gradient-to-r from-primary-600 to-accent-600 rounded-xl overflow-hidden shadow-lg">
             <div className="md:flex">
@@ -496,28 +577,102 @@ export default function BlogPage() {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Search */}
+        <div className="mb-6 w-full max-w-md">
+          <label htmlFor="blog-search" className="sr-only">
+            Search articles
+          </label>
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none"
+              aria-hidden
+            />
+            <input
+              id="blog-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by title, excerpt, or author..."
+              autoComplete="off"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 py-3 pl-11 pr-11 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            {query.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Category filter tabs */}
         <div className="flex flex-wrap gap-2 mb-8 items-center">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === cat
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const chipActive = isSearching ? cat === 'All' : activeCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setActiveCategory(cat);
+                  setQuery('');
+                }}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  chipActive
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
           <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">
             {filtered.length} article{filtered.length !== 1 ? 's' : ''}
           </span>
         </div>
 
         {/* Blog Posts Grid */}
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-8 py-14 text-center mb-16">
+            {isSearching ? (
+              <>
+                <p className="text-gray-700 dark:text-gray-200 font-medium mb-2">
+                  No results for &quot;{query.trim()}&quot;
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                  Try different keywords or browse by category.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors"
+                >
+                  Clear search
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-700 dark:text-gray-200 font-medium mb-2">
+                  No articles in this category.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('All')}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors"
+                >
+                  View all articles
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {filtered.map((post) => {
             const style = CATEGORY_STYLES[post.category] || DEFAULT_STYLE;
@@ -581,6 +736,7 @@ export default function BlogPage() {
             );
           })}
         </div>
+        )}
 
         {/* CTA */}
         <div className="bg-gradient-to-r from-primary-600 to-accent-600 rounded-xl p-12 text-center text-white">

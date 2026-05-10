@@ -620,7 +620,7 @@ export function ProfilePage() {
                   </ul>
 
                   <Button
-                    variant="danger"
+                    variant="primary" className="bg-red-600 hover:bg-red-700 text-white"
                     onClick={handleDeleteAccount}
                     disabled={deleteAccountMutation.isPending}
                   >

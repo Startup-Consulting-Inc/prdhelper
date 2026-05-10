@@ -137,7 +137,7 @@ const PendingInvites = ({ className }: PendingInvitesProps) => {
       {/* Invitations List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {invites.map((invite) => {
-          const RoleIcon = roleConfig[invite.role].icon;
+          const RoleIcon = roleConfig[invite.role as 'VIEWER' | 'EDITOR'].icon;
           const isProcessing = processingInviteId === invite.id && (isAccepting || isRejecting);
 
           return (
@@ -189,9 +189,9 @@ const PendingInvites = ({ className }: PendingInvitesProps) => {
 
                   {/* Role & Mode Badges */}
                   <div className="flex items-center gap-2 mt-3">
-                    <Badge variant={roleConfig[invite.role].variant} className="gap-1.5">
+                    <Badge variant={roleConfig[invite.role as 'VIEWER' | 'EDITOR'].variant} className="gap-1.5">
                       <RoleIcon className="w-3 h-3" />
-                      {roleConfig[invite.role].label}
+                      {roleConfig[invite.role as 'VIEWER' | 'EDITOR'].label}
                     </Badge>
                     <Badge variant="default">
                       {invite.project.mode === 'PLAIN' ? 'Plain Mode' : 'Technical Mode'}

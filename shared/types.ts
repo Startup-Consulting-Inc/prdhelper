@@ -26,11 +26,11 @@ export interface Project {
   userId: string;
   isOwner?: boolean;
   userRole?: 'OWNER' | 'VIEWER' | 'EDITOR' | null;
-  user?: {
+  user: {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
   documents?: Array<{
     id: string;
     type: string;
@@ -251,7 +251,9 @@ export type OutputToolType =
   | 'CLAUDE_CODE'
   | 'CURSOR'
   | 'OPENAI_CODEX'
-  | 'GOOGLE_ANTIGRAVITY';
+  | 'GOOGLE_ANTIGRAVITY'
+  | 'OPENCLAW'
+  | 'HERMES_AGENT';
 
 export type OutputToolCategory = 'VIBE_CODING' | 'AI_CODING';
 
@@ -328,6 +330,20 @@ export const OUTPUT_TOOLS: OutputToolInfo[] = [
     description: 'Google Gemini agent with rules, skills, and workflows',
     category: 'AI_CODING',
     outputDescription: '.agent/ rules + skills + workflows + AGENTS.md + reference document',
+  },
+  {
+    id: 'OPENCLAW',
+    label: 'OpenClaw',
+    description: 'Distributed instruction stack with AGENTS.md and modular bootstrap files',
+    category: 'AI_CODING',
+    outputDescription: 'AGENTS.md + SOUL.md + TOOLS.md + IDENTITY.md + USER.md + reference document',
+  },
+  {
+    id: 'HERMES_AGENT',
+    label: 'Hermes Agent',
+    description: 'Modular skills architecture with SKILL.md per skill and SOUL.md personality layer',
+    category: 'AI_CODING',
+    outputDescription: 'SOUL.md + SKILL.md skill templates + reference document',
   },
 ];
 

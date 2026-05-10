@@ -5,14 +5,16 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Shield, Trash2, Download } from 'lucide-react';
+import { Shield, Trash2, Download, Search } from 'lucide-react';
 import { DataTable, Column } from '../ui/DataTable';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 import { useUsers, useUpdateUserRole, useDeleteUser } from '../../hooks/useAdmin';
 
 export function UserManagementTable() {
-  const { users, isLoading } = useUsers();
+  const [searchQuery, setSearchQuery] = useState('');
+  const { users, isLoading } = useUsers(50, 0, searchQuery || undefined);
   const { updateRole } = useUpdateUserRole();
   const { deleteUser } = useDeleteUser();
   const [sortKey, setSortKey] = useState('createdAt');
@@ -208,6 +210,16 @@ export function UserManagementTable() {
           <Download className="h-4 w-4 mr-2" />
           Download CSV
         </Button>
+      </div>
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="Search by name or email..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 max-w-md"
+        />
       </div>
       <DataTable
         columns={columns}

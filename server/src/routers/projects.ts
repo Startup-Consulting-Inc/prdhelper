@@ -24,6 +24,7 @@ import {
 } from '../lib/validations/project.js';
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
+import type { ProjectData } from '../lib/firestore-types.js';
 
 export const projectsRouter = router({
   /**
@@ -54,7 +55,7 @@ export const projectsRouter = router({
           // Fetch related data for each project
           const projects = await Promise.all(
             snapshot.docs.map(async (doc) => {
-              const projectData = doc.data();
+              const projectData = doc.data() as ProjectData;
 
               // Get documents subcollection
               const documentsSnapshot = await doc.ref
@@ -74,8 +75,9 @@ export const projectsRouter = router({
               const userData = userDoc.exists ? userDoc.data() : null;
 
               return {
+                                ...projectData,
                 id: doc.id,
-                ...projectData,
+
                 createdAt: projectData.createdAt?.toDate(),
                 updatedAt: projectData.updatedAt?.toDate(),
                 documents,
@@ -153,7 +155,7 @@ export const projectsRouter = router({
         // Fetch related data for each project
         const projects = await Promise.all(
           paginatedDocs.map(async (doc) => {
-            const projectData = doc.data()!;
+            const projectData = doc.data() as ProjectData;
 
             // Get documents subcollection
             const documentsSnapshot = await doc.ref
@@ -184,8 +186,9 @@ export const projectsRouter = router({
               : null;
 
             return {
+                            ...projectData,
               id: doc.id,
-              ...projectData,
+
               createdAt: projectData.createdAt?.toDate(),
               updatedAt: projectData.updatedAt?.toDate(),
               documents,
@@ -231,7 +234,7 @@ export const projectsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -289,8 +292,8 @@ export const projectsRouter = router({
         const userData = userDoc.exists ? userDoc.data() : null;
 
         return {
-          id: projectDoc.id,
           ...projectData,
+          id: projectDoc.id,
           createdAt: projectData.createdAt?.toDate(),
           updatedAt: projectData.updatedAt?.toDate(),
           documents,
@@ -392,7 +395,7 @@ export const projectsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -409,7 +412,7 @@ export const projectsRouter = router({
           .get();
 
         const isEditor = !collaboratorSnapshot.empty &&
-          collaboratorSnapshot.docs[0].data().role === 'EDITOR';
+          (collaboratorSnapshot.docs[0].data() as { role: string }).role === 'EDITOR';
 
         // Only owner, editors, or admins can update
         if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
@@ -482,7 +485,7 @@ export const projectsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -499,7 +502,7 @@ export const projectsRouter = router({
           .get();
 
         const isEditor = !collaboratorSnapshot.empty &&
-          collaboratorSnapshot.docs[0].data().role === 'EDITOR';
+          (collaboratorSnapshot.docs[0].data() as { role: string }).role === 'EDITOR';
 
         // Only owner, editors, or admins can update phase
         if (!isOwner && !isEditor && ctx.user.role !== 'ADMIN') {
@@ -693,7 +696,7 @@ export const projectsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -771,7 +774,7 @@ export const projectsRouter = router({
           });
         }
 
-        const projectData = projectDoc.data();
+        const projectData = projectDoc.data() as ProjectData | undefined;
         if (!projectData) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -855,36 +858,44 @@ export const projectsRouter = router({
       const now = new Date();
       const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      // Get all projects owned by user
-      const ownedProjectsSnapshot = await ctx.db
-        .collection('projects')
-        .where('userId', '==', ctx.user.id)
-        .get();
+      let uniqueProjects: FirebaseFirestore.DocumentSnapshot[];
 
-      // Get all projects where user is collaborator using collectionGroup query (O(1) instead of O(N))
-      const sharedCollabs = await ctx.db
-        .collectionGroup('collaborators')
-        .where('userId', '==', ctx.user.id)
-        .get();
+      if (ctx.user.role === 'ADMIN') {
+        // Admins can see stats for all projects
+        const allProjectsSnapshot = await ctx.db.collection('projects').get();
+        uniqueProjects = allProjectsSnapshot.docs;
+      } else {
+        // Get all projects owned by user
+        const ownedProjectsSnapshot = await ctx.db
+          .collection('projects')
+          .where('userId', '==', ctx.user.id)
+          .get();
 
-      const sharedProjectRefs = sharedCollabs.docs
-        .map((d) => d.ref.parent.parent)
-        .filter(Boolean) as FirebaseFirestore.DocumentReference[];
+        // Get all projects where user is collaborator using collectionGroup query (O(1) instead of O(N))
+        const sharedCollabs = await ctx.db
+          .collectionGroup('collaborators')
+          .where('userId', '==', ctx.user.id)
+          .get();
 
-      const sharedProjectDocs = await Promise.all(
-        sharedProjectRefs.map((ref) => ref.get())
-      );
+        const sharedProjectRefs = sharedCollabs.docs
+          .map((d) => d.ref.parent.parent)
+          .filter(Boolean) as FirebaseFirestore.DocumentReference[];
 
-      // Combine owned and collaborated projects
-      const allUserProjects = [
-        ...ownedProjectsSnapshot.docs,
-        ...sharedProjectDocs.filter((doc) => doc.exists),
-      ];
+        const sharedProjectDocs = await Promise.all(
+          sharedProjectRefs.map((ref) => ref.get())
+        );
 
-      // Remove duplicates
-      const uniqueProjects = Array.from(
-        new Map(allUserProjects.map((doc) => [doc.id, doc])).values()
-      );
+        // Combine owned and collaborated projects
+        const allUserProjects = [
+          ...ownedProjectsSnapshot.docs,
+          ...sharedProjectDocs.filter((doc) => doc.exists),
+        ];
+
+        // Remove duplicates
+        uniqueProjects = Array.from(
+          new Map(allUserProjects.map((doc) => [doc.id, doc])).values()
+        );
+      }
 
       // Get documents for each project and calculate completion
       let totalDocuments = 0;

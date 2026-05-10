@@ -123,6 +123,50 @@ function getToolSetupInstructions(toolType: string): ToolSetupInfo | null {
         { name: 'Sequential Thinking', description: 'Complex analysis and multi-step reasoning' },
       ],
     },
+    OPENCLAW: {
+      title: 'How to Set Up OpenClaw',
+      steps: [
+        'Copy AGENTS.md to the root of your project directory — this is the primary instruction file.',
+        'Copy SOUL.md to the root — defines persona, tone, and behavioral anchors for all sessions.',
+        'Copy TOOLS.md to the root — inventory of available tools and when to use each.',
+        'Copy IDENTITY.md to the root — project identity, core values, and brand voice.',
+        'Copy USER.md to the root — target audience, user needs, and interaction patterns.',
+        'Save the Reference Document for your own records.',
+      ],
+      skills: [
+        { name: 'Agent Bootstrap', description: 'Auto-loads the full instruction stack (AGENTS.md + SOUL.md + TOOLS.md + IDENTITY.md + USER.md) on session start' },
+        { name: 'Distributed Context', description: 'Each file serves a specific purpose — agents read only what they need for the current task' },
+        { name: 'Persona Anchoring', description: 'SOUL.md ensures consistent tone and behavior across all agent interactions' },
+      ],
+      mcpServers: [
+        { name: 'Context7', description: 'Library documentation lookup for framework-specific patterns' },
+        { name: 'Filesystem', description: 'Advanced file operations and project scaffolding' },
+        { name: 'GitHub', description: 'Repository management, issues, and pull requests' },
+        { name: 'Sequential Thinking', description: 'Complex analysis and multi-step reasoning' },
+      ],
+    },
+    HERMES_AGENT: {
+      title: 'How to Set Up Hermes Agent',
+      steps: [
+        'Copy SOUL.md to the root of your project directory — this anchors behavioral consistency across all skills.',
+        'Create a skills/ directory in your project root if it does not exist.',
+        'Copy the README.md into skills/ — this is the skill registry overview.',
+        'Use the example/SKILL.md as a template to create new skills — each skill is a folder with its own SKILL.md.',
+        'Save the Reference Document for your own records.',
+      ],
+      skills: [
+        { name: 'Modular Skills', description: 'Each skill is self-contained with its own SKILL.md — add capability by writing a new skill, not new infrastructure' },
+        { name: 'Skill Registry', description: 'skills/README.md lists all available skills and when to invoke each' },
+        { name: 'Cross-Skill Workflows', description: 'One agent can chain multiple skills in a single session for complex tasks' },
+        { name: 'Persona Layer', description: 'SOUL.md defines tone and communication style consistently across all skills' },
+      ],
+      mcpServers: [
+        { name: 'Context7', description: 'Library documentation lookup for framework-specific patterns' },
+        { name: 'Filesystem', description: 'Advanced file operations and project scaffolding' },
+        { name: 'GitHub', description: 'Repository management, issues, and pull requests' },
+        { name: 'Sequential Thinking', description: 'Complex analysis and multi-step reasoning' },
+      ],
+    },
   };
   return instructions[toolType] || null;
 }

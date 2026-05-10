@@ -1170,6 +1170,7 @@ export const aiRouter = router({
         toolType: z.enum([
           'VIBE_V0', 'VIBE_LOVEABLE', 'VIBE_BOLT', 'VIBE_REPLIT', 'VIBE_FIREBASE_STUDIO',
           'CLAUDE_CODE', 'CURSOR', 'OPENAI_CODEX', 'GOOGLE_ANTIGRAVITY',
+          'OPENCLAW', 'HERMES_AGENT',
         ]),
       })
     )
@@ -1312,7 +1313,7 @@ export const aiRouter = router({
           type: 'TOOL_OUTPUT',
           toolType: input.toolType,
           content: storedToolContent,
-          bundle: JSON.stringify({ ...result.bundle, prdContent: prdContent }),
+          bundle: JSON.stringify(result.bundle),
           status: 'APPROVED', // Tool outputs are immediately ready
           version: 1,
           approvedAt: admin.firestore.FieldValue.serverTimestamp(),

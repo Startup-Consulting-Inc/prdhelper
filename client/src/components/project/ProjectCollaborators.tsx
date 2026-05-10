@@ -81,16 +81,17 @@ const ProjectCollaborators = ({
 
     // Toggle role action
     const newRole = collaborator.role === 'VIEWER' ? 'EDITOR' : 'VIEWER';
+    const RoleChangeIcon = roleConfig[newRole].icon;
     actions.push({
       label: `Change to ${roleConfig[newRole].label}`,
-      icon: roleConfig[newRole].icon,
+      icon: <RoleChangeIcon className="w-4 h-4" />,
       onClick: () => handleUpdateRole(collaborator.id, newRole),
     });
 
     // Remove action
     actions.push({
       label: 'Remove',
-      icon: Trash2,
+      icon: <Trash2 className="w-4 h-4" />,
       onClick: () => handleRemove(collaborator.id),
       variant: 'danger',
     });
@@ -181,7 +182,7 @@ const ProjectCollaborators = ({
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {/* User Avatar */}
                   <div className="flex-shrink-0">
-                    {collaborator.user.image ? (
+                    {collaborator.user?.image ? (
                       <img
                         src={collaborator.user.image}
                         alt={collaborator.user.name}
@@ -189,7 +190,7 @@ const ProjectCollaborators = ({
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-                        {collaborator.user.name.charAt(0).toUpperCase()}
+                        {collaborator.user?.name?.charAt(0).toUpperCase() || '?'}
                       </div>
                     )}
                   </div>
@@ -198,11 +199,11 @@ const ProjectCollaborators = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {collaborator.user.name}
+                        {collaborator.user?.name || 'Unknown'}
                       </p>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {collaborator.user.email}
+                      {collaborator.user?.email || ''}
                     </p>
                     <p className="text-xs text-gray-400 dark:text-gray-500">
                       Joined {formatDate(collaborator.acceptedAt)}
@@ -221,14 +222,18 @@ const ProjectCollaborators = ({
                 {/* Actions */}
                 {isOwner && (
                   <div className="flex-shrink-0 ml-4">
-                    <DropdownMenu items={getCollaboratorActions(collaborator)} position="left">
-                      <button
-                        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-                        disabled={isProcessing}
-                      >
-                        <MoreVertical className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      </button>
-                    </DropdownMenu>
+                    <DropdownMenu
+                      items={getCollaboratorActions(collaborator)}
+                      align="left"
+                      trigger={
+                        <button
+                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                          disabled={isProcessing}
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                      }
+                    />
                   </div>
                 )}
               </div>

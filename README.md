@@ -42,7 +42,7 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - ⏮️ **Version Restore**: Restore any previous version as the current document
 
 ### Output Tool Integration
-- 🛠️ **9 Supported Tools**: Generate optimized output for your preferred development tool
+- 🛠️ **11 Supported Tools**: Generate optimized output for your preferred development tool
 - 🎨 **Vibe Coding Tools**: v0 (Vercel), Loveable, Bolt.new, Replit, Firebase Studio — copy-paste ready prompts
 - 🤖 **AI Coding Tools**: Claude Code, Cursor, OpenAI Codex, Google Antigravity — config files, rules, and reference docs
 - 🔄 **Multi-Tool Generation**: Generate output for multiple tools from the same project
@@ -52,6 +52,7 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - 👤 **User Management**: Admin dashboard for managing users and permissions
   - Export users to CSV with all user data (name, email, role, projects, created date)
   - Sortable columns for easy data organization
+  - **Search filters** on Users, Projects, and Documents tables
 - 🔧 **System Prompt Management**: Edit and version control all AI system prompts
 - 📊 **Token Usage Tracking**: Monitor AI token consumption and costs
 - 📜 **Audit Logs**: Complete audit trail of all system actions
@@ -324,6 +325,8 @@ If you skipped Problem Definition at creation, you can still start it later from
    - **Cursor**: Generates .cursor/rules/*.mdc, AGENTS.md, and reference document
    - **OpenAI Codex**: Generates AGENTS.md, .codex/config.toml, and reference document
    - **Google Antigravity**: Generates .agent/ rules, skills, workflows, AGENTS.md, and reference document
+   - **OpenClaw**: Generates AGENTS.md, SOUL.md, TOOLS.md, IDENTITY.md, USER.md, and reference document
+   - **Hermes Agent**: Generates modular SKILL.md architecture with SKILLS.md index and reference document
 
 3. Click "Generate Output" — AI creates tool-specific files from your BRD and PRD
 4. For vibe coding tools: copy sections or the entire prompt
@@ -451,7 +454,7 @@ This project is licensed under the MIT License.
 
 ---
 
-**Last Updated**: March 25, 2026
+**Last Updated**: May 9, 2026
 
 For questions or issues, please open an issue on GitHub.
 

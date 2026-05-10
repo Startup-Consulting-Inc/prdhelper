@@ -5,11 +5,12 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Trash2, Eye, FileText } from 'lucide-react';
+import { Trash2, Eye, FileText, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable, Column } from '../ui/DataTable';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 import { useAdminDocuments, useDeleteDocument } from '../../hooks/useAdmin';
 
 type DocumentType = 'BRD' | 'PRD' | 'PROMPT_BUILD' | 'TASKS';
@@ -37,12 +38,14 @@ export function DocumentManagementTable() {
   const navigate = useNavigate();
   const [typeFilter, setTypeFilter] = useState<DocumentType | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<DocumentStatus | 'ALL'>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { documents, isLoading } = useAdminDocuments({
     type: typeFilter === 'ALL' ? undefined : typeFilter,
     status: statusFilter === 'ALL' ? undefined : statusFilter,
+    search: searchQuery || undefined,
   });
   const { deleteDocument } = useDeleteDocument();
 
@@ -99,12 +102,12 @@ export function DocumentManagementTable() {
     });
   }, [documents, sortKey, sortDirection]);
 
-  const handleDelete = async (documentId: string, documentType: string, projectTitle: string) => {
+  const handleDelete = async (documentId: string, projectId: string, documentType: string, projectTitle: string) => {
     if (!confirm(`Are you sure you want to delete ${documentType} document from project "${projectTitle}"? This cannot be undone.`)) {
       return;
     }
     try {
-      await deleteDocument({ documentId });
+      await deleteDocument({ documentId, projectId });
     } catch (error) {
       alert('Failed to delete document');
     }
@@ -123,7 +126,7 @@ export function DocumentManagementTable() {
       case 'PROMPT_BUILD':
         return 'warning';
       case 'TASKS':
-        return 'info';
+        return 'default';
       default:
         return 'default';
     }
@@ -213,7 +216,7 @@ export function DocumentManagementTable() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleDelete(document.id, document.type, document.project.title)}
+            onClick={() => handleDelete(document.id, document.project.id, document.type, document.project.title)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -232,7 +235,17 @@ export function DocumentManagementTable() {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Document Management
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as DocumentType | 'ALL')}

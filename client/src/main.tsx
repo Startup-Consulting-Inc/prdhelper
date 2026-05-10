@@ -7,6 +7,7 @@ import App from './App';
 import './index.css';
 import { TRPCProvider } from './providers/TRPCProvider';
 import { AuthProvider } from './contexts/AuthContext';
+import { initializeAnalytics } from './lib/utils/analytics';
 
 // Initialize Sentry for frontend error tracking
 // Only active in production with VITE_SENTRY_DSN configured
@@ -51,6 +52,8 @@ if (isValidSentryDsn && IS_PRODUCTION) {
 
   console.log('✅ Sentry frontend error tracking initialized');
 }
+
+initializeAnalytics();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

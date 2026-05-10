@@ -1327,7 +1327,7 @@ export const TECH_GUIDANCE: Record<string, CategoryGuidance> = {
         ],
         setupDifficulty: 'Moderate',
         popularity: 'Medium',
-        documentation: null,
+        documentation: undefined,
       },
     ],
     recommendations: [

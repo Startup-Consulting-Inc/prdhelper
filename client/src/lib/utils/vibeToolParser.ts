@@ -88,6 +88,8 @@ function getDefaultLabel(toolType: OutputToolType): string {
     VIBE_BOLT: 'Bolt.new Prompt',
     VIBE_REPLIT: 'Replit Prompt',
     VIBE_FIREBASE_STUDIO: 'Firebase Studio Prompt',
+    OPENCLAW: 'OpenClaw Prompt',
+    HERMES_AGENT: 'Hermes Agent Prompt',
   };
   return labels[toolType] || 'Prompt';
 }

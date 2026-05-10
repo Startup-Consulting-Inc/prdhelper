@@ -17,7 +17,7 @@ interface PromptVersion {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
 }
 
 interface PromptVersionHistoryProps {
@@ -71,7 +71,7 @@ export function PromptVersionHistory({
               <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-1">
                   <User className="h-3 w-3" />
-                  <span>{version.creator.name}</span>
+                  <span>{version.creator?.name || 'Unknown'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
