@@ -1095,11 +1095,14 @@ export const aiRouter = router({
           },
         ];
 
-        // Call AI with cheaper/faster model for explanations
+        // Call AI with cheaper/faster model for explanations.
+        // Moonshot is primary; OpenRouter env var is accepted as legacy fallback.
         const response = await generateCompletion(messages, {
-          temperature: 0.5, // More deterministic for explanations
-          maxTokens: 1500, // Increased for detailed analysis
-          modelOverride: process.env.OPENROUTER_EXPLANATION_MODEL,
+          temperature: 0.5,
+          maxTokens: 1500,
+          modelOverride:
+            process.env.MOONSHOT_EXPLANATION_MODEL ||
+            process.env.OPENROUTER_EXPLANATION_MODEL,
         });
 
         logger.info({ contentLength: response.content.length }, 'Raw explanation response received');
