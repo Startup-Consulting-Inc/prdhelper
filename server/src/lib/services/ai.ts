@@ -22,6 +22,7 @@ const DEFAULT_OPENROUTER_MODEL = 'google/gemini-2.5-flash';
 /** Moonshot models that reject arbitrary temperature and require exactly 1. */
 const MOONSHOT_MODELS_FIXED_TEMPERATURE = new Set([
   'kimi-k2.6',
+  'kimi-k2.5',
   'kimi-for-coding',
 ]);
 
@@ -96,6 +97,8 @@ export async function generateCompletion(
     maxTokens?: number;
     retries?: number;
     modelOverride?: string;
+    /** Moonshot-only extensions (ignored by OpenRouter). */
+    moonshot?: { disableThinking?: boolean };
   } = {}
 ): Promise<AIResponse> {
   const {
@@ -103,6 +106,7 @@ export async function generateCompletion(
     maxTokens = 2000,
     retries = 3,
     modelOverride,
+    moonshot: moonshotOpts,
   } = options;
 
   const providerConfig = resolveProvider();
@@ -126,6 +130,10 @@ export async function generateCompletion(
     max_tokens: maxTokens,
     max_completion_tokens: maxTokens,
   };
+
+  if (providerConfig.provider === 'moonshot' && moonshotOpts?.disableThinking) {
+    requestBody.thinking = { type: 'disabled' };
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

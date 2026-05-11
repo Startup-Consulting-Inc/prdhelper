@@ -77,6 +77,8 @@ const ConversationMessage = ({
         question: content,
         projectMode,
         documentType,
+        projectTitle: projectTitle ?? undefined,
+        projectDescription: projectDescription ?? undefined,
       });
       setExplanation(result);
     } catch (error) {

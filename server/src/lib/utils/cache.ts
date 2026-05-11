@@ -65,8 +65,14 @@ export const explanationCache = new LRUCache<string, ExplanationResponse>({
  * @param projectMode - PLAIN or TECHNICAL mode
  * @returns 16-character hash string
  */
-export function hashExplanation(question: string, projectMode: string): string {
-  const content = `${question}:${projectMode}`;
+export function hashExplanation(
+  question: string,
+  projectMode: string,
+  documentType: string,
+  projectTitle: string,
+  projectDescription: string
+): string {
+  const content = [question, projectMode, documentType, projectTitle, projectDescription].join('\u0001');
   return crypto.createHash('sha256').update(content).digest('hex').substring(0, 16);
 }
 

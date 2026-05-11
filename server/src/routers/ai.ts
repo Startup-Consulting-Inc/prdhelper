@@ -48,13 +48,76 @@ import {
 
 /**
  * Last-resort system prompt when Firestore has no active `EXAMPLE_ANSWERS` doc (or invalid `prompt`).
- * Keeps staging usable before seeding; prefer `systemPrompts` for ops tuning. ~650 chars.
+ * Keeps staging usable before seeding; prefer `systemPrompts` for ops tuning.
  */
-const DEFAULT_EXAMPLE_ANSWERS_SYSTEM_PROMPT =
-  'You suggest concise wizard answers for requirements documents. Reply with ONLY valid JSON (no markdown fences): ' +
-  '{"examples":[{"id":"ex-1","label":"short title","answer":"text","rationale":"optional"}]}.\n' +
-  'Provide 2–3 examples with different angles (e.g. narrow vs broader, trade-offs). Tailor to the project ' +
-  'title/description/mode and the wizard question. Match the question language when sensible.';
+const DEFAULT_EXAMPLE_ANSWERS_SYSTEM_PROMPT = [
+  'You draft 2–3 **paste-ready example answers** the user can submit to a product requirements wizard.',
+  'Reply with ONLY valid JSON (no markdown fences): {"examples":[{"id":"ex-1","label":"short title","answer":"text","rationale":"optional"}]}.',
+  '',
+  'Hard rules:',
+  '- Each `answer` must read as a real response to the **exact** wizard question: name concrete mechanisms, roles, policies, metrics, or trade-offs implied by that question.',
+  '- Use the project title/description when provided; invent only reasonable, clearly-marked assumptions (e.g. "Assuming on-prem lecture halls…").',
+  '- Do **not** give meta-instructions (forbidden: "pick one important point", "describe the overall situation", "name two options then choose" unless the question itself is about process). Write the answer text itself.',
+  '- If the question lists alternatives (e.g. timer vs geolocation vs manual check), at least one example should state a clear preference or hybrid and why, in the project context.',
+  '- Offer distinct angles across examples (e.g. minimal viable vs stricter security vs operational cost).',
+  '- Match the wizard question language when sensible.',
+].join('\n');
+
+/** Faster default for wizard-only helpers (explain + example answers); main docs still use MOONSHOT_MODEL. */
+const DEFAULT_WIZARD_HELPER_MOONSHOT_MODEL = 'kimi-k2.5';
+
+function resolveWizardHelperModelOverride(): string | undefined {
+  if (process.env.MOONSHOT_API_KEY?.trim()) {
+    return (
+      process.env.MOONSHOT_EXPLANATION_MODEL?.trim() ||
+      process.env.MOONSHOT_WIZARD_HELPER_MODEL?.trim() ||
+      DEFAULT_WIZARD_HELPER_MOONSHOT_MODEL
+    );
+  }
+  return process.env.OPENROUTER_EXPLANATION_MODEL?.trim();
+}
+
+function buildExampleAnswersParseFallback(
+  question: string,
+  projectTitle: string,
+  documentType: string
+): ExampleAnswersResponse {
+  const q = question.trim();
+  const preview = q.length > 400 ? `${q.slice(0, 400)}…` : q;
+  const pt = projectTitle.trim() || 'this product';
+  return {
+    examples: [
+      {
+        id: 'ex-fb-1',
+        label: 'Direct stance (edit details)',
+        answer:
+          `For **${pt}** (${documentType.replace(/_/g, ' ')}): regarding: ${preview}\n\n` +
+          `We would implement: [state the specific mechanism—e.g. time-limited rotating codes, geofence within X meters of the room, instructor visual confirmation, or a hybrid]. Rationale: [one sentence tied to fraud risk, privacy, and classroom logistics].`,
+        rationale:
+          'Auto-fallback after a parse error: replace bracketed parts with your real policy so the BRD/PRD captures an explicit decision.',
+      },
+      {
+        id: 'ex-fb-2',
+        label: 'Comparison across options in the question',
+        answer:
+          `For **${pt}**: ${preview}\n\n` +
+          `Option A: [brief]. Option B: [brief]. Option C (if any): [brief].\n` +
+          `We lean toward **[pick one]** for this rollout because [operational cost / user friction / cheating risk].`,
+        rationale:
+          'Use this when the wizard question enumerates approaches; fill in each option as it applies to your environment.',
+      },
+      {
+        id: 'ex-fb-3',
+        label: 'What we still need to decide',
+        answer:
+          `For **${pt}**: ${preview}\n\n` +
+          `We have not finalized this yet. Constraints we already know: [list]. Open decision: [one sentence]. Next step: [who validates—security, legal, campus IT].`,
+        rationale:
+          'Honest partial answer template when requirements are still being discovered.',
+      },
+    ],
+  };
+}
 
 export const aiRouter = router({
   /**
@@ -1060,6 +1123,8 @@ export const aiRouter = router({
         question: z.string().min(1).max(2000),
         projectMode: z.enum(['PLAIN', 'TECHNICAL', 'UNIFIED']),
         documentType: z.enum(['PROBLEM_DEFINITION', 'BRD', 'PRD']),
+        projectTitle: z.string().max(500).optional(),
+        projectDescription: z.string().max(5000).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -1067,7 +1132,13 @@ export const aiRouter = router({
         logger.info({ question: input.question }, 'Explaining question');
 
         // Check cache first for fast response
-        const cacheKey = hashExplanation(input.question, input.projectMode);
+        const cacheKey = hashExplanation(
+          input.question,
+          input.projectMode,
+          input.documentType,
+          input.projectTitle ?? '',
+          input.projectDescription ?? ''
+        );
         const cached = explanationCache.get(cacheKey);
 
         if (cached) {
@@ -1098,6 +1169,20 @@ export const aiRouter = router({
           .replace('{documentType}', input.documentType)
           .replace('{question}', input.question);
 
+        const groundingUser = [
+          `### Wizard question (ground every field in this text; avoid generic writing advice)`,
+          input.question,
+          ``,
+          `### Project`,
+          `**Title:** ${(input.projectTitle ?? '').trim() || '(not provided)'}`,
+          `**Description:** ${(input.projectDescription ?? '').trim() || '(not provided)'}`,
+          ``,
+          `### Output rules`,
+          `- Return ONLY valid JSON matching the schema in your system instructions.`,
+          `- purpose, importance, tips, examples, pros/cons, and answerAnalysis must reference concrete nouns and mechanisms from the question (and project context when provided).`,
+          `- If the question lists alternatives (e.g. timer vs geolocation vs manual check), explain or compare them in that framing.`,
+        ].join('\n');
+
         const messages: ChatMessage[] = [
           {
             role: 'system',
@@ -1105,19 +1190,16 @@ export const aiRouter = router({
           },
           {
             role: 'user',
-            content: `Explain this question: "${input.question}"`,
+            content: groundingUser,
           },
         ];
 
-        // Call AI with cheaper/faster model for explanations.
-        // Moonshot is primary; OpenRouter env var is accepted as legacy fallback.
+        // Wizard helpers: faster default model (kimi-k2.5) + disabled thinking on Moonshot.
         const response = await generateCompletion(messages, {
           temperature: 0.5,
           maxTokens: 1500,
-          modelOverride:
-            process.env.MOONSHOT_MODEL ||
-            process.env.MOONSHOT_EXPLANATION_MODEL ||
-            process.env.OPENROUTER_EXPLANATION_MODEL,
+          modelOverride: resolveWizardHelperModelOverride(),
+          moonshot: { disableThinking: true },
         });
 
         logger.info({ contentLength: response.content.length }, 'Raw explanation response received');
@@ -1244,6 +1326,11 @@ export const aiRouter = router({
           ``,
           `### Wizard question to answer`,
           input.question,
+          ``,
+          `### Mandatory rules`,
+          `- Each example "answer" must be paste-ready text that directly responds to the question above (not coaching on how to write).`,
+          `- Reference specific mechanisms, policies, roles, or metrics implied by the question; use this project's title/description when helpful.`,
+          `- If the question names multiple options, at least one example should choose, combine, or compare them explicitly.`,
         ].join('\n');
 
         const messages: ChatMessage[] = [
@@ -1260,10 +1347,8 @@ export const aiRouter = router({
         const response = await generateCompletion(messages, {
           temperature: 0.7,
           maxTokens: 1200,
-          modelOverride:
-            process.env.MOONSHOT_MODEL ||
-            process.env.MOONSHOT_EXPLANATION_MODEL ||
-            process.env.OPENROUTER_EXPLANATION_MODEL,
+          modelOverride: resolveWizardHelperModelOverride(),
+          moonshot: { disableThinking: true },
         });
 
         logger.info(
@@ -1306,33 +1391,13 @@ export const aiRouter = router({
         } catch (parseErr) {
           logger.error(
             { error: parseErr, content: response.content },
-            'Failed to parse example-answers JSON; using fallback'
+            'Failed to parse example-answers JSON; using question-grounded fallback'
           );
-          parsed = {
-            examples: [
-              {
-                id: 'ex-1',
-                label: 'A focused, narrow answer',
-                answer:
-                  'Pick the single most important point relevant to this project and state it plainly in one or two sentences. Mention the specific user or scenario it applies to.',
-                rationale: 'Narrow answers force clarity and avoid scope creep.',
-              },
-              {
-                id: 'ex-2',
-                label: 'A broader, context-driven answer',
-                answer:
-                  'Describe the overall situation in 2–3 sentences and call out the most important constraint or trade-off you already know about.',
-                rationale: 'Broader answers help the AI capture context the next questions can build on.',
-              },
-              {
-                id: 'ex-3',
-                label: 'A trade-off-driven answer',
-                answer:
-                  'Name two reasonable options for this question, then say which one you prefer for this project and why — even if the reason is "we already decided".',
-                rationale: 'Trade-off answers surface decisions early so the BRD/PRD can document them.',
-              },
-            ],
-          };
+          parsed = buildExampleAnswersParseFallback(
+            input.question,
+            input.projectTitle,
+            input.documentType
+          );
         }
 
         // Track token usage (best-effort; failure here must not block the user)
