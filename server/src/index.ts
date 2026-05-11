@@ -48,13 +48,19 @@ import { checkEmailHealth } from './lib/health/email.js';
 // Load environment variables FIRST
 dotenv.config();
 
-// Validate required environment variables — fail fast on startup
+// Validate required environment variables — fail fast on startup.
+// AI provider: MOONSHOT_API_KEY is preferred; OPENROUTER_API_KEY is accepted
+// as a fallback during the rollout window. At least one must be present.
 const requiredEnvVars = [
-  'OPENROUTER_API_KEY',
   'FIREBASE_PROJECT_ID',
   'FIRESTORE_DATABASE_ID',
 ];
 const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
+const hasAiKey =
+  !!process.env.MOONSHOT_API_KEY?.trim() || !!process.env.OPENROUTER_API_KEY?.trim();
+if (!hasAiKey) {
+  missingVars.push('MOONSHOT_API_KEY (or OPENROUTER_API_KEY as fallback)');
+}
 if (missingVars.length > 0) {
   console.error(`Missing required environment variables: ${missingVars.join(', ')}`);
   process.exit(1);

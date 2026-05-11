@@ -1,15 +1,23 @@
 /**
  * AI Service
- * 
- * OpenRouter API integration for AI-powered document generation.
+ *
+ * Moonshot Kimi API integration for AI-powered document generation.
+ * (OpenAI-compatible API; falls back to OpenRouter env vars during rollout.)
+ *
  * Handles:
- * - API calls with retry logic
- * - Error handling
+ * - Chat completions with retry + timeout
+ * - Truncation detection
  * - Marker extraction from AI responses
- * - Prompt building with context
+ * - System prompt assembly with project / BRD / PRD / conversation context
  */
 
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// Moonshot Kimi is the primary provider. OpenRouter env vars are accepted as a
+// fallback so existing deployments keep working until secrets are rotated.
+const MOONSHOT_BASE_URL = 'https://api.moonshot.ai/v1';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+
+const DEFAULT_MOONSHOT_MODEL = 'kimi-k2.6';
+const DEFAULT_OPENROUTER_MODEL = 'google/gemini-2.5-flash';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -31,8 +39,49 @@ export interface AIResponse {
 // Timeout for AI API calls (3 minutes - document generation can be slow)
 const AI_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
 
+interface ProviderConfig {
+  provider: 'moonshot' | 'openrouter';
+  apiKey: string;
+  baseUrl: string;
+  defaultModel: string;
+}
+
 /**
- * Generate completion from OpenRouter API
+ * Resolve the active provider from env. Moonshot is preferred; OpenRouter is
+ * accepted as a fallback so we don't hard-break deployments mid-rotation.
+ */
+function resolveProvider(): ProviderConfig {
+  const moonshotKey = process.env.MOONSHOT_API_KEY?.trim();
+  if (moonshotKey) {
+    return {
+      provider: 'moonshot',
+      apiKey: moonshotKey,
+      baseUrl: process.env.MOONSHOT_BASE_URL?.trim() || MOONSHOT_BASE_URL,
+      defaultModel: process.env.MOONSHOT_MODEL?.trim() || DEFAULT_MOONSHOT_MODEL,
+    };
+  }
+
+  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
+  if (openRouterKey) {
+    return {
+      provider: 'openrouter',
+      apiKey: openRouterKey,
+      baseUrl: OPENROUTER_BASE_URL,
+      defaultModel: process.env.OPENROUTER_MODEL?.trim() || DEFAULT_OPENROUTER_MODEL,
+    };
+  }
+
+  throw new Error(
+    'No AI provider configured. Set MOONSHOT_API_KEY (preferred) or OPENROUTER_API_KEY.'
+  );
+}
+
+/**
+ * Generate a chat completion. The temperature/maxTokens contract is unchanged
+ * for callers; we translate to the provider's expected fields internally.
+ *
+ * Note: Kimi accepts a temperature range of 0-1. Callers should pass values in
+ * that range (existing call sites already do).
  */
 export async function generateCompletion(
   messages: ChatMessage[],
@@ -50,15 +99,32 @@ export async function generateCompletion(
     modelOverride,
   } = options;
 
-  let lastError: Error | null = null;
+  const providerConfig = resolveProvider();
+  const model = modelOverride || providerConfig.defaultModel;
+  const endpoint = `${providerConfig.baseUrl}/chat/completions`;
 
-  // Get API key and model dynamically to ensure .env is loaded
-  const apiKey = process.env.OPENROUTER_API_KEY || '';
-  const model = modelOverride || process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+  // Kimi documents max_tokens as deprecated in favor of max_completion_tokens.
+  // OpenRouter uses max_tokens. Send both to be safe across providers.
+  const requestBody: Record<string, unknown> = {
+    model,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+    max_completion_tokens: maxTokens,
+  };
 
-  if (!apiKey) {
-    throw new Error('OPENROUTER_API_KEY is not configured');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${providerConfig.apiKey}`,
+  };
+
+  // OpenRouter expects these for routing/attribution; Moonshot ignores them.
+  if (providerConfig.provider === 'openrouter') {
+    headers['HTTP-Referer'] = process.env.CLIENT_URL || 'http://localhost:5173';
+    headers['X-Title'] = 'Clearly';
   }
+
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
@@ -67,20 +133,10 @@ export async function generateCompletion(
 
       let response: Response;
       try {
-        response = await fetch(OPENROUTER_API_URL, {
+        response = await fetch(endpoint, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-            'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
-            'X-Title': 'PRD Helper',
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature,
-            max_tokens: maxTokens,
-          }),
+          headers,
+          body: JSON.stringify(requestBody),
           signal: controller.signal,
         });
       } finally {
@@ -89,7 +145,7 @@ export async function generateCompletion(
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errMsg = `OpenRouter API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`;
+        const errMsg = `${providerConfig.provider} API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`;
         // Don't retry client errors (4xx) - they won't succeed on retry
         if (response.status >= 400 && response.status < 500) {
           throw Object.assign(new Error(errMsg), { nonRetryable: true });
@@ -100,7 +156,7 @@ export async function generateCompletion(
       const data = (await response.json()) as any;
 
       if (!data.choices || data.choices.length === 0) {
-        throw new Error('No choices returned from OpenRouter API');
+        throw new Error(`No choices returned from ${providerConfig.provider} API`);
       }
 
       const content = data.choices[0].message.content as string;
@@ -135,12 +191,10 @@ export async function generateCompletion(
       }
       console.error(`AI API attempt ${attempt + 1}/${retries} failed:`, lastError.message);
 
-      // Don't retry non-retryable errors (4xx client errors)
       if (error?.nonRetryable) {
         break;
       }
 
-      // Wait before retrying (exponential backoff)
       if (attempt < retries - 1) {
         await new Promise((resolve) =>
           setTimeout(resolve, Math.pow(2, attempt) * 1000)
@@ -207,17 +261,14 @@ export function buildSystemPrompt(
 ): string {
   let prompt = basePrompt;
 
-  // Add BRD context if provided
   if (context?.brd) {
     prompt += `\n\n### Approved BRD\n\n${context.brd}`;
   }
 
-  // Add PRD context if provided
   if (context?.prd) {
     prompt += `\n\n### Approved PRD\n\n${context.prd}`;
   }
 
-  // Add conversation history if provided
   if (context?.conversation && context.conversation.length > 0) {
     prompt += '\n\n### Previous Q&A\n\n';
     context.conversation.forEach((msg, index) => {
@@ -248,7 +299,7 @@ export interface Task {
 
 export function parseTaskList(rawContent: string): Task[] {
   const tasks: Task[] = [];
-  
+
   // Simple regex-based parsing
   // This is a basic implementation; production would need more robust parsing
   const taskRegex = /## TASK-(\d+): (.+?)\n\n(.+?)\n\n\*\*Acceptance Criteria:\*\*\n((?:- .+?\n)+)\n\*\*Priority:\*\* (HIGH|MEDIUM|LOW)\n\*\*Effort:\*\* (.+?)\n\*\*Dependencies:\*\* (.+?)\n\*\*Tags:\*\* (.+?)(?=\n\n##|$)/gs;
@@ -282,4 +333,3 @@ export function parseTaskList(rawContent: string): Task[] {
 
   return tasks;
 }
-

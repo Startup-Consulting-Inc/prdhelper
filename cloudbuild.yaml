@@ -84,7 +84,7 @@ steps:
       - '--set-env-vars'
       - 'NODE_ENV=production,CLIENT_URL=https://www.clearlyreqs.com,ADMIN_EMAIL=jsong@koreatous.com,GOOGLE_CLOUD_PROJECT_ID=clearly-478614,GCS_BUCKET_NAME=clearly-uploads,GCP_PROJECT_ID=clearly-478614,FIRESTORE_DATABASE_ID=clearly,FIREBASE_PROJECT_ID=clearly-478614'
       - '--set-secrets'
-      - 'FIREBASE_SERVICE_ACCOUNT_KEY=FIREBASE_SERVICE_ACCOUNT_KEY:latest,OPENROUTER_API_KEY=OPENROUTER_API_KEY:latest,GMAIL_USER=GMAIL_USER:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest'
+      - 'FIREBASE_SERVICE_ACCOUNT_KEY=FIREBASE_SERVICE_ACCOUNT_KEY:latest,MOONSHOT_API_KEY=MOONSHOT_API_KEY:latest,OPENROUTER_API_KEY=OPENROUTER_API_KEY:latest,GMAIL_USER=GMAIL_USER:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest'
       - '--update-labels'
       - 'managed-by=cloud-build,app=clearly,env=production'
     id: 'deploy-cloud-run'
