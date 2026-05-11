@@ -103,12 +103,17 @@ export async function generateCompletion(
   const model = modelOverride || providerConfig.defaultModel;
   const endpoint = `${providerConfig.baseUrl}/chat/completions`;
 
+  // Some Kimi endpoints/models (notably Kimi Code's `kimi-for-coding`) reject
+  // non-default temperature values and require `temperature: 1`.
+  const resolvedTemperature =
+    model === 'kimi-for-coding' ? 1 : temperature;
+
   // Kimi documents max_tokens as deprecated in favor of max_completion_tokens.
   // OpenRouter uses max_tokens. Send both to be safe across providers.
   const requestBody: Record<string, unknown> = {
     model,
     messages,
-    temperature,
+    temperature: resolvedTemperature,
     max_tokens: maxTokens,
     max_completion_tokens: maxTokens,
   };
