@@ -19,12 +19,20 @@ const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const DEFAULT_MOONSHOT_MODEL = 'kimi-k2.6';
 const DEFAULT_OPENROUTER_MODEL = 'google/gemini-2.5-flash';
 
-/** Moonshot models that reject arbitrary temperature and require exactly 1. */
-const MOONSHOT_MODELS_FIXED_TEMPERATURE = new Set([
-  'kimi-k2.6',
-  'kimi-k2.5',
-  'kimi-for-coding',
-]);
+/**
+ * Moonshot models that only accept a single temperature value (caller-supplied
+ * temperature is replaced). Values come from API error messages when wrong.
+ */
+const MOONSHOT_REQUIRED_TEMPERATURE: Record<string, number> = {
+  'kimi-k2.5': 0.6,
+  'kimi-k2.6': 1,
+  'kimi-for-coding': 1,
+};
+
+function resolveMoonshotTemperature(model: string, requested: number): number {
+  const fixed = MOONSHOT_REQUIRED_TEMPERATURE[model];
+  return fixed !== undefined ? fixed : requested;
+}
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -113,12 +121,9 @@ export async function generateCompletion(
   const model = modelOverride || providerConfig.defaultModel;
   const endpoint = `${providerConfig.baseUrl}/chat/completions`;
 
-  // Moonshot `kimi-k2.6` and Kimi Code `kimi-for-coding` return 400 if temperature
-  // is not exactly 1 ("invalid temperature: only 1 is allowed for this model").
   const resolvedTemperature =
-    providerConfig.provider === 'moonshot' &&
-    MOONSHOT_MODELS_FIXED_TEMPERATURE.has(model)
-      ? 1
+    providerConfig.provider === 'moonshot'
+      ? resolveMoonshotTemperature(model, temperature)
       : temperature;
 
   // Kimi documents max_tokens as deprecated in favor of max_completion_tokens.
