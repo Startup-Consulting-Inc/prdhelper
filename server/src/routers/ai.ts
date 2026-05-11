@@ -1115,6 +1115,7 @@ export const aiRouter = router({
           temperature: 0.5,
           maxTokens: 1500,
           modelOverride:
+            process.env.MOONSHOT_MODEL ||
             process.env.MOONSHOT_EXPLANATION_MODEL ||
             process.env.OPENROUTER_EXPLANATION_MODEL,
         });
@@ -1260,6 +1261,7 @@ export const aiRouter = router({
           temperature: 0.7,
           maxTokens: 1200,
           modelOverride:
+            process.env.MOONSHOT_MODEL ||
             process.env.MOONSHOT_EXPLANATION_MODEL ||
             process.env.OPENROUTER_EXPLANATION_MODEL,
         });
