@@ -32,6 +32,10 @@ import {
   explanationCache,
   hashExplanation,
   type ExplanationResponse,
+  exampleAnswersCache,
+  hashExampleAnswers,
+  type ExampleAnswersResponse,
+  type ExampleAnswer,
 } from '../lib/utils/cache.js';
 import { admin } from '../lib/firebase.js';
 import { logger } from '../lib/logger.js';
@@ -1158,6 +1162,184 @@ export const aiRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to generate explanation',
+        });
+      }
+    }),
+
+  /**
+   * Suggest 2–3 concrete example answers for a wizard question.
+   *
+   * Tailors the suggestions to the project's title / description / mode and the
+   * current document type so the user can read a few plausible responses and
+   * pick one to edit instead of staring at a blank textarea.
+   */
+  suggestExampleAnswers: protectedProcedure
+    .input(
+      z.object({
+        question: z.string().min(1).max(2000),
+        projectMode: z.enum(['PLAIN', 'TECHNICAL', 'UNIFIED']),
+        documentType: z.enum(['PROBLEM_DEFINITION', 'BRD', 'PRD']),
+        projectTitle: z.string().max(500),
+        projectDescription: z.string().max(5000),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const cacheKey = hashExampleAnswers(
+          input.question,
+          input.projectMode,
+          input.documentType,
+          input.projectTitle,
+          input.projectDescription
+        );
+        const cached = exampleAnswersCache.get(cacheKey);
+        if (cached) {
+          logger.info({ cacheKey }, 'Returning cached example answers');
+          return cached;
+        }
+
+        const systemPromptSnapshot = await ctx.db
+          .collection('systemPrompts')
+          .where('type', '==', 'EXAMPLE_ANSWERS')
+          .where('isActive', '==', true)
+          .limit(1)
+          .get();
+
+        if (systemPromptSnapshot.empty) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Example-answers prompt not configured',
+          });
+        }
+
+        const systemPromptData = systemPromptSnapshot.docs[0].data();
+
+        const contextBlock = [
+          `### Project context`,
+          `**Project title:** ${input.projectTitle || '(not provided)'}`,
+          `**Project description:** ${input.projectDescription || '(not provided)'}`,
+          `**Document type:** ${input.documentType}`,
+          `**Project mode:** ${input.projectMode}`,
+          ``,
+          `### Wizard question to answer`,
+          input.question,
+        ].join('\n');
+
+        const messages: ChatMessage[] = [
+          {
+            role: 'system',
+            content: systemPromptData.prompt,
+          },
+          {
+            role: 'user',
+            content: contextBlock,
+          },
+        ];
+
+        const response = await generateCompletion(messages, {
+          temperature: 0.7,
+          maxTokens: 1200,
+          modelOverride:
+            process.env.MOONSHOT_EXPLANATION_MODEL ||
+            process.env.OPENROUTER_EXPLANATION_MODEL,
+        });
+
+        logger.info(
+          { contentLength: response.content.length },
+          'Raw example-answers response received'
+        );
+
+        // Parse JSON robustly, falling back to a generic set on failure so the
+        // user is never blocked.
+        let parsed: ExampleAnswersResponse | null = null;
+        try {
+          const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) throw new Error('No JSON found in response');
+          const obj = JSON.parse(jsonMatch[0]) as Partial<ExampleAnswersResponse>;
+          if (!obj || !Array.isArray(obj.examples) || obj.examples.length === 0) {
+            throw new Error('Examples array missing or empty');
+          }
+          const cleaned: ExampleAnswer[] = obj.examples
+            .filter(
+              (e): e is ExampleAnswer =>
+                !!e &&
+                typeof e.label === 'string' &&
+                typeof e.answer === 'string' &&
+                e.answer.trim().length > 0
+            )
+            .slice(0, 3)
+            .map((e, idx) => ({
+              id: typeof e.id === 'string' && e.id.length > 0 ? e.id : `ex-${idx + 1}`,
+              label: e.label.trim(),
+              answer: e.answer.trim(),
+              rationale:
+                typeof e.rationale === 'string' && e.rationale.trim().length > 0
+                  ? e.rationale.trim()
+                  : undefined,
+            }));
+          if (cleaned.length === 0) {
+            throw new Error('No usable examples after cleaning');
+          }
+          parsed = { examples: cleaned };
+        } catch (parseErr) {
+          logger.error(
+            { error: parseErr, content: response.content },
+            'Failed to parse example-answers JSON; using fallback'
+          );
+          parsed = {
+            examples: [
+              {
+                id: 'ex-1',
+                label: 'A focused, narrow answer',
+                answer:
+                  'Pick the single most important point relevant to this project and state it plainly in one or two sentences. Mention the specific user or scenario it applies to.',
+                rationale: 'Narrow answers force clarity and avoid scope creep.',
+              },
+              {
+                id: 'ex-2',
+                label: 'A broader, context-driven answer',
+                answer:
+                  'Describe the overall situation in 2–3 sentences and call out the most important constraint or trade-off you already know about.',
+                rationale: 'Broader answers help the AI capture context the next questions can build on.',
+              },
+              {
+                id: 'ex-3',
+                label: 'A trade-off-driven answer',
+                answer:
+                  'Name two reasonable options for this question, then say which one you prefer for this project and why — even if the reason is "we already decided".',
+                rationale: 'Trade-off answers surface decisions early so the BRD/PRD can document them.',
+              },
+            ],
+          };
+        }
+
+        // Track token usage (best-effort; failure here must not block the user)
+        if (response.usage) {
+          try {
+            await trackTokenUsage({
+              userId: ctx.user.id,
+              operation: `EXAMPLE_ANSWERS_${input.documentType}`,
+              model: response.model,
+              tokensUsed: response.usage.totalTokens,
+              inputTokens: response.usage.promptTokens,
+              outputTokens: response.usage.completionTokens,
+            });
+          } catch (trackErr) {
+            logger.warn(
+              { error: trackErr },
+              'Failed to track token usage for example-answers'
+            );
+          }
+        }
+
+        exampleAnswersCache.set(cacheKey, parsed);
+        return parsed;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        logger.error({ error, input }, 'Failed to suggest example answers');
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to generate example answers',
         });
       }
     }),

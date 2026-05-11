@@ -33,6 +33,7 @@ export function ProblemDefinitionWizardPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const answerTextareaRef = useRef<HTMLTextAreaElement>(null);
   const hasAutoStarted = useRef(false);
   const utils = trpc.useUtils();
 
@@ -166,6 +167,24 @@ export function ProblemDefinitionWizardPage() {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       handleSubmitAnswer();
     }
+  };
+
+  const handleUseExampleAnswer = (exampleAnswer: string) => {
+    const draft = currentAnswer.trim();
+    if (
+      draft.length > 0 &&
+      !window.confirm('Replace your current draft with this example?')
+    ) {
+      return;
+    }
+    setCurrentAnswer(exampleAnswer);
+    requestAnimationFrame(() => {
+      const el = answerTextareaRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(exampleAnswer.length, exampleAnswer.length);
+      }
+    });
   };
 
   const handleStartWizard = async () => {
@@ -336,6 +355,11 @@ export function ProblemDefinitionWizardPage() {
                   role={message.role}
                   content={message.content}
                   timestamp={message.timestamp}
+                  projectMode={project.mode}
+                  documentType="PROBLEM_DEFINITION"
+                  projectTitle={project.title}
+                  projectDescription={project.description}
+                  onUseExampleAnswer={handleUseExampleAnswer}
                 />
               ))}
 
@@ -407,6 +431,7 @@ export function ProblemDefinitionWizardPage() {
 
             <div className="flex gap-3">
               <Textarea
+                ref={answerTextareaRef}
                 value={currentAnswer}
                 onChange={(e) => setCurrentAnswer(e.target.value)}
                 onKeyDown={handleKeyPress}
