@@ -315,7 +315,7 @@ If you skipped Problem Definition at creation, you can still start it later from
 
    **Vibe Coding Tools** (copy-paste ready prompts):
    - **v0 (Vercel)**: React + Next.js App Router + Tailwind CSS + shadcn/ui
-   - **Loveable**: React + Vite + TypeScript + Tailwind CSS + Supabase
+   - **Loveable**: React + Vite + TypeScript + Tailwind CSS
    - **Bolt.new**: JavaScript/TypeScript ecosystem, browser-based WebContainer
    - **Replit**: 50+ languages, full Linux container
    - **Firebase Studio**: Next.js + Gemini AI + Firebase services

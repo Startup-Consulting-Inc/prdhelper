@@ -393,39 +393,12 @@ export const TECH_GUIDANCE: Record<string, CategoryGuidance> = {
         popularity: 'High',
         documentation: 'https://www.mongodb.com/',
       },
-      {
-        name: 'Supabase',
-        description:
-          'Open-source Firebase alternative built on PostgreSQL. Instant APIs, auth, and real-time subscriptions.',
-        pros: [
-          'PostgreSQL reliability',
-          'Automatic API generation',
-          'Real-time capabilities',
-          'Open source',
-          'Generous free tier',
-        ],
-        cons: [
-          'Newer platform, evolving',
-          'Less mature than competitors',
-          'Limited geographic regions',
-          'Potential vendor lock-in',
-        ],
-        bestFor: [
-          'Rapid development',
-          'Real-time apps needing SQL',
-          'Startups and MVPs',
-          'Projects avoiding Firebase lock-in',
-        ],
-        setupDifficulty: 'Easy',
-        popularity: 'Growing',
-        documentation: 'https://supabase.com/docs',
-      },
     ],
     recommendations: [
       'Choose PostgreSQL for complex relational data and data integrity requirements',
       'Use Firestore for real-time sync, offline support, and rapid prototyping',
       'Pick MongoDB for flexible schemas and horizontal scaling needs',
-      'Select Supabase for PostgreSQL reliability with modern dev experience',
+      'Select PlanetScale for managed MySQL with modern developer experience',
     ],
     learnMoreUrl: 'https://survey.stackoverflow.co/2024/technology#most-popular-technologies-database',
   },
@@ -551,7 +524,7 @@ export const TECH_GUIDANCE: Record<string, CategoryGuidance> = {
       'Pick Clerk for best developer experience and modern UI components',
       'Select NextAuth.js for Next.js projects and avoiding vendor lock-in',
     ],
-    learnMoreUrl: 'https://supabase.com/blog/choosing-auth-provider',
+    learnMoreUrl: 'https://firebase.google.com/docs/auth',
   },
 
   cloudPlatform: {

@@ -51,7 +51,6 @@ function getToolSetupInstructions(toolType: string): ToolSetupInfo | null {
         { name: 'Context7', description: 'Official library documentation lookup — auto-activates on framework imports' },
         { name: 'Sequential Thinking', description: 'Complex multi-step analysis and systematic debugging' },
         { name: 'Playwright', description: 'Cross-browser E2E testing and visual regression testing' },
-        { name: 'Supabase', description: 'Database management, auth setup, and real-time subscriptions (if using Supabase)' },
         { name: 'GitHub', description: 'Issue tracking, PR management, and repository automation' },
         { name: 'Filesystem', description: 'Advanced file operations and project scaffolding' },
       ],
@@ -75,7 +74,6 @@ function getToolSetupInstructions(toolType: string): ToolSetupInfo | null {
       mcpServers: [
         { name: 'Context7', description: 'Official library documentation — install via Cursor MCP settings' },
         { name: 'Sequential Thinking', description: 'Complex analysis and architectural reasoning' },
-        { name: 'Supabase', description: 'Database management and auth setup (if using Supabase)' },
         { name: 'GitHub', description: 'Issue and PR management directly from Cursor' },
         { name: 'Browserbase', description: 'Web scraping and browser automation for testing' },
       ],
@@ -98,7 +96,6 @@ function getToolSetupInstructions(toolType: string): ToolSetupInfo | null {
       mcpServers: [
         { name: 'Context7', description: 'Library documentation lookup for framework-specific patterns' },
         { name: 'GitHub', description: 'Repository management, issues, and pull requests' },
-        { name: 'Supabase', description: 'Database and auth management (if using Supabase)' },
         { name: 'Filesystem', description: 'Advanced file operations and project scaffolding' },
       ],
     },
