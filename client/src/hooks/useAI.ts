@@ -112,3 +112,32 @@ export function useQuestionExplanation() {
   };
 }
 
+export interface ExampleAnswer {
+  id: string;
+  label: string;
+  answer: string;
+  rationale?: string;
+}
+
+export interface ExampleAnswersResponse {
+  examples: ExampleAnswer[];
+}
+
+/**
+ * Hook for getting AI-suggested example answers for the current wizard question.
+ * Mirrors useQuestionExplanation; the procedure is rate-limited indirectly via
+ * protected-procedure auth + a server-side LRU cache.
+ */
+export function useExampleAnswers() {
+  const suggestMutation = trpc.ai.suggestExampleAnswers.useMutation();
+
+  return {
+    suggest: suggestMutation.mutate,
+    suggestAsync: suggestMutation.mutateAsync,
+    isSuggesting: suggestMutation.isPending,
+    suggestions: suggestMutation.data as ExampleAnswersResponse | undefined,
+    error: suggestMutation.error,
+    reset: suggestMutation.reset,
+  };
+}
+

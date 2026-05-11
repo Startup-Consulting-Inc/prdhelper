@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Bot, User, HelpCircle, Loader2 } from 'lucide-react';
+import { Bot, User, HelpCircle, Lightbulb, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { useQuestionExplanation, type ExplanationResponse } from '@/hooks/useAI';
+import { ExampleAnswersPanel } from './ExampleAnswersPanel';
 
 type MessageRole = 'ai' | 'assistant' | 'user' | 'system';
 
@@ -13,7 +14,19 @@ export interface ConversationMessageProps {
   timestamp?: Date | string;
   className?: string;
   projectMode?: 'PLAIN' | 'TECHNICAL' | 'UNIFIED';
-  documentType?: 'BRD' | 'PRD';
+  documentType?: 'PROBLEM_DEFINITION' | 'BRD' | 'PRD';
+  /** Project title — required for example-answer suggestions to be project-specific. */
+  projectTitle?: string;
+  /** Project description — required for example-answer suggestions to be project-specific. */
+  projectDescription?: string;
+  /**
+   * Callback when the user clicks "Use this" on a suggested example answer.
+   * If omitted, the example-answers affordance is not rendered.
+   *
+   * The wizard page owns the answer textarea and decides whether to overwrite
+   * an in-progress draft (it should ask before replacing non-empty content).
+   */
+  onUseExampleAnswer?: (answer: string) => void;
 }
 
 const ConversationMessage = ({
@@ -23,11 +36,26 @@ const ConversationMessage = ({
   className,
   projectMode = 'TECHNICAL',
   documentType = 'BRD',
+  projectTitle,
+  projectDescription,
+  onUseExampleAnswer,
 }: ConversationMessageProps) => {
   const isAI = role === 'ai' || role === 'assistant' || role === 'system';
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
   const { explainAsync, isExplaining, error: explainError } = useQuestionExplanation();
   const [explanation, setExplanation] = useState<ExplanationResponse | null>(null);
+
+  const canShowExamples = Boolean(onUseExampleAnswer) && isAI && role !== 'system';
+
+  const handleExamplesClick = () => {
+    setShowExamples(true);
+  };
+
+  const handleUseExample = (answer: string) => {
+    onUseExampleAnswer?.(answer);
+    setShowExamples(false);
+  };
 
   const formatTime = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -111,6 +139,16 @@ const ConversationMessage = ({
               ) : (
                 <HelpCircle className="h-4 w-4" />
               )}
+            </button>
+          )}
+          {canShowExamples && (
+            <button
+              onClick={handleExamplesClick}
+              className="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              title="Show example answers"
+              aria-label="Show example answers"
+            >
+              <Lightbulb className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -337,6 +375,20 @@ const ConversationMessage = ({
             </div>
           ) : null}
         </Dialog>
+      )}
+
+      {/* Example Answers Panel */}
+      {canShowExamples && (
+        <ExampleAnswersPanel
+          open={showExamples}
+          onOpenChange={setShowExamples}
+          question={content}
+          projectMode={projectMode}
+          documentType={documentType}
+          projectTitle={projectTitle ?? ''}
+          projectDescription={projectDescription ?? ''}
+          onUseExample={handleUseExample}
+        />
       )}
     </div>
   );
