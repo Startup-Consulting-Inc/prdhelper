@@ -1168,10 +1168,11 @@ export const aiRouter = router({
         return explanation;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        logger.error({ error, input }, 'Failed to explain question');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error({ error, errorMessage, input }, 'Failed to explain question');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to generate explanation',
+          message: `Failed to generate explanation: ${errorMessage}`,
         });
       }
     }),
@@ -1355,10 +1356,11 @@ export const aiRouter = router({
         return parsed;
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        logger.error({ error, input }, 'Failed to suggest example answers');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error({ error, errorMessage, input }, 'Failed to suggest example answers');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to generate example answers',
+          message: `Failed to generate example answers: ${errorMessage}`,
         });
       }
     }),
