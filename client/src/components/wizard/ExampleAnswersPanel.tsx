@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { TRPCClientError } from '@trpc/client';
+import { toast } from 'react-toastify';
 import { Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
@@ -7,6 +9,12 @@ import {
   type ExampleAnswer,
   type ExampleAnswersResponse,
 } from '@/hooks/useAI';
+
+function exampleAnswersErrorMessage(err: unknown): string {
+  if (err instanceof TRPCClientError) return err.message;
+  if (err instanceof Error) return err.message;
+  return 'Could not load example answers.';
+}
 
 export interface ExampleAnswersPanelProps {
   open: boolean;
@@ -38,13 +46,14 @@ const ExampleAnswersPanel = ({
   projectDescription,
   onUseExample,
 }: ExampleAnswersPanelProps) => {
-  const { suggestAsync, isSuggesting, error } = useExampleAnswers();
+  const { suggestAsync, isSuggesting, error, reset } = useExampleAnswers();
   const [data, setData] = useState<ExampleAnswersResponse | null>(null);
   const [loadKey, setLoadKey] = useState<string | null>(null);
 
   const cacheKey = `${documentType}::${projectMode}::${question}`;
 
   const load = useCallback(async () => {
+    reset();
     try {
       const result = await suggestAsync({
         question,
@@ -55,11 +64,13 @@ const ExampleAnswersPanel = ({
       });
       setData(result);
       setLoadKey(cacheKey);
-    } catch {
-      // The hook surfaces the error; we just avoid blowing up the UI.
+    } catch (err) {
+      const msg = exampleAnswersErrorMessage(err);
+      toast.error(msg);
     }
   }, [
     suggestAsync,
+    reset,
     question,
     projectMode,
     documentType,
@@ -157,7 +168,7 @@ const ExampleAnswersPanel = ({
         </div>
       ) : (
         <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          No suggestions available. Try regenerating.
+          No suggestions were returned. Check your connection and try Regenerate, or try again later.
         </div>
       )}
     </Dialog>

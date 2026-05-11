@@ -2,8 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { ToastContainer } from 'react-toastify';
 import * as Sentry from '@sentry/react';
 import App from './App';
+import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
 import { TRPCProvider } from './providers/TRPCProvider';
 import { AuthProvider } from './contexts/AuthContext';
@@ -113,6 +115,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <TRPCProvider>
             <AuthProvider>
               <App />
+              <ToastContainer
+                position="top-right"
+                autoClose={6000}
+                closeOnClick
+                pauseOnHover
+                theme="colored"
+              />
             </AuthProvider>
           </TRPCProvider>
         </BrowserRouter>

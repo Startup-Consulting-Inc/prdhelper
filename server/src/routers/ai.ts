@@ -46,6 +46,16 @@ import {
   type SupportedLanguage,
 } from '../lib/utils/languageDetector.js';
 
+/**
+ * Last-resort system prompt when Firestore has no active `EXAMPLE_ANSWERS` doc (or invalid `prompt`).
+ * Keeps staging usable before seeding; prefer `systemPrompts` for ops tuning. ~650 chars.
+ */
+const DEFAULT_EXAMPLE_ANSWERS_SYSTEM_PROMPT =
+  'You suggest concise wizard answers for requirements documents. Reply with ONLY valid JSON (no markdown fences): ' +
+  '{"examples":[{"id":"ex-1","label":"short title","answer":"text","rationale":"optional"}]}.\n' +
+  'Provide 2–3 examples with different angles (e.g. narrow vs broader, trade-offs). Tailor to the project ' +
+  'title/description/mode and the wizard question. Match the question language when sensible.';
+
 export const aiRouter = router({
   /**
    * Ask next question in wizard based on conversation history
@@ -1205,14 +1215,23 @@ export const aiRouter = router({
           .limit(1)
           .get();
 
-        if (systemPromptSnapshot.empty) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Example-answers prompt not configured',
-          });
+        let systemPromptContent: string;
+        if (!systemPromptSnapshot.empty) {
+          const raw = systemPromptSnapshot.docs[0].data().prompt;
+          if (typeof raw === 'string' && raw.trim().length > 0) {
+            systemPromptContent = raw.trim();
+          } else {
+            logger.warn(
+              'EXAMPLE_ANSWERS prompt document exists but `prompt` field is missing or invalid; using built-in fallback'
+            );
+            systemPromptContent = DEFAULT_EXAMPLE_ANSWERS_SYSTEM_PROMPT;
+          }
+        } else {
+          logger.warn(
+            'EXAMPLE_ANSWERS system prompt missing in Firestore; using built-in fallback (seed systemPrompts for customization)'
+          );
+          systemPromptContent = DEFAULT_EXAMPLE_ANSWERS_SYSTEM_PROMPT;
         }
-
-        const systemPromptData = systemPromptSnapshot.docs[0].data();
 
         const contextBlock = [
           `### Project context`,
@@ -1228,7 +1247,7 @@ export const aiRouter = router({
         const messages: ChatMessage[] = [
           {
             role: 'system',
-            content: systemPromptData.prompt,
+            content: systemPromptContent,
           },
           {
             role: 'user',

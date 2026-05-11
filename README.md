@@ -239,6 +239,7 @@ The project uses **Google Cloud Firestore** (named database: "clearly") for all 
 #### System Prompt Management
 - System prompts with version history in `systemPrompts/{id}/versions`
 - Admin can view and revert prompt changes
+- Wizard **example answers** use an active Firestore prompt with `type: EXAMPLE_ANSWERS`. If that doc is missing in an environment, the API falls back to a small built-in prompt so the feature still works; seed Firestore when you want ops-controlled wording.
 
 
 ## 🎯 User Guide
