@@ -58,6 +58,18 @@ interface GenerationResult {
 // The model supports up to 65,536 output tokens
 const MAX_OUTPUT_TOKENS = 65536;
 
+/** Per upstream LLM HTTP call for BRD/PRD/tasks/prompt-build/tool bundles (ms). */
+function getDocumentCompletionRequestTimeoutMs(): number {
+  const raw = process.env.AI_DOCUMENT_COMPLETION_TIMEOUT_MS?.trim();
+  if (raw && /^\d+$/.test(raw)) {
+    const n = parseInt(raw, 10);
+    if (n >= 120_000 && n <= 3_400_000) {
+      return n;
+    }
+  }
+  return 20 * 60 * 1000;
+}
+
 /**
  * Generate Problem Definition Document from conversation
  *
@@ -101,6 +113,7 @@ Remember to wrap the entire document in <<PROBLEM_DEFINITION_START>> and <<PROBL
   const response = await generateCompletion(messages, {
     temperature: 0.7,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   const rawContent = response.content;
@@ -163,6 +176,7 @@ export async function generateBRD(
   const response = await generateCompletion(messages, {
     temperature: 0.7,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   const rawContent = response.content;
@@ -229,6 +243,7 @@ export async function generatePRD(
   const response = await generateCompletion(messages, {
     temperature: 0.7,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   const rawContent = response.content;
@@ -294,6 +309,7 @@ export async function generateTasks(
   const response = await generateCompletion(messages, {
     temperature: 0.6,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   const rawContent = response.content;
@@ -387,6 +403,7 @@ export async function generatePromptBuild(
   const response = await generateCompletion(messages, {
     temperature: 0.7,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   const rawContent = response.content;
@@ -470,6 +487,7 @@ export async function generateToolOutput(
   const coreResponse = await generateCompletion(coreMessages, {
     temperature: 0.6,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   let coreContent = extractMarkedContent(coreResponse.content, '<<TOOL_OUTPUT_START>>', '<<TOOL_OUTPUT_END>>', coreResponse.truncated);
@@ -507,6 +525,7 @@ export async function generateToolOutput(
   const remainingResponse = await generateCompletion(remainingMessages, {
     temperature: 0.6,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   let remainingContent = extractMarkedContent(remainingResponse.content, '<<TOOL_OUTPUT_START>>', '<<TOOL_OUTPUT_END>>', remainingResponse.truncated);
@@ -574,6 +593,7 @@ async function generateToolOutputSingle(
   const response = await generateCompletion(messages, {
     temperature: 0.6,
     maxTokens: MAX_OUTPUT_TOKENS,
+    requestTimeoutMs: getDocumentCompletionRequestTimeoutMs(),
   });
 
   const rawContent = response.content;

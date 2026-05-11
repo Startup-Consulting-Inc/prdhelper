@@ -68,6 +68,8 @@ steps:
       - 'managed'
       - '--service-account'
       - 'cloud-run-sa@clearly-478614.iam.gserviceaccount.com'
+      - '--timeout'
+      - '3600'
       - '--set-env-vars'
       - 'FIRESTORE_DATABASE_ID=clearly,FIREBASE_PROJECT_ID=clearly-478614,GOOGLE_CLOUD_PROJECT_ID=clearly-478614,CLIENT_URL=https://www.clearlyreqs.com,NODE_ENV=production'
       - '--update-secrets'

@@ -5,7 +5,7 @@
  * (OpenAI-compatible API; falls back to OpenRouter env vars during rollout.)
  *
  * Handles:
- * - Chat completions with retry + timeout
+ * - Chat completions with retry + per-fetch timeout (short vs document generation)
  * - Truncation detection
  * - Marker extraction from AI responses
  * - System prompt assembly with project / BRD / PRD / conversation context
@@ -51,8 +51,22 @@ export interface AIResponse {
   };
 }
 
-// Timeout for AI API calls (3 minutes - document generation can be slow)
-const AI_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
+/** Default per-fetch timeout for wizard / explain / short calls (ms). */
+const DEFAULT_AI_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
+
+function resolveRequestTimeoutMs(explicit?: number): number {
+  if (explicit !== undefined && explicit > 0) {
+    return explicit;
+  }
+  const raw = process.env.AI_REQUEST_TIMEOUT_MS?.trim();
+  if (raw && /^\d+$/.test(raw)) {
+    const n = parseInt(raw, 10);
+    if (n >= 30_000 && n <= 3_600_000) {
+      return n;
+    }
+  }
+  return DEFAULT_AI_REQUEST_TIMEOUT_MS;
+}
 
 interface ProviderConfig {
   provider: 'moonshot' | 'openrouter';
@@ -107,6 +121,8 @@ export async function generateCompletion(
     modelOverride?: string;
     /** Moonshot-only extensions (ignored by OpenRouter). */
     moonshot?: { disableThinking?: boolean };
+    /** Per-fetch HTTP timeout (ms). Document generation passes a larger value. */
+    requestTimeoutMs?: number;
   } = {}
 ): Promise<AIResponse> {
   const {
@@ -115,7 +131,10 @@ export async function generateCompletion(
     retries = 3,
     modelOverride,
     moonshot: moonshotOpts,
+    requestTimeoutMs: requestTimeoutMsOption,
   } = options;
+
+  const requestTimeoutMs = resolveRequestTimeoutMs(requestTimeoutMsOption);
 
   const providerConfig = resolveProvider();
   const model = modelOverride || providerConfig.defaultModel;
@@ -156,7 +175,7 @@ export async function generateCompletion(
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
+      const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
 
       let response: Response;
       try {
@@ -211,14 +230,19 @@ export async function generateCompletion(
             }
           : undefined,
       };
-    } catch (error: any) {
-      lastError = error as Error;
-      if (lastError.name === 'AbortError') {
-        lastError = new Error(`AI API request timed out after ${AI_REQUEST_TIMEOUT_MS / 1000}s`);
+    } catch (error: unknown) {
+      const err = error as Error & { nonRetryable?: boolean };
+      if (err.name === 'AbortError') {
+        lastError = Object.assign(
+          new Error(`AI API request timed out after ${requestTimeoutMs / 1000}s`),
+          { nonRetryable: true }
+        );
+      } else {
+        lastError = err;
       }
       console.error(`AI API attempt ${attempt + 1}/${retries} failed:`, lastError.message);
 
-      if (error?.nonRetryable) {
+      if (err?.nonRetryable || (lastError as { nonRetryable?: boolean }).nonRetryable) {
         break;
       }
 
