@@ -71,7 +71,7 @@ steps:
       - '--set-env-vars'
       - 'FIRESTORE_DATABASE_ID=clearly,FIREBASE_PROJECT_ID=clearly-478614,GOOGLE_CLOUD_PROJECT_ID=clearly-478614,CLIENT_URL=https://www.clearlyreqs.com,NODE_ENV=production'
       - '--update-secrets'
-      - 'FIREBASE_ADMIN_SDK_KEY=firebase-admin-sdk-key:latest,OPENROUTER_API_KEY=openrouter-api-key:latest,GOOGLE_CLIENT_ID=google-oauth-client-id:latest,GOOGLE_CLIENT_SECRET=google-oauth-client-secret:latest,GOOGLE_CALLBACK_URL=google-oauth-callback-url:latest,GMAIL_USER=gmail-user:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,SESSION_SECRET=SESSION_SECRET:latest'
+      - 'FIREBASE_ADMIN_SDK_KEY=firebase-admin-sdk-key:latest,MOONSHOT_API_KEY=moonshot-api-key:latest,OPENROUTER_API_KEY=openrouter-api-key:latest,GOOGLE_CLIENT_ID=google-oauth-client-id:latest,GOOGLE_CLIENT_SECRET=google-oauth-client-secret:latest,GOOGLE_CALLBACK_URL=google-oauth-callback-url:latest,GMAIL_USER=gmail-user:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,SESSION_SECRET=SESSION_SECRET:latest'
     id: 'deploy-cloud-run'
 
 # Store images in Google Container Registry
