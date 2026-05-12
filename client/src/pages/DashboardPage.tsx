@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Footer } from '../components/layout/Footer';
 import { ProjectList } from '../components/project/ProjectList';
@@ -133,29 +133,26 @@ export function DashboardPage() {
                 </h1>
               </div>
               <div className="flex items-center gap-4">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleCreateProject}
+                <Link
+                  to="/projects/new"
+                  className="inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-600 dark:bg-primary-500 dark:hover:bg-primary-600 h-8 px-3 text-sm rounded-md"
                 >
                   New Project
-                </Button>
+                </Link>
                 {user?.role === 'ADMIN' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/admin')}
+                  <Link
+                    to="/admin"
+                    className="inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 focus-visible:ring-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 h-8 px-3 text-sm rounded-md"
                   >
                     Admin
-                  </Button>
+                  </Link>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/profile')}
+                <Link
+                  to="/profile"
+                  className="inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 hover:bg-gray-100 text-gray-700 focus-visible:ring-gray-500 dark:hover:bg-gray-800 dark:text-gray-300 h-8 px-3 text-sm rounded-md"
                 >
                   Profile
-                </Button>
+                </Link>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   {user?.name}
                 </span>
@@ -233,14 +230,12 @@ export function DashboardPage() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Your Projects
               </h3>
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700"
-                variant="primary"
-                size="sm"
-                onClick={handleCreateProject}
+              <Link
+                to="/projects/new"
+                className="inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700 h-8 px-3 text-sm rounded-md"
               >
                 New Project
-              </Button>
+              </Link>
             </div>
             <ProjectList
               projects={allProjects.map((p) => ({
