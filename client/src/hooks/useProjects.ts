@@ -28,7 +28,11 @@ export function useProjects(filters?: {
     refetch,
   } = trpc.projects.getAll.useQuery(filters || {}, {
     enabled: isAuthenticated,
-    retry: 2,
+    retry: (failureCount, error: any) => {
+      // Don't retry server errors (likely Firestore index issues)
+      if (error?.data?.httpStatus >= 500) return false;
+      return failureCount < 2;
+    },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
@@ -133,7 +137,11 @@ export function useProjectStats() {
 
   const { data, isLoading, error } = trpc.projects.getStats.useQuery(undefined, {
     enabled: isAuthenticated,
-    retry: 2,
+    retry: (failureCount, error: any) => {
+      // Don't retry server errors (likely Firestore index issues)
+      if (error?.data?.httpStatus >= 500) return false;
+      return failureCount < 2;
+    },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 

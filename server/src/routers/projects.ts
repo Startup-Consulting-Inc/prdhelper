@@ -106,15 +106,26 @@ export const projectsRouter = router({
         if (status) ownedQuery = ownedQuery.where('status', '==', status);
         if (mode) ownedQuery = ownedQuery.where('mode', '==', mode);
 
-        const ownedSnapshot = await ownedQuery.orderBy('updatedAt', 'desc').get();
+        const ownedSnapshot = await ownedQuery.get();
+        const ownedDocs = ownedSnapshot.docs.sort((a, b) => {
+          const aTime = a.data()?.updatedAt?.toDate ? a.data().updatedAt.toDate().getTime() : 0;
+          const bTime = b.data()?.updatedAt?.toDate ? b.data().updatedAt.toDate().getTime() : 0;
+          return bTime - aTime;
+        });
 
         // Find projects where user is a collaborator using collectionGroup query (O(1) instead of O(N))
-        const sharedCollabs = await ctx.db
-          .collectionGroup('collaborators')
-          .where('userId', '==', ctx.user.id)
-          .get();
+        let sharedCollabsDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+        try {
+          const sharedCollabs = await ctx.db
+            .collectionGroup('collaborators')
+            .where('userId', '==', ctx.user.id)
+            .get();
+          sharedCollabsDocs = sharedCollabs.docs;
+        } catch (collabError) {
+          logger.warn({ error: collabError, userId: ctx.user.id }, 'CollectionGroup collaborators query failed, returning owned projects only');
+        }
 
-        const sharedProjectRefs = sharedCollabs.docs
+        const sharedProjectRefs = sharedCollabsDocs
           .map((d) => d.ref.parent.parent)
           .filter(Boolean) as FirebaseFirestore.DocumentReference[];
 
@@ -134,7 +145,7 @@ export const projectsRouter = router({
 
         // Combine owned and shared projects
         const allProjectDocs = [
-          ...ownedSnapshot.docs,
+          ...ownedDocs,
           ...filteredSharedDocs,
         ];
 
@@ -872,12 +883,18 @@ export const projectsRouter = router({
           .get();
 
         // Get all projects where user is collaborator using collectionGroup query (O(1) instead of O(N))
-        const sharedCollabs = await ctx.db
-          .collectionGroup('collaborators')
-          .where('userId', '==', ctx.user.id)
-          .get();
+        let sharedCollabsDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+        try {
+          const sharedCollabs = await ctx.db
+            .collectionGroup('collaborators')
+            .where('userId', '==', ctx.user.id)
+            .get();
+          sharedCollabsDocs = sharedCollabs.docs;
+        } catch (collabError) {
+          logger.warn({ error: collabError, userId: ctx.user.id }, 'CollectionGroup collaborators query failed in getStats');
+        }
 
-        const sharedProjectRefs = sharedCollabs.docs
+        const sharedProjectRefs = sharedCollabsDocs
           .map((d) => d.ref.parent.parent)
           .filter(Boolean) as FirebaseFirestore.DocumentReference[];
 
