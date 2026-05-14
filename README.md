@@ -14,6 +14,7 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - 🌐 **Multi-Language Support**: Generate documents in English, Korean, Japanese, or Chinese (auto-detect available)
 - 💬 **Smart Conversations**: AI remembers context and asks relevant follow-up questions
 - 📊 **Progress Tracking**: Visual progress indicators in wizards and during long-running document generation
+- 🔄 **Multi-Call Generation**: AI coding tool outputs split into 2 API calls to prevent truncation and stay within Firestore limits
 - 🌓 **Dark Mode**: Beautiful UI with dark mode support
 - ♿ **Accessible**: WCAG compliant with keyboard navigation
 - 🧪 **Testing**: Vitest for unit tests; Playwright E2E in the client package (run `cd client && npm run test:ci` for unit + E2E)
@@ -57,6 +58,7 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - 📊 **Token Usage Tracking**: Monitor AI token consumption and costs
 - 📜 **Audit Logs**: Complete audit trail of all system actions
 - 🔒 **Role-Based Access**: User and Admin role support with permission controls
+- 🛡️ **Resilient Queries**: Backend gracefully handles missing Firestore indexes by sorting in-memory and falling back to owned-only project data
 
 ### SEO & Discoverability
 - 🔍 **Per-Page Meta Tags**: Dynamic `<title>`, `<meta description>`, canonical, OG, and Twitter tags via `react-helmet-async`
@@ -455,7 +457,7 @@ This project is licensed under the MIT License.
 
 ---
 
-**Last Updated**: May 9, 2026
+**Last Updated**: May 13, 2026
 
 For questions or issues, please open an issue on GitHub.
 
