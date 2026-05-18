@@ -22,4 +22,4 @@ User-agent: ChatGPT-User
 Disallow:
 
 # Sitemap location
-Sitemap: /sitemap.xml
+Sitemap: https://www.clearlyreqs.com/sitemap.xml

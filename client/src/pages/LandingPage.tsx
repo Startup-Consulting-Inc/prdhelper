@@ -24,7 +24,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { PublicHeader } from '../components/layout/PublicHeader';
 import { PublicFooter } from '../components/layout/PublicFooter';
-import { SEO } from '../components/SEO';
+import { SEO, SOFTWARE_APPLICATION_SCHEMA } from '../components/SEO';
 import { Helmet } from 'react-helmet-async';
 
 export function LandingPage() {
@@ -45,6 +45,7 @@ export function LandingPage() {
         title="AI BRD & PRD Generator – Create Requirements Documents 10x Faster"
         description="Generate professional BRDs and PRDs in minutes with AI. Clearly's intelligent wizard guides you from idea to complete requirements document. Free trial, no credit card required."
         path="/"
+        schema={SOFTWARE_APPLICATION_SCHEMA}
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({

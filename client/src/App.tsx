@@ -33,7 +33,8 @@ const EmailVerificationPendingPage = lazyWithRetry(() => import('./pages/EmailVe
 
 // Public pages
 const AboutPage = lazyWithRetry(() => import('./pages/public/AboutPage'));
-const CaseStudiesPage = lazyWithRetry(() => import('./pages/public/CaseStudiesPage'));
+const FAQPage = lazyWithRetry(() => import('./pages/public/FAQPage'));
+const AuthorPage = lazyWithRetry(() => import('./pages/public/AuthorPage'));
 const BlogPage = lazyWithRetry(() => import('./pages/public/BlogPage'));
 const ScheduleDemoPage = lazyWithRetry(() => import('./pages/public/ScheduleDemoPage'));
 const ContactUsPage = lazyWithRetry(() => import('./pages/public/ContactUsPage'));
@@ -298,7 +299,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/case-studies" element={<CaseStudiesPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/authors/:slug" element={<AuthorPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/schedule-demo" element={<ScheduleDemoPage />} />
         <Route path="/contact" element={<ContactUsPage />} />

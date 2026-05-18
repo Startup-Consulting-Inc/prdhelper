@@ -66,9 +66,10 @@ ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
 # Build server + client
 RUN npm run build:server && npm run build:client
 
-# Build SSR bundle and prerender public routes
-# This generates client/dist/prerendered/*.html for AI crawlers
-RUN npm run build:ssr && npm run prerender
+# Build SSR bundle, prerender public routes, and generate the sitemap
+# This generates client/dist/prerendered/*.html for AI crawlers and
+# client/dist/sitemap.xml from the route registry
+RUN npm run build:ssr && npm run prerender && npm run sitemap
 
 # Remove development dependencies
 RUN npm prune --production

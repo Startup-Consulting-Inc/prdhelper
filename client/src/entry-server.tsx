@@ -8,7 +8,12 @@
 import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
 import { HelmetProvider, type HelmetServerState } from 'react-helmet-async';
-import { PublicRoutes } from './public-routes';
+import { PublicRoutes, PUBLIC_ROUTES } from './public-routes';
+import { blogPosts } from './data/blogPosts';
+
+/** Consumed by scripts/prerender.mjs and scripts/generate-sitemap.mjs so the
+ *  route list and sitemap can never drift from the registry. */
+export { PUBLIC_ROUTES, blogPosts };
 
 export interface RenderResult {
   html: string;

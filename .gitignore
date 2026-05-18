@@ -69,8 +69,10 @@ migrations/
 # Terraform
 terraform/
 
-# Scripts
-scripts/
+# Scripts: ignore ad-hoc/local files, but track project build scripts
+scripts/*
+!scripts/*.sh
+!scripts/*.mjs
 
 # Service account keys
 serviceAccountKey.json

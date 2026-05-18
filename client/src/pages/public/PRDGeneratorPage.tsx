@@ -8,7 +8,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { SEO } from '../../components/SEO';
+import { SEO, SOFTWARE_APPLICATION_SCHEMA } from '../../components/SEO';
 import { PublicLayout } from '../../components/layout/PublicLayout';
 import {
   CheckCircle,
@@ -86,6 +86,7 @@ export default function PRDGeneratorPage() {
         title="AI PRD Generator: Product Requirements in Minutes (Free Trial)"
         description="AI PRD tool with a guided wizard—turn an idea into a structured Product Requirements Document for engineering, QA, and AI coding tools. Export-ready PRDs. Try Clearly free, no card."
         path="/prd-generator"
+        schema={SOFTWARE_APPLICATION_SCHEMA}
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>

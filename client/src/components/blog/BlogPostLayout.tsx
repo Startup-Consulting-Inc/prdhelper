@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../Breadcrumbs';
+import { getAuthorByName } from '../../data/authors';
 
 export interface FaqItem {
   question: string;
@@ -220,12 +221,25 @@ export function BlogPostLayout({
     return () => observer.disconnect();
   }, [toc]);
 
+  const authorInfo = getAuthorByName(author);
+  const authorSchema = authorInfo
+    ? {
+        '@type': 'Person',
+        name: authorInfo.name,
+        url: `${BASE_URL}/authors/${authorInfo.slug}`,
+        jobTitle: authorInfo.role,
+        ...(authorInfo.sameAs && authorInfo.sameAs.length > 0
+          ? { sameAs: authorInfo.sameAs }
+          : {}),
+      }
+    : { '@type': 'Person', name: author };
+
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: title,
     description: excerpt,
-    author: { '@type': 'Person', name: author },
+    author: authorSchema,
     datePublished: date,
     ...(dateModified ? { dateModified } : {}),
     url: canonicalUrl,
@@ -371,7 +385,16 @@ export function BlogPostLayout({
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{author}</p>
+                  {authorInfo ? (
+                    <Link
+                      to={`/authors/${authorInfo.slug}`}
+                      className="text-sm font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    >
+                      {author}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{author}</p>
+                  )}
                   <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />

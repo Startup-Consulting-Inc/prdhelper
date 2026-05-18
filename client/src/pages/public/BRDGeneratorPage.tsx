@@ -8,7 +8,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { SEO } from '../../components/SEO';
+import { SEO, SOFTWARE_APPLICATION_SCHEMA } from '../../components/SEO';
 import { PublicLayout } from '../../components/layout/PublicLayout';
 import {
   CheckCircle,
@@ -85,6 +85,7 @@ export default function BRDGeneratorPage() {
         title="BRD Generator – Create Business Requirements Documents with AI"
         description="Generate professional Business Requirements Documents in 15-30 minutes with AI. Clearly's BRD generator guides you from idea to complete document. Free trial."
         path="/brd-generator"
+        schema={SOFTWARE_APPLICATION_SCHEMA}
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>

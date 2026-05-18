@@ -60,7 +60,7 @@ const sections = [
     title: 'Company',
     links: [
       { label: 'About Clearly', path: '/about', desc: 'Our mission and team' },
-      { label: 'Case Studies', path: '/case-studies', desc: 'How teams use Clearly' },
+      { label: 'FAQ', path: '/faq', desc: 'Common questions about BRDs, PRDs, and Clearly' },
       { label: 'Schedule a Demo', path: '/schedule-demo', desc: 'See Clearly in action' },
       { label: 'Contact', path: '/contact', desc: 'Get in touch' },
     ],

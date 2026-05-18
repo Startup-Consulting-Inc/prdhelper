@@ -95,10 +95,10 @@ export function PublicFooter({ className }: PublicFooterProps) {
               </li>
               <li>
                 <Link
-                  to="/case-studies"
+                  to="/faq"
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
-                  Case Studies
+                  FAQ
                 </Link>
               </li>
 
