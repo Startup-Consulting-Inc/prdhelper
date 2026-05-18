@@ -57,6 +57,50 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 45,
+      slug: 'hermes-agent-team-gateway-best-practices',
+      title: 'Hermes Agent: Practical Best Practices for Team Gateway Deployments',
+      excerpt:
+        'Gateway architecture, layered security (pairing, approvals, Docker), profiles and skill libraries, Mem0 vs built-in memory, MCP governance, terminal backends, cron, observability with Langfuse, and maintenance cadence.',
+      author: 'Jaehee Song',
+      date: '2026-05-15',
+      readTime: '24 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 44,
+      slug: 'openclaw-team-operations-guide',
+      title: 'OpenClaw Team Operations: Security, Memory, and Maintenance at Scale',
+      excerpt:
+        'Self-hosted OpenClaw for ~5 developers on shared VMs: three security tiers, memory/compaction, session isolation, credential hygiene, skills auditing, backups, cron, complete starter openclaw.json, incident response.',
+      author: 'Jaehee Song',
+      date: '2026-05-15',
+      readTime: '22 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 43,
+      slug: 'openclaw-vs-hermes-agent',
+      title: 'OpenClaw vs Hermes Agent: The 2026 Comparison',
+      excerpt:
+        'Ecosystem platform vs learning runtime—stars, timelines, architecture, security (245+ vs 1 CVE cited), ecosystem scale, and a decision matrix. When to pick each or both.',
+      author: 'Jaehee Song',
+      date: '2026-05-15',
+      readTime: '18 min read',
+      category: 'AI & Development',
+    },
+    {
+      id: 42,
+      slug: 'clearly-openclaw-attendance-case-study',
+      title: 'From Idea to a Live Web Service in Under an Hour: Clearly + OpenClaw',
+      excerpt:
+        'Case study: attendance app from one sentence—BRD/PRD and wizard helpers in Clearly, OpenClaw AGENTS.md stack export, one build prompt, smoke-tested full stack, then Caddy and DNS to go live.',
+      author: 'Jaehee Song',
+      date: '2026-05-14',
+      readTime: '12 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 41,
       slug: 'vibe-coded-app-why-it-breaks',
       title: "Your Vibe-Coded App Works. Here's Why It's About to Break.",

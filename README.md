@@ -64,11 +64,11 @@ Clearly uses an intelligent Q&A wizard to guide both technical and non-technical
 - 🔍 **Per-Page Meta Tags**: Dynamic `<title>`, `<meta description>`, canonical, OG, and Twitter tags via `react-helmet-async`
 - 📋 **Structured Data (JSON-LD)**: `SoftwareApplication`, `Organization`, `WebSite` (with SearchAction), `FAQPage`, `Article`, and `BreadcrumbList` schemas
 - 🤖 **AI Bot Discovery**: `llms.txt` and `ai-llm.txt` files for Perplexity, ChatGPT Browse, and Gemini
-- 🗺️ **Sitemap**: `sitemap.xml` with 38+ indexed URLs (auto-excludes auth pages)
+- 🗺️ **Sitemap**: `sitemap.xml` with 56+ indexed URLs (auto-excludes auth pages)
 - 📄 **HTML Sitemap**: Human-readable sitemap page at `/sitemap`
 - 🏷️ **Keyword Landing Pages**: `/brd-generator` and `/prd-generator` with FAQ schema
 - ⚖️ **Comparison Pages**: `/clearly-vs-chatprd`, `/clearly-vs-manual`, `/clearly-vs-confluence`
-- 📝 **Blog**: 21 articles covering requirements documentation, including *Defining the right problem before your BRD*
+- 📝 **Blog**: 44 articles on requirements documentation, agentic AI, OpenClaw vs Hermes Agent, team deployment guides, and a Clearly + OpenClaw case study
 - ⚡ **Performance**: Gzip compression middleware + immutable cache headers for static assets
 - 🍞 **Breadcrumbs**: `Breadcrumbs` component with `BreadcrumbList` JSON-LD on deep pages
 
@@ -181,7 +181,8 @@ docker-compose down
 │   └── tsconfig.json
 ├── client/              # React frontend
 │   ├── public/
-│   │   ├── sitemap.xml  # XML sitemap (38+ URLs)
+│   │   ├── sitemap.xml  # XML sitemap (56+ URLs)
+│   │   ├── blog/        # Blog post images (per-article folders)
 │   │   ├── llms.txt     # AI bot discovery file
 │   │   └── ai-llm.txt   # Extended AI bot discovery file
 │   ├── src/
@@ -204,9 +205,10 @@ docker-compose down
 │   ├── e2e/            # Playwright E2E tests
 │   └── tsconfig.json
 ├── scripts/            # Deployment and utility scripts
-├── shared/             # Shared TypeScript types
-└── docs/               # Documentation (e.g. product plans and internal guides)
+└── shared/             # Shared TypeScript types
 ```
+
+**Note:** The `docs/` folder at the repo root is **local-only** (gitignored) for internal drafts and product notes. Clone the repo and create `docs/` yourself if you use it locally.
 
 ## 🗄️ Database
 
@@ -457,8 +459,6 @@ This project is licensed under the MIT License.
 
 ---
 
-**Last Updated**: May 13, 2026
+**Last Updated**: May 18, 2026
 
 For questions or issues, please open an issue on GitHub.
-
-**Product note:** The original design notes for the Problem Definition phase are in [docs/problem-definition-workflow-plan.md](docs/problem-definition-workflow-plan.md); behavior in the app may have evolved beyond that document.

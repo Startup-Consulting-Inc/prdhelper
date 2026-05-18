@@ -32,6 +32,26 @@ const sections = [
     icon: FileText,
     title: 'Blog',
     links: [
+      {
+        label: 'Hermes Agent: Team Gateway Best Practices',
+        path: '/blog/hermes-agent-team-gateway-best-practices',
+        desc: 'Production gateway guide — security, profiles, skills, memory, MCP, cron, observability',
+      },
+      {
+        label: 'OpenClaw Team Operations Guide',
+        path: '/blog/openclaw-team-operations-guide',
+        desc: 'Security tiers, memory, governance, credentials, backups for shared self-hosted OpenClaw',
+      },
+      {
+        label: 'OpenClaw vs Hermes Agent: The 2026 Comparison',
+        path: '/blog/openclaw-vs-hermes-agent',
+        desc: 'Framework comparison: ecosystem breadth, learning loop, security, decision matrix',
+      },
+      {
+        label: 'From Idea to a Live Web Service in Under an Hour: Clearly + OpenClaw',
+        path: '/blog/clearly-openclaw-attendance-case-study',
+        desc: 'Case study: structured specs in Clearly, OpenClaw build, deployed attendance app',
+      },
       { label: 'The Most Valuable Skill in the AI Era: Defining the Right Problem', path: '/blog/defining-the-right-problem-ai-era', desc: 'Problem-first thinking when everyone can ship with AI' },
       { label: 'How to Write a BRD in 2026', path: '/blog/how-to-write-a-brd-2026', desc: 'Complete step-by-step BRD guide' },
       { label: 'PRD Template Guide', path: '/blog/prd-template-guide', desc: 'Ultimate PRD template for product managers' },

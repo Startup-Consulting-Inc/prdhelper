@@ -89,6 +89,10 @@ const BeyondVibeCodingPost02 = lazyWithRetry(() => import('./pages/public/blog/B
 const BeyondVibeCodingPost03 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost03'));
 const BeyondVibeCodingPost04 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost04'));
 const BeyondVibeCodingPost05 = lazyWithRetry(() => import('./pages/public/blog/BeyondVibeCodingPost05'));
+const ClearlyOpenClawCaseStudyPost = lazyWithRetry(() => import('./pages/public/blog/ClearlyOpenClawCaseStudyPost'));
+const OpenClawVsHermesPost = lazyWithRetry(() => import('./pages/public/blog/OpenClawVsHermesPost'));
+const OpenClawTeamOperationsPost = lazyWithRetry(() => import('./pages/public/blog/OpenClawTeamOperationsPost'));
+const HermesTeamGatewayBestPracticesPost = lazyWithRetry(() => import('./pages/public/blog/HermesTeamGatewayBestPracticesPost'));
 
 // Comparison & utility pages
 const SitemapPage = lazyWithRetry(() => import('./pages/public/SitemapPage'));
@@ -353,6 +357,10 @@ function App() {
         <Route path="/blog/stop-losing-architectural-decisions" element={<BeyondVibeCodingPost03 />} />
         <Route path="/blog/two-docs-before-2am-crisis" element={<BeyondVibeCodingPost04 />} />
         <Route path="/blog/retrofit-engineering-discipline-in-a-day" element={<BeyondVibeCodingPost05 />} />
+        <Route path="/blog/clearly-openclaw-attendance-case-study" element={<ClearlyOpenClawCaseStudyPost />} />
+        <Route path="/blog/openclaw-vs-hermes-agent" element={<OpenClawVsHermesPost />} />
+        <Route path="/blog/openclaw-team-operations-guide" element={<OpenClawTeamOperationsPost />} />
+        <Route path="/blog/hermes-agent-team-gateway-best-practices" element={<HermesTeamGatewayBestPracticesPost />} />
         {/* Comparison & utility pages */}
         <Route path="/sitemap" element={<SitemapPage />} />
         <Route path="/clearly-vs-chatprd" element={<ClearlyVsChatPRDPage />} />
