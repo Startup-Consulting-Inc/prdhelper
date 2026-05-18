@@ -42,13 +42,13 @@ storybook-static/
 *storybook.log
 
 
-# Documentation (exclude most MD files except task.md, prd.md, and README.md)
+# Local documentation (not published to the repo)
+docs/
+
+# Documentation (exclude most MD files except task.md and README.md)
 *.md
 !agent-helpers/tasks/task.md
-!docs/prd.md
-!docs/SEO_PROGRESS.md
 !README.md
-!docs/bug-reports/*.md
 
 # Cursor specific files
 .cursor-updates
