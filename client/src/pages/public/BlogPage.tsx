@@ -57,6 +57,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 46,
+      slug: 'agentic-coding-requirements-2026',
+      title: 'Why Agentic Coding Needs Better Requirements — Not Faster Vibes',
+      excerpt:
+        "Builder.io proved 270 people can build from a PRD in 60 minutes—but how many rebuilt it the next week? The dirty secret of agentic development: bad requirements don't slow you down anymore. They just create garbage faster.",
+      author: 'ClearlyReqs Team',
+      date: '2026-05-21',
+      readTime: '7 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 45,
       slug: 'hermes-agent-team-gateway-best-practices',
       title: 'Hermes Agent: Practical Best Practices for Team Gateway Deployments',
@@ -127,7 +138,7 @@ export default function BlogPage() {
       slug: 'stop-losing-architectural-decisions',
       title: 'Stop Losing Your Architectural Decisions to Your AI Agent',
       excerpt:
-        "ADRs are the receipts that keep agents from “correcting” deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
+        "ADRs are the receipts that keep agents from "correcting" deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '16 min read',
@@ -138,7 +149,7 @@ export default function BlogPage() {
       slug: 'two-docs-before-2am-crisis',
       title: 'The Two Docs That Stand Between Your App and a 2am Crisis',
       excerpt:
-        'A one-page threat model and a practical deployment runbook move security and ops from “after the incident” to “in the build.” Examples and prompts you can reuse.',
+        'A one-page threat model and a practical deployment runbook move security and ops from "after the incident" to "in the build." Examples and prompts you can reuse.',
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '20 min read',
@@ -160,7 +171,7 @@ export default function BlogPage() {
       slug: 'engineer-caregiver-identity-collapse',
       title: 'The Engineer Who Got Hired to Wipe Bodies: A Field Report on Identity Collapse',
       excerpt:
-        "A laid-off engineer takes a near-minimum-wage caregiving job — and discovers what hiring filters can’t measure: patience, ethical work that doesn’t scale, and the ability to sit with ambiguity when identity collapses.",
+        "A laid-off engineer takes a near-minimum-wage caregiving job — and discovers what hiring filters can't measure: patience, ethical work that doesn't scale, and the ability to sit with ambiguity when identity collapses.",
       author: 'Jaehee Song',
       date: '2026-05-05',
       readTime: '9 min read',
@@ -171,7 +182,7 @@ export default function BlogPage() {
       slug: 'skills-vs-agents',
       title: 'Agents vs Skills: The Full Picture',
       excerpt:
-        'The “stop building agents” line is about duplicate scaffolding, not deleting your runtime. Skills, progressive disclosure, and MCP in one readable layout — same story as the Medium post, with the old-vs-new diagram.',
+        'The "stop building agents" line is about duplicate scaffolding, not deleting your runtime. Skills, progressive disclosure, and MCP in one readable layout — same story as the Medium post, with the old-vs-new diagram.',
       author: 'Jaehee Song',
       date: '2026-04-23',
       readTime: '12 min read',
@@ -270,7 +281,7 @@ export default function BlogPage() {
       slug: 'data-governance-ai-era',
       title: 'Data Governance in the AI Era: A Practical Guide for 2026',
       excerpt:
-        'AI makes the case for data governance impossible to ignore. Here\'s what good governance actually looks like, why programs fail, and where AI is taking it next.',
+        "AI makes the case for data governance impossible to ignore. Here's what good governance actually looks like, why programs fail, and where AI is taking it next.",
       author: 'Jaehee Song',
       date: '2026-04-14',
       readTime: '12 min read',
@@ -303,7 +314,7 @@ export default function BlogPage() {
       slug: 'cs-degree-ai-era',
       title: 'Do We Still Need CS Degrees in the Age of AI?',
       excerpt:
-        'The golden ticket to tech is being questioned. Here\'s what the evidence actually says about CS degrees, vibe coding, skills-first hiring, and which path makes sense for you.',
+        "The golden ticket to tech is being questioned. Here's what the evidence actually says about CS degrees, vibe coding, skills-first hiring, and which path makes sense for you.",
       author: 'Jaehee Song',
       date: '2026-06-14',
       readTime: '10 min read',
@@ -345,7 +356,7 @@ export default function BlogPage() {
     {
       id: 3,
       slug: 'brd-vs-prd',
-      title: 'BRD vs PRD: What’s the Difference? (2026 Guide)',
+      title: 'BRD vs PRD: What's the Difference? (2026 Guide)',
       excerpt:
         'BRD = business case; PRD = what to build. When to use each, which comes first, and outline-style sections you can copy—plain English for product and BA teams in 2026.',
       author: 'Alex Kumar',
