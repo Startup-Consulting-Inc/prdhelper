@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench, Download, Target } from 'lucide-react';
+import { ArrowLeft, FileText, Code, CheckCircle, Clock, Wrench, Download, Target, Crosshair } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -349,7 +349,7 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
                 variant="outline"
                 size="sm"
                 onClick={async () => {
-                  const docsToExport = [brdDoc, prdDoc, tasksDoc, promptBuildDoc]
+                  const docsToExport = [problemDefDoc, brdDoc, prdDoc, tasksDoc, promptBuildDoc]
                     .filter((d): d is NonNullable<typeof d> => d != null)
                     .map((d) => ({ id: d.id, type: d.type, projectId }));
 
@@ -396,6 +396,86 @@ export function ProjectDetailsView({ projectId, onBack }: ProjectDetailsViewProp
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Problem Definition Card */}
+              <Card
+                className={
+                  problemDefDoc
+                    ? 'border-primary-200 dark:border-primary-800'
+                    : project.skipProblemDefinition
+                    ? 'opacity-50'
+                    : ''
+                }
+              >
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                      <Crosshair className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                      Problem Definition
+                    </h3>
+                  </div>
+                  
+                  {problemDefDoc ? (
+                    <>
+                      <Badge
+                        variant={problemDefDoc.status === 'APPROVED' ? 'success' : 'default'}
+                        className="mb-3"
+                      >
+                        {problemDefDoc.status === 'APPROVED' ? (
+                          <>
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Approved
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3 mr-1" />
+                            Draft
+                          </>
+                        )}
+                      </Badge>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Version {problemDefDoc.version}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => navigate(`/projects/${projectId}/documents/${problemDefDoc.id}`)}
+                      >
+                        View Document
+                      </Button>
+                    </>
+                  ) : project.skipProblemDefinition ? (
+                    <>
+                      <Badge variant="default" className="mb-3">
+                        Skipped
+                      </Badge>
+                      <p className="text-sm text-gray-500 dark:text-gray-600 mb-4">
+                        Problem Definition was skipped for this project
+                      </p>
+                      <Button variant="outline" size="sm" className="w-full" disabled>
+                        Not Available
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Not started yet
+                      </p>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => navigate(`/projects/${projectId}/wizard/problem-definition?autoStart=true`)}
+                      >
+                        Start Problem Definition
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </Card>
+
               {/* BRD Card */}
               <Card className={brdDoc ? 'border-primary-200 dark:border-primary-800' : ''}>
                 <div className="p-6">
