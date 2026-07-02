@@ -59,12 +59,12 @@ export default function BlogPage() {
     {
       id: 46,
       slug: 'agentic-coding-requirements-2026',
-      title: 'Why Agentic Coding Needs Better Requirements — Not Faster Vibes',
+      title: 'Why Agentic Coding Needs Better Requirements — Not Faster Vibes (2026)',
       excerpt:
-        "Builder.io proved 270 people can build from a PRD in 60 minutes—but how many rebuilt it the next week? The dirty secret of agentic development: bad requirements don't slow you down anymore. They just create garbage faster.",
+        "Builder.io proved 270 people can build apps from PRDs in 60 minutes. But speed without structure creates quality debt. Here's why non-developers need structured BRDs before they vibe code.",
       author: 'ClearlyReqs Team',
-      date: '2026-05-21',
-      readTime: '7 min read',
+      date: '2026-07-02',
+      readTime: '10 min read',
       category: 'AI & Development',
     },
     {
@@ -138,7 +138,7 @@ export default function BlogPage() {
       slug: 'stop-losing-architectural-decisions',
       title: 'Stop Losing Your Architectural Decisions to Your AI Agent',
       excerpt:
-        "ADRs are the receipts that keep agents from "correcting" deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
+        "ADRs are the receipts that keep agents from \"correcting\" deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '16 min read',
