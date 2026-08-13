@@ -32,6 +32,7 @@ import DefiningTheRightProblemPost from './pages/public/blog/DefiningTheRightPro
 import CSDegreeAIEraPost from './pages/public/blog/CSDegreeAIEraPost';
 import DatabaseLandscapeAIEraPost from './pages/public/blog/DatabaseLandscapeAIEraPost';
 import AgenticCodingRequirements2026Post from './pages/public/blog/AgenticCodingRequirements2026Post';
+import AgenticCodingNeedsRequirements2026Post from './pages/public/blog/AgenticCodingNeedsRequirements2026Post';
 
 // Tool pages
 import BRDGeneratorPage from './pages/public/BRDGeneratorPage';
@@ -86,6 +87,7 @@ export function PublicRoutes() {
       <Route path="/blog/cs-degree-ai-era" element={<CSDegreeAIEraPost />} />
       <Route path="/blog/database-landscape-ai-era" element={<DatabaseLandscapeAIEraPost />} />
       <Route path="/blog/agentic-coding-requirements-2026" element={<AgenticCodingRequirements2026Post />} />
+      <Route path="/blog/agentic-coding-needs-requirements-2026" element={<AgenticCodingNeedsRequirements2026Post />} />
 
       {/* Tool pages */}
       <Route path="/brd-generator" element={<BRDGeneratorPage />} />
