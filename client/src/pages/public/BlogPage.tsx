@@ -57,6 +57,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 47,
+      slug: 'agentic-coding-needs-requirements-2026',
+      title: 'Why Agentic Coding Needs Better Requirements — Not Faster Vibes (2026)',
+      excerpt:
+        "Builder.io proved 270 people can build an app from a PRD in 60 minutes. They didn't measure how many had to rebuild it the next week. Here's why structured BRDs matter more than ever.",
+      author: 'ClearlyReqs Team',
+      date: '2026-08-13',
+      readTime: '8 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 46,
       slug: 'agentic-coding-requirements-2026',
       title: 'Why Agentic Coding Needs Better Requirements — Not Faster Vibes',
@@ -138,7 +149,7 @@ export default function BlogPage() {
       slug: 'stop-losing-architectural-decisions',
       title: 'Stop Losing Your Architectural Decisions to Your AI Agent',
       excerpt:
-        "ADRs are the receipts that keep agents from "correcting" deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
+        "ADRs are the receipts that keep agents from \"correcting\" deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '16 min read',
@@ -356,7 +367,7 @@ export default function BlogPage() {
     {
       id: 3,
       slug: 'brd-vs-prd',
-      title: 'BRD vs PRD: What's the Difference? (2026 Guide)',
+      title: 'BRD vs PRD: What\'s the Difference? (2026 Guide)',
       excerpt:
         'BRD = business case; PRD = what to build. When to use each, which comes first, and outline-style sections you can copy—plain English for product and BA teams in 2026.',
       author: 'Alex Kumar',
