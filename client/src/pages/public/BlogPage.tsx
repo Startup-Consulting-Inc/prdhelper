@@ -57,11 +57,22 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 47,
+      slug: 'agentic-coding-needs-requirements-2026',
+      title: 'Why Agentic Coding Needs Better Requirements \u2014 Not Faster Vibes (2026)',
+      excerpt:
+        "Builder.io proved 270 developers can build apps from PRDs in 60 minutes. But speed without structure creates quality debt. Here's how non-developers can avoid rebuilds with proper BRDs.",
+      author: 'ClearlyReqs Team',
+      date: '2026-06-18',
+      readTime: '8 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 46,
       slug: 'agentic-coding-requirements-2026',
-      title: 'Why Agentic Coding Needs Better Requirements — Not Faster Vibes',
+      title: 'Why Agentic Coding Needs Better Requirements \u2014 Not Faster Vibes',
       excerpt:
-        "Builder.io proved 270 people can build from a PRD in 60 minutes—but how many rebuilt it the next week? The dirty secret of agentic development: bad requirements don't slow you down anymore. They just create garbage faster.",
+        "Builder.io proved 270 people can build from a PRD in 60 minutes\u2014but how many rebuilt it the next week? The dirty secret of agentic development: bad requirements don't slow you down anymore. They just create garbage faster.",
       author: 'ClearlyReqs Team',
       date: '2026-05-21',
       readTime: '7 min read',
@@ -94,7 +105,7 @@ export default function BlogPage() {
       slug: 'openclaw-vs-hermes-agent',
       title: 'OpenClaw vs Hermes Agent: The 2026 Comparison',
       excerpt:
-        'Ecosystem platform vs learning runtime—stars, timelines, architecture, security (245+ vs 1 CVE cited), ecosystem scale, and a decision matrix. When to pick each or both.',
+        'Ecosystem platform vs learning runtime\u2014stars, timelines, architecture, security (245+ vs 1 CVE cited), ecosystem scale, and a decision matrix. When to pick each or both.',
       author: 'Jaehee Song',
       date: '2026-05-15',
       readTime: '18 min read',
@@ -105,7 +116,7 @@ export default function BlogPage() {
       slug: 'clearly-openclaw-attendance-case-study',
       title: 'From Idea to a Live Web Service in Under an Hour: Clearly + OpenClaw',
       excerpt:
-        'Case study: attendance app from one sentence—BRD/PRD and wizard helpers in Clearly, OpenClaw AGENTS.md stack export, one build prompt, smoke-tested full stack, then Caddy and DNS to go live.',
+        'Case study: attendance app from one sentence\u2014BRD/PRD and wizard helpers in Clearly, OpenClaw AGENTS.md stack export, one build prompt, smoke-tested full stack, then Caddy and DNS to go live.',
       author: 'Jaehee Song',
       date: '2026-05-14',
       readTime: '12 min read',
@@ -116,7 +127,7 @@ export default function BlogPage() {
       slug: 'vibe-coded-app-why-it-breaks',
       title: "Your Vibe-Coded App Works. Here's Why It's About to Break.",
       excerpt:
-        'Vibe coding ships fast—but it grows shared understanding slower than it grows code. The wall is predictable: security, scalability, CI/CD, and manageability break once real users arrive.',
+        'Vibe coding ships fast\u2014but it grows shared understanding slower than it grows code. The wall is predictable: security, scalability, CI/CD, and manageability break once real users arrive.',
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '14 min read',
@@ -127,7 +138,7 @@ export default function BlogPage() {
       slug: 'the-one-file-every-ai-developer-needs',
       title: 'The One File Every AI Developer Needs (And Almost Nobody Has)',
       excerpt:
-        'Project-level agent instruction files (CLAUDE.md, Cursor rules, AGENTS.md) turn cold-start sessions into consistent teammates. What to put in them—and the 15-minute challenge to write yours.',
+        'Project-level agent instruction files (CLAUDE.md, Cursor rules, AGENTS.md) turn cold-start sessions into consistent teammates. What to put in them\u2014and the 15-minute challenge to write yours.',
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '22 min read',
@@ -138,7 +149,7 @@ export default function BlogPage() {
       slug: 'stop-losing-architectural-decisions',
       title: 'Stop Losing Your Architectural Decisions to Your AI Agent',
       excerpt:
-        "ADRs are the receipts that keep agents from "correcting" deliberate choices back to defaults. How to write ADRs that prevent silent refactors—and when reversal cost matters most.",
+        "ADRs are the receipts that keep agents from \"correcting\" deliberate choices back to defaults. How to write ADRs that prevent silent refactors\u2014and when reversal cost matters most.",
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '16 min read',
@@ -149,7 +160,7 @@ export default function BlogPage() {
       slug: 'two-docs-before-2am-crisis',
       title: 'The Two Docs That Stand Between Your App and a 2am Crisis',
       excerpt:
-        'A one-page threat model and a practical deployment runbook move security and ops from "after the incident" to "in the build." Examples and prompts you can reuse.',
+        'A one-page threat model and a practical deployment runbook move security and ops from \"after the incident\" to \"in the build.\" Examples and prompts you can reuse.',
       author: 'Jaehee Song',
       date: '2026-05-08',
       readTime: '20 min read',
@@ -171,7 +182,7 @@ export default function BlogPage() {
       slug: 'engineer-caregiver-identity-collapse',
       title: 'The Engineer Who Got Hired to Wipe Bodies: A Field Report on Identity Collapse',
       excerpt:
-        "A laid-off engineer takes a near-minimum-wage caregiving job — and discovers what hiring filters can't measure: patience, ethical work that doesn't scale, and the ability to sit with ambiguity when identity collapses.",
+        "A laid-off engineer takes a near-minimum-wage caregiving job \u2014 and discovers what hiring filters can't measure: patience, ethical work that doesn't scale, and the ability to sit with ambiguity when identity collapses.",
       author: 'Jaehee Song',
       date: '2026-05-05',
       readTime: '9 min read',
@@ -182,7 +193,7 @@ export default function BlogPage() {
       slug: 'skills-vs-agents',
       title: 'Agents vs Skills: The Full Picture',
       excerpt:
-        'The "stop building agents" line is about duplicate scaffolding, not deleting your runtime. Skills, progressive disclosure, and MCP in one readable layout — same story as the Medium post, with the old-vs-new diagram.',
+        'The \"stop building agents\" line is about duplicate scaffolding, not deleting your runtime. Skills, progressive disclosure, and MCP in one readable layout \u2014 same story as the Medium post, with the old-vs-new diagram.',
       author: 'Jaehee Song',
       date: '2026-04-23',
       readTime: '12 min read',
@@ -193,7 +204,7 @@ export default function BlogPage() {
       slug: 'hermes-agent-cost-saving',
       title: 'The $30 Bill That Should Have Been $7: Cost-Saving Moves for a Real AI Agent',
       excerpt:
-        "A forensic audit of 936 OpenRouter calls over 20 days. Where the money leaked, how to plug it, and what your production AI agent is probably doing wrong too — three config-only moves that cut the bill by 78%.",
+        "A forensic audit of 936 OpenRouter calls over 20 days. Where the money leaked, how to plug it, and what your production AI agent is probably doing wrong too \u2014 three config-only moves that cut the bill by 78%.",
       author: 'Jaehee Song',
       date: '2026-04-22',
       readTime: '15 min read',
@@ -204,7 +215,7 @@ export default function BlogPage() {
       slug: 'anthropic-vs-openrouter-opus',
       title: 'Anthropic API or OpenRouter for Claude Opus: An Honest Trade-off',
       excerpt:
-        "Both paths reach the same model — the token prices line up to the penny. So why did one afternoon on Opus cost me $19.81? A deep dive into caching, Batch API, Fast Mode, and where the real money actually hides.",
+        "Both paths reach the same model \u2014 the token prices line up to the penny. So why did one afternoon on Opus cost me $19.81? A deep dive into caching, Batch API, Fast Mode, and where the real money actually hides.",
       author: 'Jaehee Song',
       date: '2026-04-22',
       readTime: '13 min read',
@@ -215,7 +226,7 @@ export default function BlogPage() {
       slug: 'graphify-wiki-build',
       title: 'From Scattered Notes to a Living Knowledge Graph: Building LLM Wiki + Graphify',
       excerpt:
-        'My digital life was fragmented across Google Drive, OneNote, Apple Notes, Slack, and Brunch. I built a self-hosted wiki where an AI agent ingests anything and Graphify maps the connections — $5/month, zero lines of human code.',
+        'My digital life was fragmented across Google Drive, OneNote, Apple Notes, Slack, and Brunch. I built a self-hosted wiki where an AI agent ingests anything and Graphify maps the connections \u2014 $5/month, zero lines of human code.',
       author: 'Jaehee Song',
       date: '2026-04-21',
       readTime: '10 min read',
@@ -226,7 +237,7 @@ export default function BlogPage() {
       slug: 'llm-wiki-hermes-agent',
       title: 'How I Built a Web-Based LLM Wiki with Hermes Agent (And Why I Skipped Obsidian)',
       excerpt:
-        "Andrej Karpathy proposed a better way to use AI — a persistent wiki that compounds your knowledge instead of resetting each session. Here's how I built it as a web app on a $6/month VPS, without Obsidian or a sync subscription.",
+        "Andrej Karpathy proposed a better way to use AI \u2014 a persistent wiki that compounds your knowledge instead of resetting each session. Here's how I built it as a web app on a $6/month VPS, without Obsidian or a sync subscription.",
       author: 'Jaehee Song',
       date: '2026-04-16',
       readTime: '9 min read',
@@ -237,7 +248,7 @@ export default function BlogPage() {
       slug: 'hermes-llm-wiki',
       title: 'Hermes LLM Wiki: Building a Self-Hosted AI Knowledge Base',
       excerpt:
-        "I built Andrej Karpathy's LLM Wiki with Claude Code and Obsidian — but it only ran locally. Rather than pay for Obsidian Sync, I built Hermes: a web-based LLM Wiki where three AI agents turn any URL into connected Markdown, accessible from any browser.",
+        "I built Andrej Karpathy's LLM Wiki with Claude Code and Obsidian \u2014 but it only ran locally. Rather than pay for Obsidian Sync, I built Hermes: a web-based LLM Wiki where three AI agents turn any URL into connected Markdown, accessible from any browser.",
       author: 'Jaehee Song',
       date: '2026-04-16',
       readTime: '10 min read',
@@ -259,7 +270,7 @@ export default function BlogPage() {
       slug: 'entry-level-tech-2026',
       title: 'The New Rules of Entry-Level Tech: What Changed Between 2018 and 2026',
       excerpt:
-        'In 2018, knowing algorithms was enough. In 2026, that knowledge is table stakes — with 73% fewer entry-level jobs and AI rewriting every role. A comprehensive analysis of how AI disruption transformed junior developer hiring.',
+        'In 2018, knowing algorithms was enough. In 2026, that knowledge is table stakes \u2014 with 73% fewer entry-level jobs and AI rewriting every role. A comprehensive analysis of how AI disruption transformed junior developer hiring.',
       author: 'Jaehee Song',
       date: '2026-04-15',
       readTime: '12 min read',
@@ -270,7 +281,7 @@ export default function BlogPage() {
       slug: 'responsible-ai-guide',
       title: 'Responsible AI: The Complete Guide to Ethical AI Development and Governance in 2026',
       excerpt:
-        'From principles to practice — a comprehensive guide to building AI systems that are ethical, transparent, and aligned with human values, covering global governance frameworks, industry use cases, tools, and implementation roadmaps.',
+        'From principles to practice \u2014 a comprehensive guide to building AI systems that are ethical, transparent, and aligned with human values, covering global governance frameworks, industry use cases, tools, and implementation roadmaps.',
       author: 'Jaehee Song',
       date: '2026-04-15',
       readTime: '16 min read',
@@ -292,7 +303,7 @@ export default function BlogPage() {
       slug: 'agentic-ai-guide',
       title: 'Agentic AI: The Complete Guide to Autonomous AI Systems in 2026',
       excerpt:
-        'From chatbots that answer to agents that act — how agentic AI works, which industries are deploying it first, the tools driving adoption, and the risks you cannot ignore.',
+        'From chatbots that answer to agents that act \u2014 how agentic AI works, which industries are deploying it first, the tools driving adoption, and the risks you cannot ignore.',
       author: 'Jaehee Song',
       date: '2026-04-14',
       readTime: '14 min read',
@@ -303,7 +314,7 @@ export default function BlogPage() {
       slug: 'database-landscape-ai-era',
       title: 'The Database World Just Got Flipped Upside Down',
       excerpt:
-        'How AI agents, MCP, and the rise of semantic layers are rewriting every rule about databases — and what it means for your team.',
+        'How AI agents, MCP, and the rise of semantic layers are rewriting every rule about databases \u2014 and what it means for your team.',
       author: 'Jaehee Song',
       date: '2026-04-15',
       readTime: '14 min read',
@@ -325,7 +336,7 @@ export default function BlogPage() {
       slug: 'defining-the-right-problem-ai-era',
       title: 'The Most Valuable Skill in the AI Era: Defining the Right Problem',
       excerpt:
-        'When everyone can build with AI, the advantage is no longer technical—it is the clarity to identify a problem worth solving. Includes 5 Whys, job-to-done framing, problem statement formula, and good vs bad examples.',
+        'When everyone can build with AI, the advantage is no longer technical\u2014it is the clarity to identify a problem worth solving. Includes 5 Whys, job-to-done framing, problem statement formula, and good vs bad examples.',
       author: 'Jaehee Song',
       date: '2026-03-25',
       readTime: '14 min read',
@@ -347,7 +358,7 @@ export default function BlogPage() {
       slug: 'prd-template-guide',
       title: 'PRD Template: The Ultimate Guide for Product Managers in 2026',
       excerpt:
-        'Everything product managers need to know about PRD templates — what to include, how to structure them, and how AI can write them 10x faster.',
+        'Everything product managers need to know about PRD templates \u2014 what to include, how to structure them, and how AI can write them 10x faster.',
       author: 'Sarah Chen',
       date: '2026-03-15',
       readTime: '14 min read',
@@ -356,9 +367,9 @@ export default function BlogPage() {
     {
       id: 3,
       slug: 'brd-vs-prd',
-      title: 'BRD vs PRD: What's the Difference? (2026 Guide)',
+      title: 'BRD vs PRD: What\'s the Difference? (2026 Guide)',
       excerpt:
-        'BRD = business case; PRD = what to build. When to use each, which comes first, and outline-style sections you can copy—plain English for product and BA teams in 2026.',
+        'BRD = business case; PRD = what to build. When to use each, which comes first, and outline-style sections you can copy\u2014plain English for product and BA teams in 2026.',
       author: 'Alex Kumar',
       date: '2026-03-12',
       readTime: '8 min read',
@@ -400,9 +411,9 @@ export default function BlogPage() {
     {
       id: 7,
       slug: 'requirements-management-tools-2026',
-      title: '7 Best Requirements Management Tools in 2026 — Compared',
+      title: '7 Best Requirements Management Tools in 2026 \u2014 Compared',
       excerpt:
-        'Compare 7 leading stacks—Jira, Jama, Confluence, Azure DevOps, Valispace, AI spec tools, and spreadsheets—for 2026. Honest picks for team size, budget, and AI-ready requirements.',
+        'Compare 7 leading stacks\u2014Jira, Jama, Confluence, Azure DevOps, Valispace, AI spec tools, and spreadsheets\u2014for 2026. Honest picks for team size, budget, and AI-ready requirements.',
       author: 'Alex Kumar',
       date: '2026-03-03',
       readTime: '11 min read',
@@ -424,7 +435,7 @@ export default function BlogPage() {
       slug: 'functional-vs-non-functional-requirements',
       title: 'Functional vs Non-Functional Requirements: Complete Guide with Examples',
       excerpt:
-        'The difference between functional and non-functional requirements — and why missing the latter is one of the top causes of software project failure.',
+        'The difference between functional and non-functional requirements \u2014 and why missing the latter is one of the top causes of software project failure.',
       author: 'Alex Kumar',
       date: '2026-03-17',
       readTime: '10 min read',
@@ -457,7 +468,7 @@ export default function BlogPage() {
       slug: 'requirements-elicitation-guide',
       title: 'Requirements Elicitation: 7 Proven Techniques for Product Teams',
       excerpt:
-        'Requirements elicitation is where most projects win or lose. Here are 7 proven techniques — from user interviews to workshops — and when to use each.',
+        'Requirements elicitation is where most projects win or lose. Here are 7 proven techniques \u2014 from user interviews to workshops \u2014 and when to use each.',
       author: 'Clearly Team',
       date: '2026-03-09',
       readTime: '9 min read',
@@ -468,7 +479,7 @@ export default function BlogPage() {
       slug: 'reduce-scope-creep-requirements',
       title: '7 Ways to Cut Scope Creep with Better Requirements (2026)',
       excerpt:
-        "Stop 'just one more feature' with 7 methods: tighter requirements, change control, and acceptance criteria so scope matches what you agreed to ship—before dev burns the budget.",
+        "Stop 'just one more feature' with 7 methods: tighter requirements, change control, and acceptance criteria so scope matches what you agreed to ship\u2014before dev burns the budget.",
       author: 'Alex Kumar',
       date: '2026-03-07',
       readTime: '8 min read',
@@ -479,7 +490,7 @@ export default function BlogPage() {
       slug: 'brd-mistakes-to-avoid',
       title: '7 Common BRD Mistakes (And Exactly How to Fix Them)',
       excerpt:
-        'After reviewing hundreds of BRDs, these are the 7 mistakes that appear most often — and the specific fixes that turn a bad BRD into one developers can actually build from.',
+        'After reviewing hundreds of BRDs, these are the 7 mistakes that appear most often \u2014 and the specific fixes that turn a bad BRD into one developers can actually build from.',
       author: 'Sarah Chen',
       date: '2026-03-04',
       readTime: '9 min read',
@@ -490,7 +501,7 @@ export default function BlogPage() {
       slug: 'agile-requirements-documentation',
       title: 'Agile Requirements Documentation: Best Practices for 2026',
       excerpt:
-        "Agile doesn't mean no documentation — it means the right documentation. Here's how to balance lightweight agile requirements with the completeness teams need.",
+        "Agile doesn't mean no documentation \u2014 it means the right documentation. Here's how to balance lightweight agile requirements with the completeness teams need.",
       author: 'Michael Rodriguez',
       date: '2026-03-02',
       readTime: '10 min read',
@@ -569,7 +580,7 @@ export default function BlogPage() {
   return (
     <PublicLayout>
       <SEO
-        title="Blog – Requirements Documentation & AI Development"
+        title="Blog \u2013 Requirements Documentation & AI Development"
         description="Articles on product requirements, PRDs, BRDs, and AI-assisted development for product managers and teams. Expert guides and best practices."
         path="/blog"
       />
@@ -797,7 +808,7 @@ export default function BlogPage() {
         <div className="bg-gradient-to-r from-primary-600 to-accent-600 rounded-xl p-12 text-center text-white">
           <h2 className="text-2xl font-bold mb-4">Stop writing requirements from scratch</h2>
           <p className="text-primary-100 mb-6 max-w-2xl mx-auto">
-            Clearly's AI wizard generates complete BRDs and PRDs in 15–30 minutes. Everything
+            Clearly's AI wizard generates complete BRDs and PRDs in 15\u201330 minutes. Everything
             covered in these articles, automated.
           </p>
           <Link
