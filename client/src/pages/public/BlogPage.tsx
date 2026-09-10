@@ -61,10 +61,10 @@ export default function BlogPage() {
       slug: 'agentic-coding-needs-requirements-2026',
       title: 'Why Agentic Coding Needs Better Requirements \u2014 Not Faster Vibes (2026)',
       excerpt:
-        "Builder.io proved 270 developers can build apps from PRDs in 60 minutes. But speed without structure creates quality debt. Here's how non-developers can avoid rebuilds with proper BRDs.",
+        "AI builds apps in minutes, but speed without structure creates quality debt. Here's why non-developers need BRDs more than ever in 2026.",
       author: 'ClearlyReqs Team',
-      date: '2026-06-18',
-      readTime: '8 min read',
+      date: '2026-09-10',
+      readTime: '7 min read',
       category: 'AI & Development',
     },
     {
