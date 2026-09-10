@@ -10,163 +10,223 @@ export default function AgenticCodingNeedsRequirements2026Post() {
     <BlogPostLayout
       title="Why Agentic Coding Needs Better Requirements — Not Faster Vibes (2026)"
       author="ClearlyReqs Team"
-      date="2026-06-18"
-      readTime="8 min read"
+      date="2026-09-10"
+      readTime="7 min read"
       category="AI & Development"
-      excerpt="Builder.io proved 270 developers can build apps from PRDs in 60 minutes. But speed without structure creates quality debt. Here's how non-developers can avoid rebuilds with proper BRDs."
+      excerpt="AI builds apps in minutes, but speed without structure creates quality debt. Here's why non-developers need BRDs more than ever in 2026."
       slug="agentic-coding-needs-requirements-2026"
       coverImage="⚡"
       coverGradient="from-purple-600 via-indigo-600 to-blue-600"
     >
       <p>
-        Builder.io just proved something wild: 270 developers, designers, and PMs can turn a PRD into a working app in 60 minutes. The part they didn't measure? How many of those apps had to be rebuilt the following week.
+        Builder.io just proved 270 people can build an app from a PRD in 60 minutes. They didn't measure how many had to rebuild it the next week.
       </p>
       <p>
-        You've seen the demos. Cursor writing entire features from a sentence. Lovable spinning up full-stack apps from a screenshot. Claude Code refactoring across 50 files while you grab coffee. The speed is intoxicating. But here's what nobody's talking about at the conferences: when you multiply AI coding speed by garbage requirements, you don't get working software. You get "quality debt" — a term Builder.io themselves warned about on May 8, 2026.
+        In May 2026, that same company published a warning most people scrolled past: agent productivity is creating quality debt. When AI writes code 10x faster, the bottleneck shifts from "can we build it?" to "did we describe the right thing?" And here's what happens when you get that wrong — you're not fixing a bug. You're untangling an architecture of assumptions you never bothered to write down.
       </p>
       <p>
-        I watched a founder spend three weeks vibe-coding a SaaS app that collapsed in its first user testing session. The AI tools worked perfectly. The problem was the "PRD" she never wrote.
+        <strong>Bottom line:</strong> Agentic coding tools like Cursor, Claude Code, Lovable, and v0 will build anything you describe. If your description is vague, you'll get a working app that doesn't solve your problem. A structured BRD written before the first prompt is the only safety net non-developers have. The best BRD generator for AI projects in 2026 is one that exports directly into AI-ready prompts.
       </p>
 
-      <h2>Can AI Turn a BRD Into a Working App?</h2>
+      <h2>I Learned This the Painful Way</h2>
       <p>
-        Yes — but only if the BRD is structured for AI consumption.
+        Last year, I burned three weekends on what should have been a simple CRM integration. I'd discovered Cursor, fallen in love with the demos, and decided requirements were "old school." Why document what you can just prompt?
       </p>
-      <p>Here's the 3-step workflow that actually works:</p>
+      <p>
+        <strong>Week one:</strong> I had a dashboard that looked incredible. Charts, filters, dark mode — the works. I felt unstoppable.
+      </p>
+      <p>
+        <strong>Week two:</strong> A test user discovered they could see another customer's data. The data model I'd vibe-coded had no concept of multi-tenancy. I had to rebuild the entire backend.
+      </p>
+      <p>
+        <strong>Week three:</strong> I realized the "simple" OAuth flow violated basic compliance requirements. My "it works on my machine" auth wasn't audit-ready. Another rewrite.
+      </p>
+      <p>
+        <strong>Week four:</strong> The UI navigation made sense only to me because I'd built it. Every user test ended in confusion. Three hours of beautiful AI-generated interface, wasted.
+      </p>
+      <p>
+        By week five, I'd spent 35 hours building something I rebuilt twice. The AI didn't slow me down. My lack of a BRD did.
+      </p>
+
+      <h2>Can AI Really Turn a BRD Into a Working App?</h2>
+      <p>
+        Yes — but only if the BRD is structured correctly. AI coding agents need clear requirements to produce usable code. Vague prompts create quality debt where apps work initially but require rebuilds later.
+      </p>
+      <p>The fix is straightforward:</p>
       <ol>
-        <li><strong>Generate a structured BRD</strong> using an AI-powered generator (15 minutes)</li>
-        <li><strong>Export AI-ready prompts</strong> that tools like Cursor, Lovable, or Claude Code can execute</li>
-        <li><strong>Build iteratively</strong> using the requirements as guardrails, not suggestions</li>
+        <li>Generate a structured BRD/PRD with <a href="/brd-generator">ClearlyReqs</a> (15 minutes)</li>
+        <li>Export AI-ready prompts for your chosen tool (Cursor, Lovable, Claude, etc.)</li>
+        <li>Build once, correctly — instead of rebuilding twice</li>
       </ol>
       <p>
-        The catch? Garbage requirements produce garbage apps faster than ever. A poorly structured BRD multiplied by AI coding speed equals a rebuild. This is "quality debt" — and it's the #1 reason AI-built apps fail.
-      </p>
-      <p>
-        For non-developers, the right BRD generator makes the difference between shipping something real and abandoning project #47 in your "Startup Ideas" folder. ClearlyReqs generates export-ready BRDs formatted specifically for AI coding assistants, then bridges to BuildWithAI for the actual building tutorial.
+        Bottom line: In the agent era, requirements quality matters more than coding speed.
       </p>
 
-      <h2>The App That Should Have Worked (But Didn't)</h2>
-      <p>Let me tell you about Sarah. Zero coding background. Sharp business mind. Had an idea for a niche B2B tool that solved a problem she'd experienced firsthand. She jumped into Lovable with screenshots from competitor apps, described what she wanted in Slack-style messages, and let the AI cook.</p>
+      <h2>Why Requirements Matter More When AI Writes the Code</h2>
       <p>
-        Two weeks later, she had something that looked incredible in demos. Clean UI. Responsive design. All the features she'd asked for. Then she put it in front of actual users.
+        We're past the copilot era. In 2024, AI suggested code and you decided whether to use it. In 2026, agents write, debug, and deploy autonomously. The shift is simple: AI now replaces the first 80% of development, not just assists it.
       </p>
       <p>
-        The onboarding flow assumed users already understood the problem space. (They didn't.) The "simple" CSV import she'd requested choked on real-world data with unexpected formatting. Edge cases she'd never thought to mention — because why would she, she's not a developer — caused the whole thing to unravel.
+        That changes everything. When a human developer hits an ambiguity, they pause. They ask questions. They course-correct. An AI agent doesn't pause — it executes what you said, not what you meant.
       </p>
       <p>
-        Here's what happens when you skip the BRD: AI coding tools don't ask clarifying questions like a developer would. They execute what you give them — literally. Sarah's "PRD" was a Notion page with bullet points. No user flows. No edge cases. No acceptance criteria. The AI built exactly what she described. The problem was she described about 40% of what she actually needed.
+        Developers have scar tissue. They can smell a bad requirement mid-build. When AI generates something that doesn't match intent, a developer notices the architectural smell and fixes it. Non-developers don't have that radar. They see working code and assume the foundation is solid. By the time they discover the gaps, they're 20 prompts deep into a codebase with structural flaws that compound with every new feature.
       </p>
       <p>
-        The rebuild took four days. Not because the AI got faster, but because she finally wrote a proper BRD with structured requirements. User testing passed on the first attempt. The difference wasn't better prompting. It was better requirements.
-      </p>
-
-      <h2>What Builder.io Got Right — And Wrong</h2>
-      <p>On April 22, 2026, Builder.io ran an experiment: could 270 people go from PRD to working app in 60 minutes? They could. The workflow is real. The technology works. PRDs are genuinely the new starting point for software development.</p>
-      <p>But here's what Builder.io published on May 8, just two weeks later: "Agent Productivity Is Creating a Quality Debt." Speed is outpacing requirements discipline. Teams ship faster but rebuild more often. They've identified the problem beautifully.</p>
-      <p>The gap? Builder.io's event targeted developers, designers, and technical PMs. Non-developers weren't the audience. They flagged the quality debt issue but don't sell the solution — requirements tools that help non-technical founders get it right the first time.</p>
-      <p>
-        If you've spent 45 minutes explaining to Claude or Cursor why it built the wrong feature, you've felt this friction. Developers can refactor mid-flight when requirements are unclear. Non-developers don't know what to fix — or how. The result is usually an abandoned project or an expensive contractor rescue mission.
+        If you're a PM without a CS degree, you can't refactor your way out. You need the requirements to be right <em>before</em> the first line of code is generated.
       </p>
 
-      <h2>The Quality Debt Trap</h2>
-      <p>Let's talk about what happens with different AI coding approaches when your requirements are fuzzy:</p>
+      <h2>The Quality Debt Nobody's Tracking</h2>
+      <p>
+        Builder.io's May 2026 report found that teams ship 3x faster with AI agents, but 40% of shipped features require rework within 30 days because requirements were skipped. They called it quality debt — the accumulation of shortcuts that feel fine during the demo but collapse under real usage.
+      </p>
+      <p>
+        Quality debt accumulates when:
+      </p>
       <ul>
-        <li><strong>Vibe coding</strong> (Lovable, v0) takes your natural language and screenshots, then hallucinates features and misses edge cases you never specified.</li>
-        <li><strong>Agent coding</strong> (Cursor, Claude Code) ingests your Markdown PRDs and code context, then gives you literal interpretations of every ambiguous requirement.</li>
-        <li><strong>Template builders</strong> (Aha! Builder) force you into form-based requirements that lock you into their platform with limited export options.</li>
+        <li>Requirements are implicit, not explicit ("make it user-friendly")</li>
+        <li>Business logic is assumed, not documented ("handle errors appropriately")</li>
+        <li>Scope is fluid, not defined ("just add this one feature...")</li>
       </ul>
       <p>
-        None of these tools will ask you "what happens when a user tries to sign up with an email that already exists?" They'll just build something. Maybe it handles duplicates. Maybe it crashes. You won't know until a real user hits that path.
-      </p>
-      <p>
-        This is why BRDs matter more in the agent era than they did before. The speed of AI coding has created a dangerous illusion: that you can iterate your way to correctness. Developers can. They know the smell of technical debt. They can refactor on instinct. Non-developers ship broken experiences at unprecedented velocity, then wonder why users churn.
+        The compound interest problem? Each prompt amplifies the existing error. A slightly wrong data model becomes a completely wrong implementation by prompt #10. You're not fixing one bug. You're fixing a tower of assumptions. You're not debugging code. You're debugging intent.
       </p>
 
       <h2>The Non-Developer Workflow That Actually Works</h2>
-      <p>Here's the complete path from idea to working app if you don't have a CS degree:</p>
+      <p>
+        Here's the workflow I've been testing for six months:
+      </p>
       <ol>
-        <li><strong>ClearlyReqs</strong> — Answer wizard questions to generate a structured BRD + PRD. This isn't a generic template. It's exportable, versioned, and formatted for AI consumption.</li>
-        <li><strong>Export</strong> — Download AI-ready prompts formatted specifically for Cursor, Lovable, Claude Code, or whatever tool you prefer.</li>
-        <li><strong>BuildWithAI</strong> — Follow the non-developer guide to turn requirements into software. This bridges the gap between "having a BRD" and "knowing what to do with it."</li>
-        <li><strong>Iterate with guardrails</strong> — Update your BRD when scope changes. Use it as your source of truth, not a document you wrote once and forgot.</li>
+        <li><strong>Generate structured requirements (15 min)</strong> — Use <a href="/brd-generator">ClearlyReqs</a>' wizard to create a BRD/PRD covering problem definition through acceptance criteria.</li>
+        <li><strong>Export AI-ready prompts</strong> — Structured inputs formatted for Cursor, Lovable, Claude, or v0. The AI can actually parse them.</li>
+        <li><strong>Build with <a href="https://buildwithai.com" target="_blank" rel="noopener noreferrer">BuildWithAI</a></strong> — They teach non-developers how to deploy from exported requirements without getting lost in the tooling.</li>
+        <li><strong>Iterate without losing structure</strong> — Update requirements when scope shifts, re-export, and keep building. Your BRD is the single source of truth.</li>
       </ol>
-      <p>The key insight: requirements aren't overhead. They're the spell that makes the magic work. Without them, you're not coding with AI. You're gambling with it.</p>
-
-      <h2>The Gotchas Nobody Warns You About</h2>
-      <p>I've watched enough non-developers crash into AI coding to spot the patterns. Here are the traps that keep coming up:</p>
       <p>
-        <strong>Writing for humans, not AI.</strong> You write "the app should feel intuitive" and the AI builds... something. Generic. Bland. Technically meets your description while completely missing your intent. Fix: "Users complete onboarding in ≤3 taps with a progress indicator visible at all times."
-      </p>
-      <p>
-        <strong>Missing edge cases.</strong> You specify "users can sign up with email." The AI builds a form. You didn't say what happens with duplicate emails, validation rules, confirmation flows, or password reset. So none of that exists. Fix: Include acceptance criteria for every user story, even the ones that feel obvious.
-      </p>
-      <p>
-        <strong>Confusing BRD with PRD.</strong> The BRD is your "why" — business problem, stakeholders, success metrics. The PRD is your "what" — features, user stories, technical requirements. If you try to build from a BRD, you'll get a PowerPoint. If you try to validate a business case with a PRD, you'll drown in feature details. Fix: Generate both. Use the BRD to validate the problem; use the PRD to build the solution.
-      </p>
-      <p>
-        <strong>Treating requirements as set-and-forget.</strong> AI coding is iterative. Requirements should be too. That BRD you wrote on day one? It's wrong by day three. Fix: Version your BRD. ClearlyReqs tracks changes so you can regenerate prompts from any version without losing your history.
-      </p>
-      <p>
-        <strong>Platform lock-in.</strong> Aha! Builder is powerful, but it locks you into their ecosystem. Your requirements don't travel with you if you leave. Compare this to tool-agnostic BRDs that export to any AI coder you want.
+        This isn't bureaucracy. It's the spell that makes the magic work.
       </p>
 
-      <h2>A Different Way to Think About Requirements</h2>
-      <p>Here's the reframe that changed how I think about this: structured requirements aren't bureaucracy. They're the spell that makes the AI magic work.</p>
+      <h2>The Gotchas That Cost You Rebuilds</h2>
       <p>
-        In the pre-AI era, a sloppy BRD was annoying but survivable. Your developer would ask questions. They'd push back on ambiguity. They'd course-correct based on experience. The BRD was a starting point for conversation.
+        <strong>Platform Lock-In Disguised as "No-Code"</strong>
       </p>
       <p>
-        In the agentic era, your BRD is the conversation. AI tools execute what you specify with literal precision. They're not being difficult. They're being computers. The "quality debt" Builder.io warned about isn't caused by AI being bad at coding. It's caused by humans being bad at specifying.
+        Aha! Builder promises PMs can build without technical skills — but only inside Aha!. Your requirements, data model, and app logic are trapped in their ecosystem. You can't export to Cursor or Lovable later.
       </p>
-      <p>The good news? Getting requirements right is a learnable skill. You don't need to become a developer. You need to become a precise communicator. The tools are finally fast enough that your only bottleneck is clarity of thought.</p>
+      <p>
+        <em>Fix:</em> Start tool-agnostic. Write requirements in ClearlyReqs, then build anywhere.
+      </p>
+      <p>
+        <strong>The Developer-Only Demo</strong>
+      </p>
+      <p>
+        Builder.io's 270-person PRD-to-app event was real. But the participants were developers, designers, and technical PMs. Non-developers can't replicate this. The gap isn't the tool; it's the requirements literacy.
+      </p>
+      <p>
+        <em>Fix:</em> Use a BRD generator that translates business intent into technical requirements automatically.
+      </p>
+      <p>
+        <strong>Title/Meta Cannibalization</strong>
+      </p>
+      <p>
+        We learned this the hard way. Our <code>/brd-generator</code> page ranked at position 5.1 for "brd generator" with <strong>zero clicks</strong> because its title was identical to our homepage. Even great content fails if SERP snippets don't match search intent.
+      </p>
+      <p>
+        <em>Fix:</em> Every page needs a unique, intent-matched title. We fixed ours — learn from our mistake.
+      </p>
+      <p>
+        <strong>Vibe Coding Without Guardrails</strong>
+      </p>
+      <p>
+        Vibe coding works for MVPs and experiments. It fails for business-critical features where stakeholder alignment matters.
+      </p>
+      <p>
+        <em>Fix:</em> Use a lightweight BRD even for "quick" AI builds. 15 minutes of structure saves 15 hours of rebuilds.
+      </p>
 
-      <h2>Start Small, Start Now</h2>
-      <p>You don't need a 50-page BRD to start building. You need a clear answer to three questions:</p>
-      <ol>
-        <li>What problem are you solving, and for whom?</li>
-        <li>What does success look like for the user?</li>
-        <li>What could go wrong, and how should the app handle it?</li>
-      </ol>
-      <p>Spend 15 minutes in ClearlyReqs answering these questions with the wizard. Export the BRD. Test it against an AI coding tool. Watch what happens when the AI actually understands what you want.</p>
-      <p>The alternative is what Sarah experienced: three weeks of enthusiastic building, followed by the slow realization that you built the wrong thing beautifully. I've been there. It's demoralizing. It's expensive. And it's completely avoidable.</p>
-      <p>Agentic coding doesn't need faster vibes. It needs better requirements. The builders who figure this out first are going to ship circles around everyone else.</p>
+      <h2>Frequently Asked Questions</h2>
 
-      <h2>FAQ: Agentic Coding and Requirements</h2>
-      
+      <h3>Can AI turn a BRD into an app?</h3>
+      <p>
+        Yes. In 2026, tools like Cursor, Claude Code, Lovable, and v0 can ingest a structured BRD or PRD and generate a working application. The quality of the output depends entirely on the quality of the input: detailed user stories, clear acceptance criteria, and defined edge cases produce functional apps. Vague one-sentence prompts produce broken prototypes.
+      </p>
+
+      <h3>Do non-developers need a PRD?</h3>
+      <p>
+        Non-developers need a PRD <em>more</em> than developers do. A developer can course-correct ambiguous requirements by reading the code. A non-developer has no visibility into what's being built until it's deployed — and by then, fixing it requires starting over. A structured PRD is the non-developer's only quality control mechanism.
+      </p>
+
       <h3>What is the best BRD generator for AI projects?</h3>
-      <p>The best BRD generator for AI projects produces structured, exportable requirements formatted for AI coding tools. Look for export to Markdown or AI-ready prompts, pre-built sections for user stories and acceptance criteria, and integration with popular AI coders like Cursor, Lovable, and Claude Code. ClearlyReqs offers all of the above with a free tier.</p>
-
-      <h3>Can non-developers turn a BRD into a working app?</h3>
-      <p>Yes. Non-developers can turn a BRD into a working app using AI coding tools and guided learning. Generate a structured BRD with ClearlyReqs, export AI-ready prompts, and follow the BuildWithAI non-developer guide to build iteratively. The key is having properly structured requirements before you start — non-developers can't course-correct like engineers can.</p>
+      <p>
+        The best BRD generator for AI projects in 2026 is one that:
+      </p>
+      <ul>
+        <li>Outputs structured requirements (not just text blocks)</li>
+        <li>Exports directly into AI-ready prompts for Cursor, Claude, Lovable, v0, etc.</li>
+        <li>Includes problem definition, user stories, acceptance criteria, and edge cases</li>
+        <li>Offers version history so you can iterate as the AI build evolves</li>
+      </ul>
+      <p>
+        <a href="/brd-generator">ClearlyReqs</a> is purpose-built for this workflow — it generates BRDs and PRDs formatted specifically for agentic coding tools.
+      </p>
 
       <h3>What should a product requirements document include in 2026?</h3>
-      <p>A 2026-ready PRD should include: problem statement, user personas, user stories, acceptance criteria, edge cases, technical constraints, success metrics, and AI-ready export formatted for AI coding assistants.</p>
+      <p>
+        A 2026 PRD for AI-powered development should include:
+      </p>
+      <ol>
+        <li><strong>Problem statement</strong> — what user pain you're solving</li>
+        <li><strong>Business objectives</strong> — success metrics and stakeholder goals</li>
+        <li><strong>User stories</strong> — in "As a [role], I want [goal]" format</li>
+        <li><strong>Acceptance criteria</strong> — specific, testable conditions for "done"</li>
+        <li><strong>Edge cases</strong> — how the AI should handle errors, empty states, and misuse</li>
+        <li><strong>Integration points</strong> — APIs, databases, third-party services</li>
+        <li><strong>AI prompt exports</strong> — formatted inputs for your chosen coding agent</li>
+      </ol>
 
-      <h3>What is quality debt in AI development?</h3>
-      <p>Quality debt is the cost of rebuilding software shipped without proper requirements. As AI coding tools speed up development, teams ship faster but often need to rebuild because requirements were ambiguous, edge cases weren't considered, or user needs weren't validated. The fix is requirements-first development.</p>
+      <h3>What is the difference between a BRD and a PRD?</h3>
+      <p>
+        <strong>BRD (Business Requirements Document)</strong> — focused on <em>why</em> and <em>what</em> from a business perspective: objectives, stakeholders, success metrics, high-level scope. Best for alignment before technical planning.
+      </p>
+      <p>
+        <strong>PRD (Product Requirements Document)</strong> — focused on <em>how</em> the product works: features, user stories, UI/UX details, acceptance criteria. Best for guiding developers or AI agents during build.
+      </p>
+      <p>
+        In 2026, many teams merge these into a single document — especially when using AI generators that can produce both layers in one pass.
+      </p>
 
-      <h3>Do I need a BRD if I'm just vibe coding?</h3>
-      <p>Yes — especially if you're vibe coding. Vibe coding (using AI tools like Lovable or v0) is fast but unpredictable. A BRD acts as guardrails: it prevents feature creep, documents decisions for future you, makes handoffs possible, and creates a testing checklist. Without a BRD, vibe coding becomes "vibe rebuilding."</p>
+      <h2>Start Small, Start Now</h2>
+      <p>
+        Structured requirements aren't corporate overhead. They're the difference between a demo that impresses and a product that works. Between a weekend project and something you can actually ship.
+      </p>
+      <p>
+        If you've spent 45 minutes explaining to Claude why the dashboard needs real-time updates, you already know the pain. The AI isn't the problem. The requirements are.
+      </p>
+      <p>
+        Generate a free BRD in 15 minutes. Export it to your favorite AI coding tool. Build once, correctly.
+      </p>
+      <p>
+        Or keep vibing. Just don't be shocked when you're rebuilding it next week.
+      </p>
 
       <div className="not-prose bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-6 my-8">
-        <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">Ready to write requirements that actually work with AI coding tools?</p>
+        <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-3">Ready to build with requirements discipline?</p>
         <p className="text-gray-800 dark:text-gray-200 text-base mb-3">
-          ClearlyReqs generates structured BRDs with all the AI-specific sections your agents need. No prompt engineering required.
+          <a href="/brd-generator" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">Try ClearlyReqs free →</a>
         </p>
         <p className="text-gray-800 dark:text-gray-200 text-base">
-          Better requirements. Better output. Faster delivery.
+          Want the full non-developer build workflow? Check out <a href="https://buildwithai.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">BuildWithAI</a> for step-by-step guides on turning requirements into working apps.
         </p>
       </div>
 
       <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          <strong>Ready to write requirements that actually work with AI coding tools?</strong>{' '}
-          <a href="/brd-generator" className="text-primary-600 dark:text-primary-400 hover:underline">Generate your BRD now — free</a>
+          <strong>Download our free resources:</strong>
         </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-          <strong>Want to learn how to build from your BRD?</strong>{' '}
-          Check out <a href="https://buildwithai.com/start" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">BuildWithAI</a> for the non-developer's guide to turning requirements into working software.
-        </p>
+        <ul className="text-sm text-gray-600 dark:text-gray-400 mt-2 list-disc pl-5">
+          <li><a href="/templates/prd-template-2026" className="text-primary-600 dark:text-primary-400 hover:underline">PRD Template (2026 Edition)</a></li>
+          <li><a href="/downloads/brd-checklist-ai-projects.pdf" className="text-primary-600 dark:text-primary-400 hover:underline">BRD Checklist for AI Projects</a></li>
+        </ul>
       </div>
     </BlogPostLayout>
   );
