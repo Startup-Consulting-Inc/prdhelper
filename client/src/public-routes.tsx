@@ -1,5 +1,5 @@
 /**
- * Public Routes \u2014 SSR-safe route tree
+ * Public Routes — SSR-safe route tree
  *
  * Contains only public pages that have no dependency on Firebase, AuthContext,
  * or tRPC. Used by the SSR entry point to prerender public pages at build time.
@@ -9,6 +9,7 @@ import { Routes, Route } from 'react-router-dom';
 
 // Blog posts
 import BRDvsPRDPost from './pages/public/blog/BRDvsPRDPost';
+import BRDvsPRDDifference2026Post from './pages/public/blog/BRDvsPRDDifference2026Post';
 import HowToWriteABRD2026Post from './pages/public/blog/HowToWriteABRD2026Post';
 import PRDTemplateGuidePost from './pages/public/blog/PRDTemplateGuidePost';
 import AIRequirementsGatheringPost from './pages/public/blog/AIRequirementsGatheringPost';
@@ -64,6 +65,7 @@ export function PublicRoutes() {
     <Routes>
       {/* Blog posts */}
       <Route path="/blog/brd-vs-prd" element={<BRDvsPRDPost />} />
+      <Route path="/blog/brd-vs-prd-difference-2026" element={<BRDvsPRDDifference2026Post />} />
       <Route path="/blog/how-to-write-a-brd-2026" element={<HowToWriteABRD2026Post />} />
       <Route path="/blog/prd-template-guide" element={<PRDTemplateGuidePost />} />
       <Route path="/blog/ai-requirements-gathering" element={<AIRequirementsGatheringPost />} />
