@@ -1,5 +1,5 @@
 /**
- * Public Routes \u2014 SSR-safe route tree
+ * Public Routes — SSR-safe route tree
  *
  * Contains only public pages that have no dependency on Firebase, AuthContext,
  * or tRPC. Used by the SSR entry point to prerender public pages at build time.
@@ -33,6 +33,7 @@ import CSDegreeAIEraPost from './pages/public/blog/CSDegreeAIEraPost';
 import DatabaseLandscapeAIEraPost from './pages/public/blog/DatabaseLandscapeAIEraPost';
 import AgenticCodingRequirements2026Post from './pages/public/blog/AgenticCodingRequirements2026Post';
 import AgenticCodingNeedsRequirements2026Post from './pages/public/blog/AgenticCodingNeedsRequirements2026Post';
+import AgenticCodingNeedsRequirementsSep2026Post from './pages/public/blog/AgenticCodingNeedsRequirementsSep2026Post';
 
 // Tool pages
 import BRDGeneratorPage from './pages/public/BRDGeneratorPage';
@@ -88,6 +89,7 @@ export function PublicRoutes() {
       <Route path="/blog/database-landscape-ai-era" element={<DatabaseLandscapeAIEraPost />} />
       <Route path="/blog/agentic-coding-requirements-2026" element={<AgenticCodingRequirements2026Post />} />
       <Route path="/blog/agentic-coding-needs-requirements-2026" element={<AgenticCodingNeedsRequirements2026Post />} />
+      <Route path="/blog/agentic-coding-needs-requirements-sep-2026" element={<AgenticCodingNeedsRequirementsSep2026Post />} />
 
       {/* Tool pages */}
       <Route path="/brd-generator" element={<BRDGeneratorPage />} />
