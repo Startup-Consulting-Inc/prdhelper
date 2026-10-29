@@ -57,6 +57,17 @@ export default function BlogPage() {
 
   const blogPosts = [
     {
+      id: 48,
+      slug: 'agentic-coding-needs-better-requirements-2026',
+      title: 'Why Agentic Coding Needs Better Requirements — Not Faster Vibes (2026 Edition)',
+      excerpt:
+        "Builder.io proved 270 developers can build from a PRD in 60 minutes. They didn't measure how many rebuilt the next week. Here's how to avoid AI coding's hidden quality debt.",
+      author: 'ClearlyReqs Team',
+      date: '2026-10-29',
+      readTime: '10 min read',
+      category: 'AI & Development',
+    },
+    {
       id: 47,
       slug: 'agentic-coding-needs-requirements-2026',
       title: 'Why Agentic Coding Needs Better Requirements \u2014 Not Faster Vibes (2026)',
